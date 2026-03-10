@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { loginUserApi } from '../../services/authService';
+import { useNavigate } from 'react-router-dom';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+    
     try {
       const data = await loginUserApi(email, password);
-      login(data);
+      login(data.access);
+      navigate('/'); 
     } catch (err) {
-      alert("Ошибка: Неверные данные");
+      setError("Неверный логин или пароль. Попробуйте снова.");
     } finally {
       setLoading(false);
     }
@@ -36,7 +43,7 @@ export const LoginForm = () => {
           <input
             type="text"
             placeholder="E-mail или номер телефона"
-            className="w-full h-[48px] bg-[#F3F3F3] rounded-[4px] px-[22px] text-[16px] outline-none placeholder-[#757575]"
+            className={`w-full h-[48px] bg-[#F3F3F3] rounded-[4px] px-[22px] text-[16px] outline-none placeholder-[#757575] border-2 ${error ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -49,7 +56,7 @@ export const LoginForm = () => {
           <input
             type="password"
             placeholder="Пароль"
-            className="w-full h-[48px] bg-[#F3F3F3] rounded-[4px] px-[22px] text-[16px] outline-none placeholder-[#757575]"
+            className={`w-full h-[48px] bg-[#F3F3F3] rounded-[4px] px-[22px] text-[16px] outline-none placeholder-[#757575] border-2 ${error ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -59,11 +66,16 @@ export const LoginForm = () => {
           </span>
         </div>
 
-        {/* Submit Button */}
+        {error && (
+          <div className="text-red-500 text-sm font-medium animate-in fade-in duration-300">
+            {error}
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={loading}
-          className="w-full h-[48px] bg-[#1677FF] rounded-[8px] text-white text-[20px] font-medium flex items-center justify-center transition-opacity hover:opacity-90 mt-[10px] disabled:bg-gray-400"
+          className="w-full h-[48px] bg-[#1677FF] rounded-[8px] text-white text-[20px] font-medium flex items-center justify-center transition-opacity hover:opacity-90 disabled:bg-gray-400"
         >
           {loading ? 'Загрузка...' : 'Войти'}
         </button>
