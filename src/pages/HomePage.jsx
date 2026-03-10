@@ -1,59 +1,33 @@
 import { useEffect, useState } from 'react';
 import { fetchTasksApi } from '../services/taskService';
-import { ActionMenu } from '../components/HomePage/ActionMenu';
+import { TaskFilters } from '../components/HomePage/TaskFilters';
+import { TaskTabs } from '../components/HomePage/TaskTabs';
+import { TaskTable } from '../components/HomePage/TaskTable';
+import { Pagination } from '../components/HomePage/Pagination';
 
 export const HomePage = () => {
-  const [tasks, setTasks] = useState([]);
+  const [data, setData] = useState({ results: [], count: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchTasksApi().then(data => setTasks(data.results));
+    fetchTasksApi()
+      .then(res => {
+        setData(res);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
 
-  const getStatusStyle = (status) => {
-    const styles = {
-      completed: 'bg-green-50 text-green-600',
-      created: 'bg-gray-50 text-gray-600',
-      revision: 'bg-blue-50 text-blue-600',
-    };
-    return styles[status] || styles.created;
-  };
+  if (loading) return <div className="p-10 text-center text-gray-500">Загрузка данных...</div>;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-      <table className="w-full text-left border-collapse">
-        <thead className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
-          <tr>
-            <th className="px-6 py-4">Компания</th>
-            <th className="px-6 py-4">Тема задачи</th>
-            <th className="px-6 py-4">Исполнитель</th>
-            <th className="px-6 py-4">Статус</th>
-            <th className="px-6 py-4">Дедлайн</th>
-            <th className="px-6 py-4"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 text-sm">
-          {tasks.map((task) => (
-            <tr key={task.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-6 py-4 font-medium">{task.title}</td>
-              <td className="px-6 py-4 text-gray-600">{task.title}</td>
-              <td className="px-6 py-4">
-                {task.assignees[0]?.first_name} {task.assignees[0]?.last_name}
-              </td>
-              <td className="px-6 py-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(task.status)}`}>
-                  {task.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 text-gray-500">
-                {new Date(task.deadline).toLocaleDateString()}
-              </td>
-              <td className="px-6 py-4">
-                <ActionMenu />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-full flex flex-col overflow-hidden">
+      <TaskFilters />
+      <TaskTabs />
+      <div className="flex-1 overflow-hidden">
+        <TaskTable tasks={data.results} />
+      </div>
+      <Pagination count={data.count} />
     </div>
   );
 };

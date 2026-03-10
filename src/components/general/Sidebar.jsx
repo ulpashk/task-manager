@@ -21,9 +21,9 @@ export const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <aside className="w-[250px] min-h-screen bg-white border-r border-gray-100 flex flex-col p-6 fixed left-0 top-0">
+    <aside className="w-[250px] h-full bg-white border-r border-gray-100 flex flex-col p-6 flex-shrink-0 z-10">
       <div className="mb-10 px-4">
-        <h1 className="text-xl font-bold text-gray-800">Web admin</h1>
+        <h1 className="text-xl font-bold text-gray-800 uppercase tracking-tight">Web admin</h1>
       </div>
       <nav className="flex-1 space-y-1">
         {menuItems.map((item) => (

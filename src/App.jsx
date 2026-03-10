@@ -4,7 +4,7 @@ import { ProtectedRoute } from './components/routes/ProtectedRoute';
 import { PublicRoute } from './components/routes/PublicRoute';
 import { LoginPage } from './pages/LoginPage';
 import { HomePage } from './pages/HomePage';
-import { MainLayout } from './components/HomePage/MainLayout';
+import { MainLayout } from './components/general/MainLayout';
 import { KanbanPage } from './pages/KanbanPage';
 
 const NotFoundRedirect = () => {
