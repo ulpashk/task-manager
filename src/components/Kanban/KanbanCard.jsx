@@ -15,9 +15,9 @@ export const KanbanCard = ({ task }) => {
       {/* Header: Company Info */}
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">
-          <img src={`https://ui-avatars.com/api/?name=${task.client}`} alt="" className="w-8 h-8 rounded-md" />
+          <img src={`https://ui-avatars.com/api/?name=${task.client?.name}`} alt="" className="w-8 h-8 rounded-md" />
           <div className="flex flex-col">
-            <span className="text-[11px] font-bold text-gray-700 leading-tight">{task.client}</span>
+            <span className="text-[11px] font-bold text-gray-700 leading-tight">{task.client?.name}</span>
             <span className="text-[10px] text-gray-400">Петропавловск</span>
           </div>
         </div>

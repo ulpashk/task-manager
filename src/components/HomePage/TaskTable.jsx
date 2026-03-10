@@ -41,9 +41,9 @@ export const TaskTable = ({ tasks }) => {
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
-                    <img src={`https://ui-avatars.com/api/?name=${task.client}`} alt="logo" />
+                    <img src={`https://ui-avatars.com/api/?name=${task.client?.name}`} alt="logo" />
                   </div>
-                  <span className="font-medium text-gray-700 truncate max-w-[150px]">{task.client}</span>
+                  <span className="font-medium text-gray-700 truncate max-w-[150px]">{task.client?.name}</span>
                 </div>
               </td>
               <td className="px-6 py-4 text-gray-600 max-w-[200px] truncate">{task.title}</td>
