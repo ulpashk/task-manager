@@ -19,7 +19,7 @@ export const LoginForm = () => {
     
     try {
       const data = await loginUserApi(email, password);
-      login(data.access);
+      login(data.access, data.refresh);
       navigate('/'); 
     } catch (err) {
       setError("Неверный логин или пароль. Попробуйте снова.");
