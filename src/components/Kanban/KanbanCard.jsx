@@ -1,5 +1,5 @@
 import { Paperclip, MessageSquare, Calendar } from 'lucide-react';
-import { ActionMenu } from '../HomePage/ActionMenu';
+import { ActionMenu } from '../TasksTablePage/ActionMenu';
 
 export const KanbanCard = ({ task }) => {
   const getPriorityStyle = (priority) => {
@@ -12,7 +12,6 @@ export const KanbanCard = ({ task }) => {
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3">
-      {/* Header: Company Info */}
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">
           <img src={`https://ui-avatars.com/api/?name=${task.client?.name}`} alt="" className="w-8 h-8 rounded-md" />
@@ -24,12 +23,10 @@ export const KanbanCard = ({ task }) => {
         <ActionMenu />
       </div>
 
-      {/* Title */}
       <h4 className="text-[13px] font-bold text-gray-800 leading-snug">
         {task.title}
       </h4>
 
-      {/* Roles: Assignee & Initiator */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <img src="https://ui-avatars.com/api/?name=Assignee" className="w-5 h-5 rounded-full" alt="" />
@@ -47,20 +44,17 @@ export const KanbanCard = ({ task }) => {
         </div>
       </div>
 
-      {/* Tag Badge */}
       <div>
         <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-[10px] border border-blue-100 font-bold">
           {task.tags[0]?.name || 'База данных'}
         </span>
       </div>
 
-      {/* Deadline */}
       <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
         <Calendar size={13} />
         <span>Дедлайн: <span className="text-red-500 font-medium">{new Date(task.deadline).toLocaleDateString()} 15:00</span></span>
       </div>
 
-      {/* Footer Stats & Priority */}
       <div className="flex justify-between items-center pt-1 border-t border-gray-50 mt-1">
         <div className="flex items-center gap-3 text-gray-400">
           <div className="flex items-center gap-1 text-[11px]">

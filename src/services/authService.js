@@ -15,7 +15,6 @@
 import axiosInstance from '../api/axiosConfig';
 
 export const loginUserApi = async (email, password) => {
-  // This call will set the HttpOnly cookie in the browser automatically
   const response = await axiosInstance.post('/api/auth/token/', { email, password });
-  return response.data; // { access: "..." }
+  return response.data;
 };

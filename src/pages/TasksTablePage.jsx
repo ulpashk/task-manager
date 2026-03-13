@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { fetchTasksApi } from '../services/taskService';
-import { TaskFilters } from '../components/HomePage/TaskFilters';
-import { TaskTabs } from '../components/HomePage/TaskTabs';
-import { TaskTable } from '../components/HomePage/TaskTable';
-import { Pagination } from '../components/HomePage/Pagination';
+import { TaskFilters } from '../components/TasksTablePage/TaskFilters';
+import { TaskTabs } from '../components/TasksTablePage/TaskTabs';
+import { TaskTable } from '../components/TasksTablePage/TaskTable';
+import { Pagination } from '../components/TasksTablePage/Pagination';
 
-export const HomePage = () => {
+export const TasksTablePage = () => {
   const [data, setData] = useState({ results: [], count: 0 });
   const [loading, setLoading] = useState(true);
 

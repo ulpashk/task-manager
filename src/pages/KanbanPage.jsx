@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchTasksApi } from '../services/taskService';
-import { TaskFilters } from '../components/HomePage/TaskFilters';
+import { TaskFilters } from '../components/TasksTablePage/TaskFilters';
 import { KanbanColumn } from '../components/Kanban/KanbanColumn';
 
 const COLUMNS = [

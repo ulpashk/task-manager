@@ -1,11 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Search, Settings, Bell, ChevronDown, LogOut, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { NAVIGATION_ITEMS } from '../../config/navigation';
 
 export const Header = () => {
   const { user, logout } = useAuth();
+  const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  const activeItem = NAVIGATION_ITEMS.find(item => item.path === location.pathname);
+  const pageTitle = activeItem ? activeItem.title : 'Заявки';
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -19,7 +25,7 @@ export const Header = () => {
 
   return (
     <header className="h-[70px] w-full bg-white border-b border-gray-100 flex items-center justify-between px-8 bg-white z-20">
-      <h2 className="text-2xl font-bold text-gray-800">Заявки</h2>
+      <h2 className="text-2xl font-bold text-gray-800">{pageTitle}</h2>
 
       <div className="flex items-center gap-6">
         <div className="relative">

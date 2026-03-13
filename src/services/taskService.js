@@ -1,5 +1,4 @@
 import axiosInstance from '../api/axiosConfig';
-import { formatISO } from 'date-fns';
 
 export const fetchTasksApi = async () => {
   try {
@@ -11,7 +10,6 @@ export const fetchTasksApi = async () => {
 };
 
 export const fetchTasksByDateRange = async (start, end) => {
-  // .toISOString() produces: 2026-02-22T19:00:00.000Z
   const deadline_from = start.toISOString();
   const deadline_to = end.toISOString();
   

@@ -64,7 +64,6 @@ export const LoginForm = () => {
       </h1>
 
       <form onSubmit={handleSubmit} className="w-[441px] flex flex-col gap-[20px]">
-        {/* Email Field */}
         <div className="flex flex-col gap-[10px]">
           <label className="text-[16px] font-medium text-black">
             E-mail или номер телефона
@@ -79,7 +78,6 @@ export const LoginForm = () => {
           />
         </div>
 
-        {/* Password Field */}
         <div className="flex flex-col gap-[10px]">
           <label className="text-[16px] font-medium text-black">Пароль</label>
           <input

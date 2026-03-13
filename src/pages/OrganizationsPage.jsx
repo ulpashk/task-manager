@@ -15,7 +15,6 @@ export const OrganizationsPage = () => {
         setErrorMessage(null);
       })
       .catch(err => {
-        // If the backend returns 403
         if (err.response?.status === 403 || err.status === 403) {
           setErrorMessage("Доступ запрещен. У вас недостаточно прав для просмотра организаций.");
         } else {
@@ -25,15 +24,15 @@ export const OrganizationsPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-10 text-center text-gray-400">Загрузка организаций...</div>;
+  if (loading) return <div className="p-10 text-center text-gray-400">Загрузка компаний...</div>;
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Organizations</h2>
+        <h2 className="text-2xl font-bold text-gray-800">Компании</h2>
         {!errorMessage && (
             <button className="bg-[#3F51B5] hover:bg-[#303F9F] text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors">
-                <Plus size={20}/> New Organization
+                <Plus size={20}/> Новая компания
             </button>
         )}
       </div>

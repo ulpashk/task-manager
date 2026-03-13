@@ -76,16 +76,14 @@ import axiosInstance, { setAuthToken } from '../api/axiosConfig';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Match Angular: getStoredUser() from localStorage for UI display
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem('user_info');
     return stored ? JSON.parse(stored) : null;
   });
   
-  const [token, setToken] = useState(null); // In memory only
+  const [token, setToken] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
-  // Exact replica of Angular's decodeAndStoreUser
   const login = (access) => {
     try {
       const payload = JSON.parse(atob(access.split('.')[1]));
@@ -97,9 +95,9 @@ export const AuthProvider = ({ children }) => {
         organization_id: payload.organization_id ?? null,
       };
 
-      setAuthToken(access); // Axios memory
-      setToken(access);     // React memory
-      setUser(userInfo);    // React memory
+      setAuthToken(access);
+      setToken(access);
+      setUser(userInfo);
       
       localStorage.setItem('user_info', JSON.stringify(userInfo));
     } catch (e) {
@@ -116,18 +114,15 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  // Exact replica of Angular's tryRestoreSession
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        // Send empty body, browser attaches HttpOnly cookie
         const res = await axiosInstance.post('/api/auth/token/refresh/', {});
         if (res.data.access) {
           login(res.data.access);
         }
       } catch (err) {
         console.warn("Session restoration failed (No valid cookie)");
-        // Don't call logout() here, just ensure token is null
         setToken(null); 
       } finally {
         setIsInitializing(false);
@@ -141,7 +136,6 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{ user, token, login, logout, isInitializing }}>
       {isInitializing ? (
         <div className="h-screen flex items-center justify-center bg-[#f9f9f9] text-gray-400">
-           {/* Add a spinner here if you want to match Angular */}
            Загрузка...
         </div>
       ) : (
