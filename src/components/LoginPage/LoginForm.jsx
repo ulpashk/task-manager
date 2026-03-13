@@ -12,6 +12,22 @@ export const LoginForm = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setError('');
+    
+  //   try {
+  //     const data = await loginUserApi(email, password);
+  //     login(data.access);
+  //     navigate('/'); 
+  //   } catch (err) {
+  //     setError("Неверный логин или пароль. Попробуйте снова.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -19,10 +35,23 @@ export const LoginForm = () => {
     
     try {
       const data = await loginUserApi(email, password);
-      login(data.access, data.refresh);
-      navigate('/'); 
+      
+      login(data.access);
+
+      const payload = JSON.parse(atob(data.access.split('.')[1]));
+      const role = payload.role;
+
+      if (role === 'superadmin') {
+        navigate('/organizations');
+      } else if (role === 'client') {
+        navigate('/portal');
+      } else {
+        navigate('/');
+      }
+
     } catch (err) {
-      setError("Неверный логин или пароль. Попробуйте снова.");
+      const detail = err.response?.data?.detail || "Неверный логин или пароль";
+      setError(detail);
     } finally {
       setLoading(false);
     }

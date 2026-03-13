@@ -2,17 +2,15 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/routes/ProtectedRoute';
 import { PublicRoute } from './components/routes/PublicRoute';
+import { HomeRedirect } from './components/routes/HomeRedirect';
 import { MainLayout } from './components/general/MainLayout';
 import { LoginPage } from './pages/LoginPage';
-
-// The Central Config
 import { NAVIGATION_ITEMS } from './config/navigation';
 
-// A single wrapper that checks roles based on the config item
 const RoleGuard = ({ item, children }) => {
   const { user } = useAuth();
   if (!item.allowedRoles.includes(user?.role)) {
-    return <Navigate to="/" replace />;
+    return <HomeRedirect />; 
   }
   return children;
 };
@@ -22,16 +20,13 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* 1. Public Login */}
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<LoginPage />} />
           </Route>
 
-          {/* 2. Protected Dashboard */}
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
-              
-              {/* WE LOOP THROUGH THE CONFIG HERE */}
+              <Route path="/" element={<HomeRedirect />} />
               {NAVIGATION_ITEMS.map((item) => (
                 <Route 
                   key={item.path}
@@ -43,12 +38,10 @@ function App() {
                   } 
                 />
               ))}
-
             </Route>
           </Route>
 
-          {/* 3. Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<HomeRedirect />} />
         </Routes>
       </Router>
     </AuthProvider>

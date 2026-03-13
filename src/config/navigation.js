@@ -1,16 +1,16 @@
-import { Table as TableIcon, LayoutDashboard, Building2, Users, Settings } from 'lucide-react';
+import { Table as TableIcon, LayoutDashboard, Building2, Users, Settings, Calendar } from 'lucide-react';
 
-// Import your pages
 import { HomePage } from '../pages/HomePage';
 import { KanbanPage } from '../pages/KanbanPage';
 import { OrganizationsPage } from '../pages/OrganizationsPage';
 import { UsersPage } from '../pages/UsersPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { CalendarPage } from '../pages/CalendarPage';
 
 export const NAVIGATION_ITEMS = [
   {
     label: 'Таблица',
-    path: '/',
+    path: '/tasks',
     icon: TableIcon,
     component: HomePage,
     allowedRoles: ['superadmin', 'admin', 'manager', 'engineer', 'client'],
@@ -28,6 +28,13 @@ export const NAVIGATION_ITEMS = [
     icon: Building2,
     component: OrganizationsPage,
     allowedRoles: ['superadmin'], 
+  },
+  {
+    label: 'Календарь',
+    path: '/calendar',
+    icon: Calendar,
+    component: CalendarPage,
+    allowedRoles: ['manager', 'engineer', 'client'], 
   },
   {
     label: 'Пользователи',
