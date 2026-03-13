@@ -1,6 +1,6 @@
 import { Table as TableIcon, LayoutDashboard, Building2, Users, Settings, Calendar, BarChart2, Archive, Tag } from 'lucide-react';
 
-import { TasksTablePage } from '../pages/TasksTablePage';
+import { TasksTablePage } from '../pages/TasksPage';
 import { KanbanPage } from '../pages/KanbanPage';
 import { OrganizationsPage } from '../pages/OrganizationsPage';
 import { UsersPage } from '../pages/UsersPage';
@@ -57,7 +57,7 @@ export const NAVIGATION_ITEMS = [
     path: '/users',
     icon: Users,
     component: UsersPage,
-    allowedRoles: ['superadmin', 'admin', 'manager'],
+    allowedRoles: ['manager'],
   },
   {
     label: 'Архив',

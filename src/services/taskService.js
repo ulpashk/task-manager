@@ -1,8 +1,8 @@
 import axiosInstance from '../api/axiosConfig';
 
-export const fetchTasksApi = async () => {
+export const fetchTasksApi = async (params = {}) => {
   try {
-    const response = await axiosInstance.get('/api/tasks/');
+    const response = await axiosInstance.get('/api/tasks/', { params });
     return response.data;
   } catch (error) {
     throw error.response?.data || 'Error fetching tasks';

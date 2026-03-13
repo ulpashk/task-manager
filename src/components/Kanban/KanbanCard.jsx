@@ -1,14 +1,12 @@
 import { Paperclip, MessageSquare, Calendar } from 'lucide-react';
-import { ActionMenu } from '../TasksTablePage/ActionMenu';
+import { ActionMenu } from '../TasksPage/ActionMenu';
 
 export const KanbanCard = ({ task }) => {
   const getPriorityStyle = (priority) => {
-    if (priority === 'high') return 'bg-red-50 text-red-500 border-red-100';
-    if (priority === 'medium') return 'bg-orange-50 text-orange-500 border-orange-100';
+    if (priority === 'high' || priority === 'HIGH') return 'bg-red-50 text-red-500 border-red-100';
+    if (priority === 'medium' || priority === 'MEDIUM') return 'bg-orange-50 text-orange-500 border-orange-100';
     return 'bg-gray-50 text-gray-500 border-gray-100';
   };
-
-  const priorityLabel = { high: 'Высокий', medium: 'Средний', low: 'Низкий' }[task.priority] || 'Низкий';
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3">
@@ -17,7 +15,7 @@ export const KanbanCard = ({ task }) => {
           <img src={`https://ui-avatars.com/api/?name=${task.client?.name}`} alt="" className="w-8 h-8 rounded-md" />
           <div className="flex flex-col">
             <span className="text-[11px] font-bold text-gray-700 leading-tight">{task.client?.name}</span>
-            <span className="text-[10px] text-gray-400">Петропавловск</span>
+            <span className="text-[10px] text-gray-400">Алматы</span>
           </div>
         </div>
         <ActionMenu />
@@ -65,7 +63,7 @@ export const KanbanCard = ({ task }) => {
           </div>
         </div>
         <span className={`px-2 py-0.5 rounded-full text-[10px] border font-bold ${getPriorityStyle(task.priority)}`}>
-          {priorityLabel}
+          {(task.priority === 'high' || task.priority === 'HIGH') ? 'Высокий' : (task.priority === 'medium' || task.priority === 'MEDIUM') ? 'Средний' : 'Низкий'}
         </span>
       </div>
     </div>

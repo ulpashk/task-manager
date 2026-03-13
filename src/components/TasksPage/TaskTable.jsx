@@ -2,22 +2,27 @@ import { ActionMenu } from './ActionMenu';
 
 export const TaskTable = ({ tasks }) => {
   const getPriorityStyle = (priority) => {
-    if (priority === 'high') return 'bg-red-50 text-red-500 border-red-100';
-    if (priority === 'medium') return 'bg-orange-50 text-orange-500 border-orange-100';
+    if (priority === 'high' || priority === 'HIGH') return 'bg-red-50 text-red-500 border-red-100';
+    if (priority === 'medium' || priority === 'MEDIUM') return 'bg-orange-50 text-orange-500 border-orange-100';
     return 'bg-gray-50 text-gray-500 border-gray-100';
   };
 
   const getStatusStyle = (status) => {
     if (status === 'completed') return 'bg-green-50 text-green-500';
+    if (status === 'TODO') return 'bg-gray-50 text-gray-500';
+    if (status === 'IN_PROGRESS') return 'bg-yellow-50 text-yellow-500';
     if (status === 'revision') return 'bg-blue-50 text-blue-500';
     if (status === 'in_progress') return 'bg-indigo-50 text-indigo-500';
     return 'bg-gray-100 text-gray-500';
   };
 
-  const getStatusLabel = (s) => ({
-    completed: 'Выполнено', revision: 'На доработке', 
-    in_progress: 'В обработке', created: 'Не начато'
-  }[s] || s);
+  const getStatusLabel = (s) => {
+    if (s === 'completed' || s === 'Completed' || s === 'COMPLETED') return 'Выполнено';
+    if (s === 'todo' || s === 'Todo' || s === 'TODO') return 'Не начато';
+    if (s === 'in_progress' || s === 'In_progress' || s === 'IN_PROGRESS') return 'В обработке';
+    if (s === 'revision' || s === 'Revision' || s === 'REVISION') return 'На доработке';
+    return s;
+  }
 
   return (
     <div className="h-full overflow-y-auto custom-scrollbar">
@@ -61,7 +66,7 @@ export const TaskTable = ({ tasks }) => {
               <td className="px-6 py-4 text-gray-600">Кемелбай Мерей</td>
               <td className="px-6 py-4 text-center">
                 <span className={`px-3 py-1 rounded-full text-xs border font-medium ${getPriorityStyle(task.priority)}`}>
-                  {task.priority === 'high' ? 'Высокий' : task.priority === 'medium' ? 'Средний' : 'Низкий'}
+                  {(task.priority === 'high' || task.priority === 'HIGH') ? 'Высокий' : (task.priority === 'medium' || task.priority === 'MEDIUM') ? 'Средний' : 'Низкий'}
                 </span>
               </td>
               <td className="px-6 py-4 text-center">
