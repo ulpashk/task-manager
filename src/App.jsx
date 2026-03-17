@@ -6,6 +6,7 @@ import { HomeRedirect } from './components/routes/HomeRedirect';
 import { MainLayout } from './components/general/MainLayout';
 import { LoginPage } from './pages/LoginPage';
 import { NAVIGATION_ITEMS } from './config/navigation';
+import { ClientDetailPage } from './pages/ClientPage/ClientDetailPage';
 
 const RoleGuard = ({ item, children }) => {
   const { user } = useAuth();
@@ -38,8 +39,16 @@ function App() {
                   } 
                 />
               ))}
+              <Route 
+                path="/clients/:id" 
+                element={
+                  <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/clients')}>
+                    <ClientDetailPage />
+                  </RoleGuard>
+                } 
+              />
             </Route>
-          </Route>
+            </Route>
 
           <Route path="*" element={<HomeRedirect />} />
         </Routes>

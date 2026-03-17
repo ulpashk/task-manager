@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, LayoutGrid, List, Plus, ChevronDown } from 'lucide-react';
 import { FilterDropdown } from './FilterDropdown';
 
-export const TaskFilters = ({ filters={}, onFilterChange }) => {
+export const TaskFilters = ({ filters={}, onFilterChange, onAddClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -53,7 +53,9 @@ export const TaskFilters = ({ filters={}, onFilterChange }) => {
               <LayoutGrid size={18} />
             </button>
           </div>
-          <button className="bg-[#1677FF] text-white px-4 py-2 rounded-lg flex items-center gap-2 font-semibold hover:bg-blue-600 transition-all shadow-sm active:scale-95">
+          <button
+            onClick={onAddClick}
+            className="bg-[#1677FF] text-white px-4 py-2 rounded-lg flex items-center gap-2 font-semibold hover:bg-blue-600 transition-all shadow-sm active:scale-95">
             <Plus size={20}/> Добавить
           </button>
         </div>

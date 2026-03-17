@@ -31,7 +31,7 @@ export const TaskTable = ({ tasks }) => {
           <tr>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Наименование компании</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Тема задачи</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Тип</th>
+            {/* <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Тип</th> */}
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Исполнитель</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Инициатор</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">Приоритет</th>
@@ -52,11 +52,11 @@ export const TaskTable = ({ tasks }) => {
                 </div>
               </td>
               <td className="px-6 py-4 text-gray-600 max-w-[200px] truncate">{task.title}</td>
-              <td className="px-6 py-4">
+              {/* <td className="px-6 py-4">
                 <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded-md text-xs border border-purple-100 font-medium">
                   {task.tags[0]?.name || 'Общий'}
                 </span>
-              </td>
+              </td> */}
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
                   <img className="w-6 h-6 rounded-full" src={`https://ui-avatars.com/api/?name=${task.assignees[0]?.first_name}`} alt="" />

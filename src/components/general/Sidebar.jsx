@@ -17,7 +17,6 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         isCollapsed ? 'w-[80px]' : 'w-[250px]'
       }`}
     >
-      {/* Sidebar Top: Logo + Toggle Button */}
       <div className="h-[70px] flex items-center justify-between px-6 border-b border-transparent">
         {!isCollapsed && (
           <span className="font-bold text-lg whitespace-nowrap overflow-hidden">
@@ -37,13 +36,15 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
       <nav className="flex-1 space-y-1 p-4">
         {visibleItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+          const isActive = item.path === '/' 
+            ? location.pathname === '/' 
+            : location.pathname.startsWith(item.path);
           
           return (
             <Link
               key={item.path}
               to={item.path}
-              title={isCollapsed ? item.label : ""} // Tooltip when collapsed
+              title={isCollapsed ? item.label : ""}
               className={`flex items-center rounded-lg text-sm font-medium transition-all group ${
                 isCollapsed ? 'justify-center py-3' : 'px-4 py-3 gap-3'
               } ${

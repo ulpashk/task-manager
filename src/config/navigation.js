@@ -3,6 +3,7 @@ import { Table as TableIcon, LayoutDashboard, Building2, Users, Settings, Calend
 import { TasksTablePage } from '../pages/TasksPage';
 import { KanbanPage } from '../pages/KanbanPage';
 import { OrganizationsPage } from '../pages/OrganizationsPage';
+import { ClientsPage } from '../pages/ClientPage/ClientPage';
 import { UsersPage } from '../pages/UsersPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { CalendarPage } from '../pages/CalendarPage';
@@ -12,8 +13,8 @@ import { TagsPage } from '../pages/TagsPage';
 
 export const NAVIGATION_ITEMS = [
   {
-    label: 'Компании',
-    title: 'Список компании',
+    label: 'Организации',
+    title: 'Список организаций',
     path: '/organizations',
     icon: Building2,
     component: OrganizationsPage,
@@ -58,6 +59,14 @@ export const NAVIGATION_ITEMS = [
     icon: Users,
     component: UsersPage,
     allowedRoles: ['manager'],
+  },
+  {
+    label: 'Компании',
+    title: 'Список компаний',
+    path: '/clients',
+    icon: Building2,
+    component: ClientsPage,
+    allowedRoles: ['manager', 'engineer', 'client'],
   },
   {
     label: 'Архив',

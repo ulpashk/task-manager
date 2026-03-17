@@ -3,11 +3,13 @@ import { fetchTasksApi } from '../services/taskService';
 import { TaskFilters } from '../components/TasksPage/TaskFilters';
 import { TaskTabs } from '../components/TasksPage/TaskTabs';
 import { TaskTable } from '../components/TasksPage/TaskTable';
+import { AddTaskModal } from '../components/TasksPage/AddTaskModal';
 import { Pagination } from '../components/general/Pagination';
 
 export const TasksTablePage = () => {
   const [data, setData] = useState({ results: [], count: 0 });
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 9;
 
@@ -54,7 +56,8 @@ export const TasksTablePage = () => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-full flex flex-col overflow-hidden font-sans">
       <TaskFilters
         filters={filters}
-        onFilterChange={handleFilterChange}  
+        onFilterChange={handleFilterChange}
+        onAddClick={() => setIsModalOpen(true)}
       />
       <TaskTabs 
         activeStatus={filters.status} 
@@ -74,6 +77,12 @@ export const TasksTablePage = () => {
         pageSize={pageSize} 
         currentPage={currentPage} 
         onPageChange={(page) => setCurrentPage(page)} 
+      />
+
+      <AddTaskModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        onRefresh={loadTasks}
       />
     </div>
   );

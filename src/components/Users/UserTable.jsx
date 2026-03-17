@@ -1,4 +1,5 @@
 import { ActionMenu } from '../TasksPage/ActionMenu';
+import { formatPhoneNumber } from '../../utils/formatters';
 
 export const UserTable = ({ users }) => {
   const roleLabels = {
@@ -33,7 +34,7 @@ export const UserTable = ({ users }) => {
                 {roleLabels[user.role] || user.role}
               </td>
               <td className="px-6 py-5 text-gray-500">
-                {user.phone_number || '+7 (700) 000-00-00'}
+                {formatPhoneNumber(user.phone_number) || '+7 (700) 000-00-00'}
               </td>
               <td className="px-6 py-5 text-right">
                 <ActionMenu />

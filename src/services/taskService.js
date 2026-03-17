@@ -22,3 +22,12 @@ export const fetchTasksByDateRange = async (start, end) => {
   });
   return response.data;
 };
+
+export const createTaskApi = async (taskData) => {
+  try {
+    const response = await axiosInstance.post('/api/tasks/', taskData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
