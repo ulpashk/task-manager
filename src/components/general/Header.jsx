@@ -10,8 +10,16 @@ export const Header = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const activeItem = NAVIGATION_ITEMS.find(item => item.path === location.pathname);
-  const pageTitle = activeItem ? activeItem.title : 'Заявки';
+  const getPageTitle = () => {
+    const activeItem = NAVIGATION_ITEMS.find(item => item.path === location.pathname);
+    if (activeItem) return activeItem.label;
+    if (location.pathname.startsWith('/clients/')) {
+      return 'Информация о компании';
+    }
+    // if (location.pathname.startsWith('/tasks/')) return 'Детали задачи';
+    return 'Заявки';
+  };
+  const pageTitle = getPageTitle();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -38,7 +46,6 @@ export const Header = () => {
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">24</span>
         </div>
 
-        {/* PROFILE SECTION */}
         <div className="relative border-l pl-6" ref={dropdownRef}>
           <div 
             className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
@@ -50,7 +57,6 @@ export const Header = () => {
             <ChevronDown size={16} className={`text-gray-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
           </div>
 
-          {/* DROPDOWN WINDOW */}
           {isProfileOpen && (
             <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-100 rounded-xl shadow-2xl z-50 py-2 animate-in fade-in slide-in-from-top-2">
               <div className="px-4 py-3 border-b border-gray-50">
