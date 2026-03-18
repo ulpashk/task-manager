@@ -66,7 +66,7 @@ export const NAVIGATION_ITEMS = [
     path: '/clients',
     icon: Building2,
     component: ClientsPage,
-    allowedRoles: ['manager', 'engineer', 'client'],
+    allowedRoles: ['manager'],
   },
   {
     label: 'Архив',
