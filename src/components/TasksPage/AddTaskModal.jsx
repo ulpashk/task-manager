@@ -102,15 +102,6 @@ export const AddTaskModal = ({ isOpen, onClose, onRefresh }) => {
           </div>
         </InputGroup>
 
-        <InputGroup label="Исполнитель">
-          <div className="relative">
-            <select className="w-full h-[48px] appearance-none bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 outline-none text-[14px] text-gray-400">
-              <option>Выберите исполнителя</option>
-            </select>
-            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          </div>
-        </InputGroup>
-
         <div className="grid grid-cols-1 gap-1">
           <InputGroup label="Приоритет">
             <div className="relative">
@@ -128,6 +119,15 @@ export const AddTaskModal = ({ isOpen, onClose, onRefresh }) => {
             </div>
           </InputGroup>
         </div>
+
+        <InputGroup label="Исполнитель">
+          <div className="relative">
+            <select className="w-full h-[48px] appearance-none bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 outline-none text-[14px] text-gray-400">
+              <option>Выберите исполнителя</option>
+            </select>
+            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+        </InputGroup>
 
         <InputGroup label="Дедлайн">
           <div className="relative">
