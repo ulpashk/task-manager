@@ -29,14 +29,14 @@ export const TaskTable = ({ tasks }) => {
       <table className="w-full text-left border-separate border-spacing-0">
         <thead className="text-[13px] font-medium text-gray-500 sticky top-0 z-20">
           <tr>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Наименование компании</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Компания</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Тема задачи</th>
-            {/* <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Тип</th> */}
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Исполнитель</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Тэг</th>
+            {/* <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Исполнитель</th> */}
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Инициатор</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">Приоритет</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">Статус</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Дедлайн</th>
+            {/* <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Дедлайн</th> */}
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100"></th>
           </tr>
         </thead>
@@ -52,17 +52,17 @@ export const TaskTable = ({ tasks }) => {
                 </div>
               </td>
               <td className="px-6 py-4 text-gray-600 max-w-[200px] truncate">{task.title}</td>
-              {/* <td className="px-6 py-4">
+              <td className="px-6 py-4">
                 <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded-md text-xs border border-purple-100 font-medium">
                   {task.tags[0]?.name || 'Общий'}
                 </span>
-              </td> */}
-              <td className="px-6 py-4">
+              </td>
+              {/* <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
                   <img className="w-6 h-6 rounded-full" src={`https://ui-avatars.com/api/?name=${task.assignees[0]?.first_name}`} alt="" />
                   <span className="text-gray-700">{task.assignees[0]?.first_name}</span>
                 </div>
-              </td>
+              </td> */}
               <td className="px-6 py-4 text-gray-600">Кемелбай Мерей</td>
               <td className="px-6 py-4 text-center">
                 <span className={`px-3 py-1 rounded-full text-xs border font-medium ${getPriorityStyle(task.priority)}`}>
@@ -73,10 +73,13 @@ export const TaskTable = ({ tasks }) => {
                 <span className={`px-3 py-1 rounded-md text-xs font-medium ${getStatusStyle(task.status)}`}>
                   {getStatusLabel(task.status)}
                 </span>
+                <span className="px-6 py-4 text-gray-500 whitespace-nowrap">
+                  {new Date(task.deadline).toLocaleDateString()} {new Date(task.deadline).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                </span>
               </td>
-              <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
+              {/* <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
                 {new Date(task.deadline).toLocaleDateString()} {new Date(task.deadline).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-              </td>
+              </td> */}
               <td className="">
                 <ActionMenu />
               </td>

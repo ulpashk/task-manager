@@ -5,21 +5,24 @@ import { TaskTabs } from '../components/TasksPage/TaskTabs';
 import { TaskTable } from '../components/TasksPage/TaskTable';
 import { AddTaskModal } from '../components/TasksPage/AddTaskModal';
 import { Pagination } from '../components/general/Pagination';
+import { Tag } from 'lucide-react';
 
 export const TasksTablePage = () => {
   const [data, setData] = useState({ results: [], count: 0 });
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 9;
+  const [pageSize, setPageSize] = useState(8);
+  const [pinnedIds, setPinnedIds] = useState([]);
 
   const [filters, setFilters] = useState({
     search: '',
     status: '',
     assignee: '',
     initiator: '',
-    type: '',
+    tag: '',
     client: '', 
+    ordering: '',
   });
 
   const loadTasks = async () => {
@@ -45,10 +48,15 @@ export const TasksTablePage = () => {
 
   useEffect(() => {
     loadTasks();
-  }, [currentPage, filters]);
+  }, [currentPage, pageSize, filters]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  };
+
+  const handlePageSizeChange = (value) => {
+    setPageSize(value);
     setCurrentPage(1);
   };
 
@@ -56,6 +64,8 @@ export const TasksTablePage = () => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-full flex flex-col overflow-hidden font-sans">
       <TaskFilters
         filters={filters}
+        pageSize={pageSize}
+        onPageSizeChange={handlePageSizeChange}
         onFilterChange={handleFilterChange}
         onAddClick={() => setIsModalOpen(true)}
       />
@@ -76,7 +86,7 @@ export const TasksTablePage = () => {
         totalCount={data.count} 
         pageSize={pageSize} 
         currentPage={currentPage} 
-        onPageChange={(page) => setCurrentPage(page)} 
+        onPageChange={setCurrentPage} 
       />
 
       <AddTaskModal 

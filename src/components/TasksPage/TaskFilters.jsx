@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, LayoutGrid, List, Plus, ChevronDown } from 'lucide-react';
 import { FilterDropdown } from './FilterDropdown';
 
-export const TaskFilters = ({ filters={}, onFilterChange, onAddClick }) => {
+export const TaskFilters = ({ filters={}, onFilterChange, onAddClick, pageSize, onPageSizeChange }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -15,6 +15,12 @@ export const TaskFilters = ({ filters={}, onFilterChange, onAddClick }) => {
   ];
 
   const typeOptions = [
+    { label: "База данных", value: "db" },
+    { label: "Интеграция", value: "int" },
+    { label: "Ошибка", value: "bug" },
+  ];
+
+  const tagOptions = [
     { label: "База данных", value: "db" },
     { label: "Интеграция", value: "int" },
     { label: "Ошибка", value: "bug" },
@@ -75,10 +81,10 @@ export const TaskFilters = ({ filters={}, onFilterChange, onAddClick }) => {
           onSelect={(val) => onFilterChange('initiator', val)} 
         />
         <FilterDropdown 
-          label="Тип" 
-          currentValue={filters.type} 
-          options={typeOptions} 
-          onSelect={(val) => onFilterChange('type', val)} 
+          label="Тэг" 
+          currentValue={filters.tag} 
+          options={tagOptions} 
+          onSelect={(val) => onFilterChange('tag', val)} 
         />
         <FilterDropdown 
           label="Компания" 
@@ -96,14 +102,22 @@ export const TaskFilters = ({ filters={}, onFilterChange, onAddClick }) => {
             placeholder="Поиск" 
             value={filters.search}
             onChange={(e) => onFilterChange('search', e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-400 bg-white transition-colors"
+            className="w-2/3 pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-400 bg-white transition-colors"
           />
         </div>
-        <div className="flex items-center gap-2 group cursor-pointer">
-          <span className="text-sm text-gray-400">Сортировать</span>
-          <div className="flex items-center gap-4 px-3 py-2 border border-gray-200 rounded-lg bg-white min-w-[160px] group-hover:border-gray-300 transition-colors">
-            <span className="text-sm font-semibold flex-1 text-gray-700">По компании</span>
-            <ChevronDown size={16} className="text-gray-400" />
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">Строк</span>
+          <div className="relative">
+            <select 
+              value={pageSize}
+              onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-700 outline-none pr-8"
+            >
+              <option value={8}>8</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
         </div>
       </div>
