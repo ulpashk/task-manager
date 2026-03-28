@@ -3,7 +3,7 @@ import { fetchTasksApi } from '../services/taskService';
 import { TaskFilters } from '../components/TasksPage/TaskFilters';
 import { TaskTabs } from '../components/TasksPage/TaskTabs';
 import { TaskTable } from '../components/TasksPage/TaskTable';
-import { AddTaskModal } from '../components/TasksPage/AddTaskModal';
+import { CreateTaskWizard } from '../components/TasksPage/CreateTaskWizard';
 import { Pagination } from '../components/general/Pagination';
 import { Tag } from 'lucide-react';
 
@@ -89,7 +89,7 @@ export const TasksTablePage = () => {
         onPageChange={setCurrentPage} 
       />
 
-      <AddTaskModal 
+      <CreateTaskWizard  
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         onRefresh={loadTasks}

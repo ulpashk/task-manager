@@ -8,3 +8,8 @@ export const fetchUsersApi = async (params = {}) => {
     throw error.response?.data || 'Error fetching users';
   }
 };
+
+export const fetchUsersListApi = async () => {
+  const response = await axiosInstance.get('/api/users/?page_size=100');
+  return response.data.results;
+};

@@ -9,6 +9,21 @@ export const fetchTasksApi = async (params = {}) => {
   }
 };
 
+export const fetchTasksListApi = async () => {
+  const response = await axiosInstance.get('/api/tasks/?page_size=100');
+  return response.data.results;
+};
+
+export const fetchProjectsListApi = async () => {
+  const response = await axiosInstance.get('/api/projects/?page_size=100');
+  return response.data.results;
+};
+
+export const fetchEpicsListApi = async () => {
+  const res = await axiosInstance.get('/api/epics/?page_size=100');
+  return res.data.results;
+};
+
 export const fetchTasksByDateRange = async (start, end) => {
   const deadline_from = start.toISOString();
   const deadline_to = end.toISOString();
@@ -26,6 +41,24 @@ export const fetchTasksByDateRange = async (start, end) => {
 export const createTaskApi = async (taskData) => {
   try {
     const response = await axiosInstance.post('/api/tasks/', taskData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const createProjectApi = async (taskData) => {
+  try {
+    const response = await axiosInstance.post('/api/projects/', taskData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const createEpicApi = async (taskData) => {
+  try {
+    const response = await axiosInstance.post('/api/epics/', taskData);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

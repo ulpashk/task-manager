@@ -70,12 +70,14 @@ export const TaskTable = ({ tasks }) => {
                 </span>
               </td>
               <td className="px-6 py-4 text-center">
-                <span className={`px-3 py-1 rounded-md text-xs font-medium ${getStatusStyle(task.status)}`}>
-                  {getStatusLabel(task.status)}
-                </span>
-                <span className="px-6 py-4 text-gray-500 whitespace-nowrap">
-                  {new Date(task.deadline).toLocaleDateString()} {new Date(task.deadline).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                </span>
+                <div className='flex flex-col items-center gap-1'>
+                  <span className="px-3 py-1 text-gray-500 whitespace-nowrap">
+                    {new Date(task.deadline).toLocaleDateString()} {new Date(task.deadline).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  </span>
+                  <span className={`px-3 py-1 w-1/3 rounded-md text-xs font-medium ${getStatusStyle(task.status)}`}>
+                    {getStatusLabel(task.status)}
+                  </span>
+                </div>
               </td>
               {/* <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
                 {new Date(task.deadline).toLocaleDateString()} {new Date(task.deadline).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
