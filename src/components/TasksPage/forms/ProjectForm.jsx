@@ -71,7 +71,6 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
 
   return (
     <form className="flex flex-col gap-5 font-sans" onSubmit={handleSubmit}>
-      {/* Название проекта */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[14px] font-bold text-gray-700">Название проекта</label>
         <input 
@@ -83,7 +82,6 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
         />
       </div>
 
-      {/* Описание проекта */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[14px] font-bold text-gray-700">Описание проекта</label>
         <textarea 
@@ -95,7 +93,6 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
         />
       </div>
 
-      {/* Поле РУКОВОДИТЕЛЬ */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[14px] font-bold text-gray-700">Руководитель</label>
         <div className="relative">
@@ -116,7 +113,6 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
         </div>
       </div>
 
-      {/* Поле Команда */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[14px] font-bold text-gray-700">Команда</label>
         <div className="relative opacity-60">
@@ -127,7 +123,6 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
         </div>
       </div>
 
-      {/* Даты */}
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <label className="text-[14px] font-bold text-gray-700">Дата начала</label>
@@ -151,7 +146,6 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
         </div>
       </div>
 
-      {/* Кнопки */}
       <div className="flex justify-end gap-3 mt-6 border-t pt-6">
         <button 
           type="button" 

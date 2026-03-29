@@ -38,6 +38,21 @@ export const fetchTasksByDateRange = async (start, end) => {
   return response.data;
 };
 
+export const fetchTaskByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/tasks/${id}/`);
+  return response.data;
+};
+
+export const fetchTaskAttachmentsApi = async (taskId) => {
+  const response = await axiosInstance.get(`/api/tasks/${taskId}/attachments/`);
+  return response.data.results;
+};
+
+export const fetchTaskCommentsApi = async (taskId) => {
+  const response = await axiosInstance.get(`/api/tasks/${taskId}/comments/`);
+  return response.data.results;
+};
+
 export const createTaskApi = async (taskData) => {
   try {
     const response = await axiosInstance.post('/api/tasks/', taskData);
@@ -63,4 +78,24 @@ export const createEpicApi = async (taskData) => {
   } catch (error) {
     throw error.response?.data || error.message;
   }
+};
+
+export const addTaskCommentApi = async (taskId, content) => {
+  const response = await axiosInstance.post(`/api/tasks/${taskId}/comments/`, {
+    content,
+    is_public: true
+  });
+  return response.data;
+};
+
+export const uploadAttachmentApi = async (taskId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await axiosInstance.post(`/api/tasks/${taskId}/attachments/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
 };

@@ -7,6 +7,7 @@ import { MainLayout } from './components/general/MainLayout';
 import { LoginPage } from './pages/LoginPage';
 import { NAVIGATION_ITEMS } from './config/navigation';
 import { ClientDetailPage } from './pages/ClientPage/ClientDetailPage';
+import { TaskDetailPage } from './pages/TaskPage/TaskDetailPage';
 
 const RoleGuard = ({ item, children }) => {
   const { user } = useAuth();
@@ -39,6 +40,14 @@ function App() {
                   } 
                 />
               ))}
+              <Route 
+                path="/tasks/:id" 
+                element={
+                  <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/tasks')}>
+                    <TaskDetailPage />
+                  </RoleGuard>
+                }
+              />
               <Route 
                 path="/clients/:id" 
                 element={

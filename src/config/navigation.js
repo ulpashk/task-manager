@@ -1,6 +1,6 @@
 import { Table as TableIcon, LayoutDashboard, Building2, Users, Settings, Calendar, BarChart2, Archive, Tag } from 'lucide-react';
 
-import { TasksTablePage } from '../pages/TasksPage';
+import { TasksTablePage } from '../pages/TaskPage/TasksPage';
 import { KanbanPage } from '../pages/KanbanPage';
 import { OrganizationsPage } from '../pages/OrganizationsPage';
 import { ClientsPage } from '../pages/ClientPage/ClientPage';

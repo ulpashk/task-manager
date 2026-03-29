@@ -1,6 +1,8 @@
 import { ActionMenu } from './ActionMenu';
+import { useNavigate } from 'react-router-dom';
 
 export const TaskTable = ({ tasks }) => {
+  const navigate = useNavigate();
   const getPriorityStyle = (priority) => {
     if (priority === 'high' || priority === 'HIGH') return 'bg-red-50 text-red-500 border-red-100';
     if (priority === 'medium' || priority === 'MEDIUM') return 'bg-orange-50 text-orange-500 border-orange-100';
@@ -42,7 +44,7 @@ export const TaskTable = ({ tasks }) => {
         </thead>
         <tbody className="divide-y divide-gray-50 text-[14px]">
           {tasks.map((task) => (
-            <tr key={task.id} className="hover:bg-gray-50 transition-colors group">
+            <tr key={task.id} className="hover:bg-gray-50 transition-colors group cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
@@ -51,7 +53,12 @@ export const TaskTable = ({ tasks }) => {
                   <span className="font-medium text-gray-700 truncate max-w-[150px]">{task.client?.name}</span>
                 </div>
               </td>
-              <td className="px-6 py-4 text-gray-600 max-w-[200px] truncate">{task.title}</td>
+              <td 
+                className="px-6 py-4 text-gray-600 max-w-[200px] truncate"
+                // onClick={() => navigate(`/tasks/${task.id}`)}
+              >
+                {task.title}
+              </td>
               <td className="px-6 py-4">
                 <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded-md text-xs border border-purple-100 font-medium">
                   {task.tags[0]?.name || 'Общий'}

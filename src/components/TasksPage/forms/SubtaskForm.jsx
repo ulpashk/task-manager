@@ -55,7 +55,7 @@ const MultiSelect = ({ label, options, selectedIds, onToggle, placeholder }) => 
   );
 };
 
-export const SubtaskForm = ({ onClose, onRefresh }) => {
+export const SubtaskForm = ({ onClose, onRefresh, initialParentId }) => {
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -65,11 +65,13 @@ export const SubtaskForm = ({ onClose, onRefresh }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    parent_task_id: '', // Обязательно для подзадачи
+    parent_task_id: initialParentId || '',
     assignee_ids: [],
     deadline: '',
     status: 'created'
   });
+
+  const isPredefined = !!initialParentId;
 
   useEffect(() => {
     const loadData = async () => {
@@ -152,23 +154,25 @@ export const SubtaskForm = ({ onClose, onRefresh }) => {
       </div>
 
       {/* Выбор РОДИТЕЛЬСКОЙ ЗАДАЧИ */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[14px] font-bold text-gray-700">Задача</label>
-        <div className="relative">
-          <select 
-            required
-            value={formData.parent_task_id}
-            onChange={(e) => setFormData({...formData, parent_task_id: e.target.value})}
-            className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none appearance-none cursor-pointer focus:border-blue-500"
-          >
-            <option value="">Выберите основную задачу</option>
-            {parentTasks.map(t => (
-              <option key={t.id} value={t.id}>{t.title}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+      {!isPredefined && (
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[14px] font-bold text-gray-700">Задача</label>
+          <div className="relative">
+            <select 
+              required
+              value={formData.parent_task_id}
+              onChange={(e) => setFormData({...formData, parent_task_id: e.target.value})}
+              className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none appearance-none cursor-pointer focus:border-blue-500"
+            >
+              <option value="">Выберите основную задачу</option>
+              {parentTasks.map(t => (
+                <option key={t.id} value={t.id}>{t.title}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* МУЛЬТИ-СЕЛЕКТ ИСПОЛНИТЕЛЕЙ */}
       <MultiSelect 

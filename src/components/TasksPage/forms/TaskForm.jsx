@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Loader2, X, Check } from 'lucide-react';
-import { createTaskApi, fetchProjectsListApi, fetchEpicsListApi } from '../../../services/taskService';
+import { ChevronDown, Loader2, X, Check, Plus, Trash2, FileText } from 'lucide-react';
+import { createTaskApi, fetchTasksApi, fetchProjectsListApi, fetchEpicsListApi, uploadAttachmentApi } from '../../../services/taskService';
 import { fetchUsersListApi } from '../../../services/userService';
 import { fetchTagsListApi } from '../../../services/tagService';
 import { fetchClientsApi } from '../../../services/clientService';
 
-// Компонент для мульти-выбора
 const MultiSelect = ({ label, options, selectedIds, onToggle, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -61,6 +60,8 @@ const MultiSelect = ({ label, options, selectedIds, onToggle, placeholder }) => 
 export const TaskForm = ({ onClose, onRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   const [lists, setLists] = useState({
     projects: [], epics: [], users: [], tags: [], clients: []
@@ -75,8 +76,8 @@ export const TaskForm = ({ onClose, onRefresh }) => {
     project_id: '',
     epic_id: '',
     client_id: '',
-    assignee_ids: [], // Массив для ID исполнителей
-    tag_ids: []       // Массив для ID тегов
+    assignee_ids: [],
+    tag_ids: []
   });
 
   useEffect(() => {
@@ -106,22 +107,54 @@ export const TaskForm = ({ onClose, onRefresh }) => {
     loadAllData();
   }, []);
 
-  const toggleSelection = (field, id) => {
-    setFormData(prev => {
-      const current = prev[field];
-      const isSelected = current.includes(id);
-      return {
-        ...prev,
-        [field]: isSelected ? current.filter(item => item !== id) : [...current, id]
-      };
-    });
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 25 * 1024 * 1024) {
+        alert("Файл слишком большой (макс. 25 МБ)");
+        return;
+      }
+      setSelectedFile(file);
+    }
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (!formData.client_id) {
+  //     alert("Выберите компанию");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+    
+  //   try {
+  //     const payload = {
+  //       ...formData,
+  //       project_id: formData.project_id ? Number(formData.project_id) : null,
+  //       epic_id: formData.epic_id ? Number(formData.epic_id) : null,
+  //       client_id: Number(formData.client_id),
+  //       assignee_ids: formData.assignee_ids.map(id => Number(id)),
+  //       tag_ids: formData.tag_ids.map(id => Number(id)),
+  //       deadline: formData.deadline ? new Date(formData.deadline).toISOString() : null
+  //     };
+
+  //     const newTask = await createTaskApi(payload);
+
+  //     if (selectedFile && newTask.id) {
+  //       await uploadAttachmentApi(newTask.id, selectedFile);
+  //     }
+
+  //     onRefresh();
+  //     onClose();
+  //   } catch (err) {
+  //     alert("Ошибка при создании задачи или загрузке файла.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // if (!formData.client_id || formData.assignee_ids.length === 0) {
     if (!formData.client_id) {
-      // alert("Выберите компанию и хотя бы одного исполнителя");
       alert("Выберите компанию");
       return;
     }
@@ -139,13 +172,42 @@ export const TaskForm = ({ onClose, onRefresh }) => {
       };
 
       await createTaskApi(payload);
+
+      if (selectedFile) {
+        const latestTasksResponse = await fetchTasksApi({ 
+          page_size: 1, 
+          ordering: '-id' 
+        });
+
+        const createdTask = latestTasksResponse.results[0];
+
+        if (createdTask && createdTask.title === formData.title) {
+          try {
+            await uploadAttachmentApi(createdTask.id, selectedFile);
+          } catch (fileErr) {
+            console.error("Ошибка загрузки файла:", fileErr);
+            alert("Задача создана, но файл не загрузился.");
+          }
+        } else {
+          console.error("Не удалось найти ID созданной задачи для загрузки файла");
+        }
+      }
+
       onRefresh();
       onClose();
     } catch (err) {
+      console.error("Ошибка:", err);
       alert("Ошибка при создании задачи.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleSelection = (field, id) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].includes(id) ? prev[field].filter(i => i !== id) : [...prev[field], id]
+    }));
   };
 
   if (dataLoading) return <div className="p-10 text-center text-gray-400 font-sans flex items-center justify-center gap-2"><Loader2 className="animate-spin" size={18}/> Загрузка...</div>;
@@ -179,7 +241,6 @@ export const TaskForm = ({ onClose, onRefresh }) => {
         </div>
       </div>
 
-      {/* МУЛЬТИ-СЕЛЕКТ ДЛЯ ИСПОЛНИТЕЛЕЙ */}
       <MultiSelect 
         label="Исполнители *" 
         options={lists.users} 
@@ -188,7 +249,6 @@ export const TaskForm = ({ onClose, onRefresh }) => {
         placeholder="Выберите исполнителей"
       />
 
-      {/* КОМПАНИЯ (Одиночный выбор) */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[13px] font-bold text-gray-700">Компания *</label>
         <select name="client_id" required value={formData.client_id} onChange={(e) => setFormData({...formData, client_id: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500">
@@ -198,7 +258,6 @@ export const TaskForm = ({ onClose, onRefresh }) => {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {/* МУЛЬТИ-СЕЛЕКТ ДЛЯ ТЕГОВ */}
         <MultiSelect 
           label="Тэги" 
           options={lists.tags} 
@@ -222,11 +281,45 @@ export const TaskForm = ({ onClose, onRefresh }) => {
         <input name="deadline" required type="datetime-local" value={formData.deadline} onChange={(e) => setFormData({...formData, deadline: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-blue-500" />
       </div>
 
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        className="hidden" 
+      />
+
+      {selectedFile && (
+        <div className="flex items-center justify-between p-3 bg-[#F9FAFB] border border-gray-200 rounded-lg animate-in fade-in slide-in-from-top-1">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <FileText size={18} className="text-gray-400 flex-shrink-0" />
+            <span className="text-sm text-blue-600 font-medium truncate">
+              {selectedFile.name}
+            </span>
+          </div>
+          <button 
+            type="button" 
+            onClick={() => setSelectedFile(null)}
+            className="p-1 hover:bg-gray-200 rounded-md text-gray-500 transition-colors"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )}
+
+      {!selectedFile && (
+        <div 
+          onClick={() => fileInputRef.current.click()}
+          className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex items-center justify-center gap-2 text-gray-400 hover:bg-gray-50 hover:border-blue-300 cursor-pointer transition-all group"
+        >
+          <Plus size={20} className="group-hover:text-blue-500" />
+          <span className="text-sm font-bold group-hover:text-blue-500">Вложение</span>
+        </div>
+      )}
+
       <div className="flex justify-end gap-3 mt-4 pt-4 border-t">
-        <button type="button" onClick={onClose} className="px-6 py-2 font-bold text-gray-400 hover:text-gray-600 transition-colors">Отменить</button>
-        <button type="submit" disabled={loading} className="bg-[#1677FF] text-white px-10 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-100 flex items-center gap-2 transition-all hover:bg-blue-600">
-          {loading && <Loader2 size={16} className="animate-spin" />}
-          Добавить задачу
+        <button type="button" onClick={onClose} className="px-6 py-2 font-bold text-gray-400 hover:text-gray-600 transition-colors text-sm">Отменить</button>
+        <button type="submit" disabled={loading} className="bg-[#1677FF] text-white px-10 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-100 flex items-center gap-2 hover:bg-blue-600 transition-all">
+          {loading ? <Loader2 size={16} className="animate-spin" /> : 'Добавить'}
         </button>
       </div>
     </form>
