@@ -6,16 +6,21 @@ import { TaskForm } from './forms/TaskForm';
 import { SubtaskForm } from './forms/SubtaskForm';
 import { ChevronDown } from 'lucide-react';
 
-export const CreateTaskWizard = ({ isOpen, onClose, onRefresh }) => {
+export const CreateTaskWizard = ({ isOpen, onClose, onRefresh, initialType }) => {
   const [step, setStep] = useState('selection');
   const [selectedType, setSelectedType] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      setStep('selection');
-      setSelectedType('');
+      if (initialType) {
+        setStep('form');
+        setSelectedType(initialType);
+      } else {
+        setStep('selection');
+        setSelectedType('');
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialType]);
 
   const typeOptions = [
     { id: 'project', label: 'Проект' },
