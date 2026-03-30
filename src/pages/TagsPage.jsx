@@ -3,8 +3,10 @@ import { fetchTagsApi } from '../services/tagService';
 import { TagTable } from '../components/Tags/TagTable';
 import { TagFilters } from '../components/Tags/TagFilters';
 import { Pagination } from '../components/general/Pagination';
+import { AddTagModal } from '../components/Tags/AddTagModal';
 
 export const TagsPage = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [data, setData] = useState({ results: [], count: 0 });
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,7 +35,10 @@ export const TagsPage = () => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-full flex flex-col overflow-hidden font-sans">
-      <TagFilters onSearch={(val) => { setSearchTerm(val); setCurrentPage(1); }} />
+      <TagFilters 
+        onSearch={(val) => { setSearchTerm(val); setCurrentPage(1); }}
+        onAddClick={() => setIsModalOpen(true)}
+      />
       
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {loading ? (
@@ -48,6 +53,12 @@ export const TagsPage = () => {
         pageSize={pageSize} 
         currentPage={currentPage} 
         onPageChange={setCurrentPage} 
+      />
+
+      <AddTagModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onRefresh={loadTags} 
       />
     </div>
   );

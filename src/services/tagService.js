@@ -9,3 +9,8 @@ export const fetchTagsListApi = async () => {
   const res = await axiosInstance.get('/api/tags/?page_size=100');
   return res.data.results;
 };
+
+export const createTagApi = async (data) => {
+  const response = await axiosInstance.post('/api/tags/', data);
+  return response.data;
+};

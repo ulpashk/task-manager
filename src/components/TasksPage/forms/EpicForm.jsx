@@ -3,7 +3,7 @@ import { ChevronDown, Loader2 } from 'lucide-react';
 import { createEpicApi, fetchProjectsListApi } from '../../../services/taskService';
 import { fetchUsersListApi } from '../../../services/userService';
 
-export const EpicForm = ({ onClose, onRefresh }) => {
+export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState([]);
   const [users, setUsers] = useState([]);
@@ -15,9 +15,11 @@ export const EpicForm = ({ onClose, onRefresh }) => {
     priority: 'low',
     deadline: '',
     status: 'created',
-    project_id: '',
+    project_id: initialProjectId || '',
     assignee_id: '',
   });
+
+  const isPredefined = !!initialProjectId;
 
   useEffect(() => {
     const loadRequiredData = async () => {
@@ -28,6 +30,10 @@ export const EpicForm = ({ onClose, onRefresh }) => {
         ]);
         setProjects(projectsList);
         setUsers(usersList);
+
+        if (initialProjectId) {
+          setFormData(prev => ({ ...prev, project_id: initialProjectId }));
+        }
       } catch (err) {
         console.error("Ошибка при загрузке списков:", err);
       } finally {
@@ -35,7 +41,7 @@ export const EpicForm = ({ onClose, onRefresh }) => {
       }
     };
     loadRequiredData();
-  }, []);
+  }, [initialProjectId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -91,24 +97,26 @@ export const EpicForm = ({ onClose, onRefresh }) => {
       </div>
 
       {/* Выбор ПРОЕКТА */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[14px] font-semibold text-gray-700">Проект</label>
-        <div className="relative">
-          <select 
-            required
-            value={formData.project_id}
-            onChange={(e) => setFormData({...formData, project_id: e.target.value})}
-            className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none appearance-none cursor-pointer"
-          >
-            <option value="">Выберите проект</option>
-            {projects.map(p => (
-              <option key={p.id} value={p.id}>{p.title}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+      {!isPredefined && (
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[14px] font-semibold text-gray-700">Проект</label>
+          <div className={`relative ${initialProjectId ? 'opacity-60 pointer-events-none' : ''}`}>
+            <select 
+              required
+              value={formData.project_id}
+              onChange={(e) => setFormData({...formData, project_id: e.target.value})}
+              className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none appearance-none cursor-pointer"
+            >
+              <option value="">Выберите проект</option>
+              {projects.map(p => (
+                <option key={p.id} value={p.id}>{p.title}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+          </div>
         </div>
-      </div>
-
+      )}
+      
       {/* Выбор ОТВЕТСТВЕННОГО */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[14px] font-semibold text-gray-700">Ответственный</label>

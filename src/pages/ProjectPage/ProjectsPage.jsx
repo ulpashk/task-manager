@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import { fetchProjectsApi } from '../services/projectService';
-import { ProjectFilters } from '../components/Projects/ProjectFilters';
-import { ProjectTable } from '../components/Projects/ProjectTable';
-import { TaskTabs } from '../components/TasksPage/TaskTabs';
-import { Pagination } from '../components/general/Pagination';
-import { CreateTaskWizard } from '../components/TasksPage/CreateTaskWizard';
+import { fetchProjectsApi } from '../../services/projectService';
+import { ProjectFilters } from '../../components/Projects/ProjectFilters';
+import { ProjectTable } from '../../components/Projects/ProjectTable';
+import { TaskTabs } from '../../components/TasksPage/TaskTabs';
+import { Pagination } from '../../components/general/Pagination';
+import { CreateTaskWizard } from '../../components/TasksPage/CreateTaskWizard';
 
 export const ProjectsPage = () => {
   const [data, setData] = useState({ results: [], count: 0 });

@@ -10,7 +10,7 @@ import { CalendarPage } from '../pages/CalendarPage';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
 import { ArchivePage } from '../pages/ArchivePage';
 import { TagsPage } from '../pages/TagsPage';
-import { ProjectsPage } from '../pages/ProjectsPage';
+import { ProjectsPage } from '../pages/ProjectPage/ProjectsPage';
 
 export const NAVIGATION_ITEMS = [
   {

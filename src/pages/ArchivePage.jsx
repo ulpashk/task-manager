@@ -16,7 +16,7 @@ export const ArchivePage = () => {
     initiator: '',
     type: '',
     client: '',
-    status: 'COMPLETED'
+    status: 'archived'
   });
 
   const loadArchiveTasks = async () => {

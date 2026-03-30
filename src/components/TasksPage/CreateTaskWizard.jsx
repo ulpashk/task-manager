@@ -6,7 +6,7 @@ import { TaskForm } from './forms/TaskForm';
 import { SubtaskForm } from './forms/SubtaskForm';
 import { ChevronDown } from 'lucide-react';
 
-export const CreateTaskWizard = ({ isOpen, onClose, onRefresh, initialType }) => {
+export const CreateTaskWizard = ({ isOpen, onClose, onRefresh, initialType, initialProjectId }) => {
   const [step, setStep] = useState('selection');
   const [selectedType, setSelectedType] = useState('');
 
@@ -63,7 +63,12 @@ export const CreateTaskWizard = ({ isOpen, onClose, onRefresh, initialType }) =>
   }
 
   const renderForm = () => {
-    const props = { onClose, onRefresh, onBack: () => setStep('selection') };
+    const props = {
+      onClose, 
+      onRefresh, 
+      onBack: () => setStep('selection'), 
+      initialProjectId: initialProjectId 
+    };
     switch (selectedType) {
       case 'project': return <ProjectForm {...props} />;
       case 'epic':    return <EpicForm {...props} />;

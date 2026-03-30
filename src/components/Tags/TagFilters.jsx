@@ -1,11 +1,13 @@
 import { Search, Plus, ChevronDown } from 'lucide-react';
 
-export const TagFilters = ({ onSearch }) => {
+export const TagFilters = ({ onSearch, onAddClick }) => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-gray-800 tracking-tight">Все тэги</h3>
-        <button className="bg-[#1677FF] text-white px-5 py-2 rounded-lg flex items-center gap-2 font-medium hover:bg-blue-600 transition-colors shadow-sm">
+        <button 
+          onClick={onAddClick}
+          className="bg-[#1677FF] text-white px-5 py-2 rounded-lg flex items-center gap-2 font-medium hover:bg-blue-600 transition-colors shadow-sm">
           <Plus size={18}/> Добавить
         </button>
       </div>

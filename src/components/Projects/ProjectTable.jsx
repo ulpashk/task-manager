@@ -1,6 +1,8 @@
 import { ActionMenu } from '../TasksPage/ActionMenu';
+import { useNavigate } from 'react-router-dom';
 
 export const ProjectTable = ({ projects }) => {
+  const navigate = useNavigate();
   const statusStyles = {
     created: 'bg-[#E1F9E6] text-[#56AD6C] border-[#B7EB8F]',
     done: 'bg-[#E6F4FF] text-[#1677FF] border-[#91CAFF]',
@@ -27,7 +29,11 @@ export const ProjectTable = ({ projects }) => {
         </thead>
         <tbody className="divide-y divide-gray-50 text-[14px]">
           {projects.map((project) => (
-            <tr key={project.id} className="hover:bg-gray-50 transition-colors group cursor-pointer">
+            <tr
+              key={project.id} 
+              className="hover:bg-gray-50 transition-colors group cursor-pointer"
+              onClick={() => navigate(`/projects/${project.id}`)}
+            >
               <td className="px-6 py-5">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
