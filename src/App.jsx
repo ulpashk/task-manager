@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/routes/ProtectedRoute';
 import { PublicRoute } from './components/routes/PublicRoute';
 import { HomeRedirect } from './components/routes/HomeRedirect';
+import { NotificationProvider } from './context/NotificationContext';
 import { MainLayout } from './components/general/MainLayout';
 import { LoginPage } from './pages/LoginPage';
 import { NAVIGATION_ITEMS } from './config/navigation';
@@ -21,56 +22,58 @@ const RoleGuard = ({ item, children }) => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route element={<PublicRoute />}>
-            <Route path="/login" element={<LoginPage />} />
-          </Route>
+      <NotificationProvider> 
+        <Router>
+          <Routes>
+            <Route element={<PublicRoute />}>
+              <Route path="/login" element={<LoginPage />} />
+            </Route>
 
-          <Route element={<ProtectedRoute />}>
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<HomeRedirect />} />
-              {NAVIGATION_ITEMS.map((item) => (
+            <Route element={<ProtectedRoute />}>
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<HomeRedirect />} />
+                {NAVIGATION_ITEMS.map((item) => (
+                  <Route 
+                    key={item.path}
+                    path={item.path} 
+                    element={
+                      <RoleGuard item={item}>
+                        <item.component />
+                      </RoleGuard>
+                    } 
+                  />
+                ))}
                 <Route 
-                  key={item.path}
-                  path={item.path} 
+                  path="/tasks/:id" 
                   element={
-                    <RoleGuard item={item}>
-                      <item.component />
+                    <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/tasks')}>
+                      <TaskDetailPage />
+                    </RoleGuard>
+                  }
+                />
+                <Route 
+                  path="/projects/:id" 
+                  element={
+                    <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/projects')}>
+                      <ProjectDetailPage />
                     </RoleGuard>
                   } 
                 />
-              ))}
-              <Route 
-                path="/tasks/:id" 
-                element={
-                  <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/tasks')}>
-                    <TaskDetailPage />
-                  </RoleGuard>
-                }
-              />
-              <Route 
-                path="/projects/:id" 
-                element={
-                  <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/projects')}>
-                    <ProjectDetailPage />
-                  </RoleGuard>
-                } 
-              />
-              <Route 
-                path="/clients/:id" 
-                element={
-                  <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/clients')}>
-                    <ClientDetailPage />
-                  </RoleGuard>
-                } 
-              />
-            </Route>
-            </Route>
+                <Route 
+                  path="/clients/:id" 
+                  element={
+                    <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/clients')}>
+                      <ClientDetailPage />
+                    </RoleGuard>
+                  } 
+                />
+              </Route>
+              </Route>
 
-          <Route path="*" element={<HomeRedirect />} />
-        </Routes>
-      </Router>
+            <Route path="*" element={<HomeRedirect />} />
+          </Routes>
+        </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

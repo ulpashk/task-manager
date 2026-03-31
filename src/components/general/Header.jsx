@@ -3,8 +3,13 @@ import { useLocation } from 'react-router-dom';
 import { Search, Settings, Bell, ChevronDown, LogOut, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { NAVIGATION_ITEMS } from '../../config/navigation';
+import { useNotifications } from '../../context/NotificationContext';
+import { NotificationPanel } from './NotificationPanel';
 
 export const Header = () => {
+  const { unreadCount, notifications, refreshNotifications } = useNotifications();
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const notifRef = useRef(null);
   const { user, logout } = useAuth();
   const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -41,9 +46,24 @@ export const Header = () => {
           <input type="text" placeholder="Поиск" className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg w-[300px] outline-none" />
         </div>
         <Settings className="text-gray-400 cursor-pointer" size={20} />
-        <div className="relative cursor-pointer">
-          <Bell className="text-gray-400" size={20} />
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">24</span>
+        <div className="relative" ref={notifRef}>
+          <div 
+            className="relative cursor-pointer p-1 hover:bg-gray-100 rounded-full transition-colors" 
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
+          >
+            <Bell className="text-gray-400" size={20} />
+            <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold border-2 border-white">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+            {/* <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">24</span> */}
+          </div>
+          {isNotifOpen && (
+            <NotificationPanel 
+              items={notifications} 
+              onClose={() => setIsNotifOpen(false)} 
+              onRefresh={refreshNotifications}
+            />
+          )}
         </div>
 
         <div className="relative border-l pl-6" ref={dropdownRef}>

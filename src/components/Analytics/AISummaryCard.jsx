@@ -6,9 +6,6 @@ export const AISummaryCard = ({ title, summary }) => {
 
   return (
     <div className="bg-[#F8F9FA] p-8 rounded-[24px] border border-gray-100 flex flex-col h-full shadow-sm relative overflow-hidden group">
-      {/* Желтый акцент из Angular */}
-      {/* <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-400" /> */}
-      
       <div className="flex justify-between items-start mb-6 pl-2">
         <div>
           <h4 className="text-xl font-bold text-gray-800">{title}</h4>
