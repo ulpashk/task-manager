@@ -91,9 +91,8 @@ export const TaskTable = ({ tasks }) => {
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
-                  <img className="w-6 h-6 rounded-full" src={`https://ui-avatars.com/api/?name=${task.assignees[0]?.first_name}`} alt="" />
-                  {/* <span className="text-gray-700">{task.assignees[0]?.first_name}</span> */}
-                  <span className="text-gray-700">Unknown User</span>
+                  <img className="w-6 h-6 rounded-full" src={`https://ui-avatars.com/api/?name=${task.created_by?.first_name}`} alt="" />
+                  <span className="text-gray-700">{task.created_by?.first_name || 'Unknown User'}</span>
                 </div>
               </td>
               {/* <td className="px-6 py-4 text-gray-600">Кемелбай Мерей</td> */}
