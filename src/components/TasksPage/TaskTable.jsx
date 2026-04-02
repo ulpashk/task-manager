@@ -19,10 +19,13 @@ export const TaskTable = ({ tasks }) => {
   };
 
   const getStatusLabel = (s) => {
+    if (s === 'done') return 'Выполнено';
     if (s === 'completed' || s === 'Completed' || s === 'COMPLETED') return 'Выполнено';
-    if (s === 'todo' || s === 'Todo' || s === 'TODO') return 'Не начато';
+    if (s === 'todo' || s === 'Todo' || s === 'TODO') return 'Создано';
+    if (s === 'created') return 'Создано';
     if (s === 'in_progress' || s === 'In_progress' || s === 'IN_PROGRESS') return 'В обработке';
     if (s === 'revision' || s === 'Revision' || s === 'REVISION') return 'На доработке';
+    if (s === 'waiting') return 'На доработке';
     return s;
   }
 
@@ -59,10 +62,33 @@ export const TaskTable = ({ tasks }) => {
               >
                 {task.title}
               </td>
-              <td className="px-6 py-4">
+              {/* <td className="px-6 py-4">
                 <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded-md text-xs border border-purple-100 font-medium">
-                  {task.tags[0]?.name || 'Общий'}
+                  {task.tags[0]?.name || '-'}
                 </span>
+              </td> */}
+              <td className="px-4 py-5">
+                <div className="flex flex-wrap gap-1.5">
+                  {task.tags && task.tags.length > 0 ? (
+                    task.tags.map((tag) => (
+                      <span
+                        key={tag.id}
+                        className="px-2 py-1 rounded-md text-xs font-medium border transition-all"
+                        style={{
+                          color: tag.color,
+                          borderColor: `${tag.color}40`,
+                          backgroundColor: `${tag.color}15`,
+                        }}
+                      >
+                        {tag.name}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="px-2 py-1 bg-gray-50 text-gray-400 rounded-md border border-gray-100 text-xs font-medium">
+                      Нет тэгов
+                    </span>
+                  )}
+                </div>
               </td>
               {/* <td className="px-6 py-4">
                 <div className="flex items-center gap-2">

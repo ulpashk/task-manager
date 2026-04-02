@@ -18,18 +18,16 @@ export const TasksTablePage = () => {
   const [users, setUsers] = useState([]);
   const [tags, setTags] = useState([]);
 
-  // Глобальные фильтры (те, что реально улетают в API)
   const [filters, setFilters] = useState({
     search: '',
     status: '',
     assignee: '',
-    tags: '', // Здесь будет строка через запятую "1,2"
+    tags: '',
     deadline_from: '',
     deadline_to: '',
     ordering: '',
   });
 
-  // Загружаем справочники при загрузке страницы
   useEffect(() => {
     fetchUsersListApi().then(setUsers).catch(console.error);
     fetchTagsListApi().then(setTags).catch(console.error);
@@ -55,13 +53,11 @@ export const TasksTablePage = () => {
     loadTasks();
   }, [loadTasks]);
 
-  // Мгновенный поиск
   const handleSearchChange = (value) => {
     setFilters(prev => ({ ...prev, search: value }));
     setCurrentPage(1);
   };
 
-  // Применить пачку фильтров по кнопке
   const handleApplyFilters = (newFilters) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
     setCurrentPage(1);
@@ -82,7 +78,7 @@ export const TasksTablePage = () => {
       <TaskFilters
         users={users}
         tags={tags}
-        filters={filters} // Текущие активные фильтры
+        filters={filters}
         pageSize={pageSize}
         onSearchChange={handleSearchChange}
         onApply={handleApplyFilters}
