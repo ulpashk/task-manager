@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { fetchTasksApi } from '../../services/taskService';
 import { TaskFilters } from '../../components/TasksPage/TaskFilters';
 import { TaskTabs } from '../../components/TasksPage/TaskTabs';
 import { TaskTable } from '../../components/TasksPage/TaskTable';
 import { CreateTaskWizard } from '../../components/TasksPage/CreateTaskWizard';
 import { Pagination } from '../../components/general/Pagination';
-import { Tag } from 'lucide-react';
+import { fetchUsersListApi } from '../../services/userService';
+import { fetchTagsListApi } from '../../services/tagService';
 
 export const TasksTablePage = () => {
   const [data, setData] = useState({ results: [], count: 0 });
@@ -13,30 +14,34 @@ export const TasksTablePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
-  const [pinnedIds, setPinnedIds] = useState([]);
+  
+  const [users, setUsers] = useState([]);
+  const [tags, setTags] = useState([]);
 
+  // Глобальные фильтры (те, что реально улетают в API)
   const [filters, setFilters] = useState({
     search: '',
     status: '',
     assignee: '',
-    initiator: '',
-    tag: '',
-    client: '', 
+    tags: '', // Здесь будет строка через запятую "1,2"
+    deadline_from: '',
+    deadline_to: '',
     ordering: '',
   });
 
-  const loadTasks = async () => {
+  // Загружаем справочники при загрузке страницы
+  useEffect(() => {
+    fetchUsersListApi().then(setUsers).catch(console.error);
+    fetchTagsListApi().then(setTags).catch(console.error);
+  }, []);
+
+  const loadTasks = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetchTasksApi({ 
         page: currentPage, 
         page_size: pageSize,
-        search: filters.search,
-        status: filters.status,
-        assignee: filters.assignee,
-        initiator: filters.initiator,
-        type: filters.type,
-        client: filters.client,
+        ...filters
       });
       setData(res);
     } catch (err) {
@@ -44,14 +49,21 @@ export const TasksTablePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, pageSize, filters]);
 
   useEffect(() => {
     loadTasks();
-  }, [currentPage, pageSize, filters]);
+  }, [loadTasks]);
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+  // Мгновенный поиск
+  const handleSearchChange = (value) => {
+    setFilters(prev => ({ ...prev, search: value }));
+    setCurrentPage(1);
+  };
+
+  // Применить пачку фильтров по кнопке
+  const handleApplyFilters = (newFilters) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
     setCurrentPage(1);
   };
 
@@ -60,25 +72,34 @@ export const TasksTablePage = () => {
     setCurrentPage(1);
   };
 
+  const handleStatusChange = (status) => {
+    setFilters(prev => ({ ...prev, status }));
+    setCurrentPage(1);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-full flex flex-col overflow-hidden font-sans">
       <TaskFilters
-        filters={filters}
+        users={users}
+        tags={tags}
+        filters={filters} // Текущие активные фильтры
         pageSize={pageSize}
+        onSearchChange={handleSearchChange}
+        onApply={handleApplyFilters}
         onPageSizeChange={handlePageSizeChange}
-        onFilterChange={handleFilterChange}
         onAddClick={() => setIsModalOpen(true)}
       />
+      
       <TaskTabs 
         activeStatus={filters.status} 
-        onStatusChange={(status) => handleFilterChange('status', status)} 
+        onStatusChange={handleStatusChange} 
       />
       
       <div className="flex-1 overflow-hidden">
         {loading ? (
           <div className="p-10 text-center text-gray-400">Загрузка задач...</div>
         ) : (
-          <TaskTable tasks={data.results} />
+          <TaskTable tasks={data.results} onSort={(field) => setFilters(p => ({...p, ordering: p.ordering === field ? `-${field}` : field}))} />
         )}
       </div>
 

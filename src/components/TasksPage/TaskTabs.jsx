@@ -1,10 +1,10 @@
 export const TaskTabs = ({ activeStatus, onStatusChange }) => {
   const tabs = [
     { label: "Общий", key: "" },
-    { label: "Не выполнено", key: "TODO" },
-    { label: "В обработке", key: "IN_PROGRESS" },
-    { label: "На доработке", key: "REVISION" },
-    { label: "Выполнено", key: "COMPLETED" },
+    { label: "Создано", key: "created" },
+    { label: "В обработке", key: "in_progress" },
+    { label: "На доработке", key: "waiting" },
+    { label: "Выполнено", key: "done" },
   ];
 
   return (

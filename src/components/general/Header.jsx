@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Settings, Bell, ChevronDown, LogOut, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { NAVIGATION_ITEMS } from '../../config/navigation';
@@ -12,6 +12,7 @@ export const Header = () => {
   const notifRef = useRef(null);
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -21,7 +22,6 @@ export const Header = () => {
     if (location.pathname.startsWith('/clients/')) {
       return 'Информация о компании';
     }
-    // if (location.pathname.startsWith('/tasks/')) return 'Детали задачи';
     return 'Заявки';
   };
   const pageTitle = getPageTitle();
@@ -45,7 +45,9 @@ export const Header = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input type="text" placeholder="Поиск" className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg w-[300px] outline-none" />
         </div>
-        <Settings className="text-gray-400 cursor-pointer" size={20} />
+        <button onClick={() => navigate('/settings')} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+          <Settings className="text-gray-400 cursor-pointer" size={20} />
+        </button>
         <div className="relative" ref={notifRef}>
           <div 
             className="relative cursor-pointer p-1 hover:bg-gray-100 rounded-full transition-colors" 

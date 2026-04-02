@@ -23,7 +23,7 @@ export const NotificationPanel = ({ items, onClose, onRefresh }) => {
   };
 
   return (
-    <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[100] flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2">
+    <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-100 rounded-2xl shadow-2xl z-100 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2">
       <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
         <h4 className="font-bold text-gray-800">Уведомления</h4>
         <button onClick={handleMarkAll} className="text-[11px] font-bold text-blue-600 hover:underline">Отметить все</button>
