@@ -1,7 +1,7 @@
 import { Paperclip, MessageSquare, Calendar } from 'lucide-react';
 import { ActionMenu } from '../TasksPage/ActionMenu';
 
-export const KanbanCard = ({ task }) => {
+export const KanbanCard = ({ task, onEdit, onDelete }) => {
   const getPriorityStyle = (priority) => {
     if (priority === 'high' || priority === 'HIGH') return 'bg-red-50 text-red-500 border-red-100';
     if (priority === 'medium' || priority === 'MEDIUM') return 'bg-orange-50 text-orange-500 border-orange-100';
@@ -18,7 +18,10 @@ export const KanbanCard = ({ task }) => {
             <span className="text-[10px] text-gray-400">Алматы</span>
           </div>
         </div>
-        <ActionMenu />
+        <ActionMenu 
+          onEdit={(e) => { onEdit(); }} 
+          onDelete={(e) => { onDelete(); }}
+        />
       </div>
 
       <h4 className="text-[13px] font-bold text-gray-800 leading-snug">

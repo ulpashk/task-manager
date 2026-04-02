@@ -3,7 +3,8 @@ export const TaskTabs = ({ activeStatus, onStatusChange }) => {
     { label: "Общий", key: "" },
     { label: "Создано", key: "created" },
     { label: "В обработке", key: "in_progress" },
-    { label: "На доработке", key: "waiting" },
+    { label: "На проверке", key: "waiting" },
+    { label: "На доработке", key: "revision" },
     { label: "Выполнено", key: "done" },
   ];
 
