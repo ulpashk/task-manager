@@ -3,6 +3,7 @@ import { fetchTasksApi, deleteTaskApi } from '../../services/taskService';
 import { TaskFilters } from '../../components/TasksPage/TaskFilters';
 import { TaskTabs } from '../../components/TasksPage/TaskTabs';
 import { TaskTable } from '../../components/TasksPage/TaskTable';
+import { EditTaskModal } from '../../components/TasksPage/EditTaskModal';
 import { CreateTaskWizard } from '../../components/TasksPage/CreateTaskWizard';
 import { Pagination } from '../../components/general/Pagination';
 import { Modal } from '../../components/general/Modal';
@@ -17,6 +18,8 @@ export const TasksTablePage = () => {
   const [pageSize, setPageSize] = useState(8);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
   
   const [users, setUsers] = useState([]);
   const [tags, setTags] = useState([]);
@@ -91,6 +94,11 @@ export const TasksTablePage = () => {
     }
   };
 
+  const handleEditRequest = (task) => {
+    setSelectedTask(task);
+    setIsEditModalOpen(true);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-full flex flex-col overflow-hidden font-sans">
       <TaskFilters
@@ -116,10 +124,18 @@ export const TasksTablePage = () => {
           <TaskTable 
             tasks={data.results} 
             // onSort={(field) => setFilters(p => ({...p, ordering: p.ordering === field ? `-${field}` : field}))}
+            onEditRequest={handleEditRequest}
             onDeleteRequest={handleDeleteClick}
           />
         )}
       </div>
+
+      <EditTaskModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+        task={selectedTask}
+        onRefresh={loadTasks} 
+      />
 
       <Modal 
         isOpen={isDeleteModalOpen} 

@@ -1,7 +1,7 @@
 import { ActionMenu } from './ActionMenu';
 import { useNavigate } from 'react-router-dom';
 
-export const TaskTable = ({ tasks, onDeleteRequest }) => {
+export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
   const navigate = useNavigate();
   const getPriorityStyle = (priority) => {
     if (priority === 'high' || priority === 'HIGH') return 'bg-red-50 text-red-500 border-red-100';
@@ -117,7 +117,7 @@ export const TaskTable = ({ tasks, onDeleteRequest }) => {
               <td className="px-4" onClick={(e) => e.stopPropagation()}>
                 <ActionMenu 
                   onDelete={() => onDeleteRequest(task)} 
-                  onEdit={() => {/* логика редактирования */}}
+                  onEdit={() => onEditRequest(task)}
                 />
               </td>
             </tr>
