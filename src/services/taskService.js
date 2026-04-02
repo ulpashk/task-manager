@@ -99,3 +99,7 @@ export const uploadAttachmentApi = async (taskId, file) => {
   });
   return response.data;
 };
+
+export const deleteTaskApi = async (taskId) => {
+  await axiosInstance.delete(`/api/tasks/${taskId}/`);
+};
