@@ -10,12 +10,11 @@ export const TaskTable = ({ tasks }) => {
   };
 
   const getStatusStyle = (status) => {
-    if (status === 'completed') return 'bg-green-50 text-green-500';
-    if (status === 'TODO') return 'bg-gray-50 text-gray-500';
-    if (status === 'IN_PROGRESS') return 'bg-yellow-50 text-yellow-500';
-    if (status === 'revision') return 'bg-blue-50 text-blue-500';
-    if (status === 'in_progress') return 'bg-indigo-50 text-indigo-500';
-    return 'bg-gray-100 text-gray-500';
+    if (status === 'completed' || status === 'done') return 'bg-green-50 text-green-500';
+    if (status === 'TODO' || status === 'created') return 'bg-gray-100 text-gray-500';
+    if (status === 'IN_PROGRESS' || status === 'in_progress') return 'bg-yellow-50 text-yellow-500';
+    if (status === 'revision' || status === 'waiting') return 'bg-blue-50 text-blue-500';
+    return 'bg-gray-50 text-gray-500';
   };
 
   const getStatusLabel = (s) => {
@@ -53,7 +52,7 @@ export const TaskTable = ({ tasks }) => {
                   <div className="w-7 h-7 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
                     <img src={`https://ui-avatars.com/api/?name=${task.client?.name}`} alt="logo" />
                   </div>
-                  <span className="font-medium text-gray-700 truncate max-w-[150px]">{task.client?.name}</span>
+                  <span className="font-medium text-gray-700 truncate max-w-[150px]">{task.client?.name || 'Unknown Client'}</span>
                 </div>
               </td>
               <td 
@@ -77,7 +76,7 @@ export const TaskTable = ({ tasks }) => {
                         style={{
                           color: tag.color,
                           borderColor: `${tag.color}40`,
-                          backgroundColor: `${tag.color}15`,
+                          // backgroundColor: `${tag.color}15`,
                         }}
                       >
                         {tag.name}
@@ -90,13 +89,14 @@ export const TaskTable = ({ tasks }) => {
                   )}
                 </div>
               </td>
-              {/* <td className="px-6 py-4">
+              <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
                   <img className="w-6 h-6 rounded-full" src={`https://ui-avatars.com/api/?name=${task.assignees[0]?.first_name}`} alt="" />
-                  <span className="text-gray-700">{task.assignees[0]?.first_name}</span>
+                  {/* <span className="text-gray-700">{task.assignees[0]?.first_name}</span> */}
+                  <span className="text-gray-700">Unknown User</span>
                 </div>
-              </td> */}
-              <td className="px-6 py-4 text-gray-600">Кемелбай Мерей</td>
+              </td>
+              {/* <td className="px-6 py-4 text-gray-600">Кемелбай Мерей</td> */}
               <td className="px-6 py-4 text-center">
                 <span className={`px-3 py-1 rounded-full text-xs border font-medium ${getPriorityStyle(task.priority)}`}>
                   {(task.priority === 'high' || task.priority === 'HIGH') ? 'Высокий' : (task.priority === 'medium' || task.priority === 'MEDIUM') ? 'Средний' : 'Низкий'}
@@ -107,7 +107,7 @@ export const TaskTable = ({ tasks }) => {
                   <span className="px-3 py-1 text-gray-500 whitespace-nowrap">
                     {new Date(task.deadline).toLocaleDateString()} {new Date(task.deadline).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                   </span>
-                  <span className={`px-3 py-1 w-1/3 rounded-md text-xs font-medium ${getStatusStyle(task.status)}`}>
+                  <span className={`px-3 py-1 w-2/3 rounded-full text-xs font-medium ${getStatusStyle(task.status)}`}>
                     {getStatusLabel(task.status)}
                   </span>
                 </div>

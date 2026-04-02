@@ -17,7 +17,6 @@ export const TaskFilters = ({
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Локальное состояние для тех фильтров, которые применяются по кнопке
   const [localBuffer, setLocalBuffer] = useState({
     assignee: filters.assignee || '',
     tag_ids: filters.tags ? filters.tags.split(',') : [],
@@ -25,7 +24,6 @@ export const TaskFilters = ({
     deadline_to: filters.deadline_to || ''
   });
 
-  // Синхронизация буфера, если фильтры изменились извне (например, при сбросе)
   useEffect(() => {
     setLocalBuffer({
       assignee: filters.assignee || '',
@@ -41,7 +39,7 @@ export const TaskFilters = ({
   const handleApplyClick = () => {
     onApply({
       assignee: localBuffer.assignee,
-      tags: localBuffer.tag_ids.join(','), // Превращаем массив в строку "1,2"
+      tags: localBuffer.tag_ids.join(','),
       deadline_from: localBuffer.deadline_from,
       deadline_to: localBuffer.deadline_to
     });
@@ -51,12 +49,11 @@ export const TaskFilters = ({
     const empty = { assignee: '', tag_ids: [], deadline_from: '', deadline_to: '' };
     setLocalBuffer(empty);
     onApply({ ...empty, tags: '', search: '' });
-    onSearchChange(''); // Очищаем поиск
+    onSearchChange('');
   };
 
   return (
     <div className="p-6 pb-0 font-sans">
-      {/* Шапка */}
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-gray-800 tracking-tight">Все заявки</h3>
         <div className="flex items-center gap-3">
@@ -68,9 +65,7 @@ export const TaskFilters = ({
         </div>
       </div>
 
-      {/* Ряд фильтров */}
       <div className="flex items-end gap-4 mb-6 flex-wrap">
-        {/* Исполнитель (Локальное изменение) */}
         <div className="w-[180px]">
           <label className="text-xs font-medium text-gray-500 mb-1.5 block">Исполнитель</label>
           <select 
@@ -83,7 +78,6 @@ export const TaskFilters = ({
           </select>
         </div>
 
-        {/* Тэги (Мультиселект) */}
         <div className="w-[180px]">
           <label className="text-xs font-medium text-gray-500 mb-1.5 block">Тэг</label>
           <MultiSelectDropdown 
@@ -93,7 +87,6 @@ export const TaskFilters = ({
           />
         </div>
 
-        {/* Дата С */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-gray-500">Дата с</label>
           <input 
@@ -104,7 +97,6 @@ export const TaskFilters = ({
           />
         </div>
 
-        {/* Дата ПО */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-gray-500">Дата по</label>
           <input 
@@ -115,21 +107,19 @@ export const TaskFilters = ({
           />
         </div>
 
-        {/* Кнопки */}
         <div className="flex gap-2 ml-2">
-          <button onClick={handleApplyClick} className="px-5 py-2 bg-[#F5F5F5] text-gray-500 hover:bg-blue-600 hover:text-white rounded-lg text-sm font-bold transition-all">Применить</button>
-          <button onClick={handleResetClick} className="px-5 py-2 bg-white border border-gray-200 text-gray-400 hover:bg-gray-50 rounded-lg text-sm font-bold transition-all">Сбросить</button>
+          <button onClick={handleApplyClick} className="px-5 py-2 bg-[#F5F5F5] border border-gray-200 text-gray-400 hover:bg-blue-500 hover:text-white rounded-lg text-sm transition-all">Применить</button>
+          <button onClick={handleResetClick} className="px-5 py-2 bg-[#F5F5F5] border border-gray-200 text-gray-400 hover:bg-gray-50 rounded-lg text-sm transition-all">Сбросить</button>
         </div>
       </div>
 
-      {/* Поиск и Строки */}
       <div className="flex items-center justify-between gap-4 pb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input 
             type="text" 
-            placeholder="Поиск по задачам..." 
-            value={filters.search} // Используем глобальный поиск для мгновенного эффекта
+            placeholder="Поиск" 
+            value={filters.search}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-400 bg-white"
           />
