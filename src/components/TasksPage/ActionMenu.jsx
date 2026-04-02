@@ -28,14 +28,15 @@ export const ActionMenu = ({ onEdit, onDelete}) => {
             <Pencil size={16} /> Редактировать
           </button>
           
-          <button 
-            onClick={(e) => { e.stopPropagation(); /* pin logic */; }}
+          {/* <button 
+            onClick={(e) => { e.stopPropagation(); }}
             className="w-full flex items-center gap-3 px-3 py-2 text-[14px] text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
           >
+            <Pin size={16} /> Закрепить
+          </button> */}
+          
             {/* {isPinned ? <PinOff size={16} className="text-blue-500" /> : <Pin size={16} />}
             {isPinned ? 'Открепить' : 'Закрепить'} */}
-            <Pin size={16} /> Закрепить
-          </button>
 
           <button 
             onClick={(e) => { 

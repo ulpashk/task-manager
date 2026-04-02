@@ -112,6 +112,7 @@ export const KanbanPage = () => {
           ))
         )}
       </div>
+      
       <EditTaskModal 
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -119,7 +120,6 @@ export const KanbanPage = () => {
         onRefresh={loadTasks}
       />
 
-      {/* МОДАЛКА УДАЛЕНИЯ */}
       <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Удаление задачи">
         <div className="flex flex-col gap-4">
           <p className="text-gray-600">Вы уверены, что хотите удалить задачу <span className="font-bold">"{selectedTask?.title}"</span>?</p>

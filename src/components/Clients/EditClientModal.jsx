@@ -13,14 +13,12 @@ const FIELD_LABELS = {
 export const EditClientModal = ({ isOpen, onClose, client, onRefresh }) => {
   const [step, setStep] = useState('edit');
   const [loading, setLoading] = useState(false);
-  // НОВОЕ: стейт для фиксации изменений, чтобы они не исчезали после обновления данных
   const [finalChanges, setFinalChanges] = useState([]);
   
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '', contact_person: '', client_type: ''
   });
 
-  // Инициализация при открытии
   useEffect(() => {
     if (isOpen && client) {
       setFormData({
@@ -31,13 +29,12 @@ export const EditClientModal = ({ isOpen, onClose, client, onRefresh }) => {
         client_type: client.client_type || 'company'
       });
       setStep('edit');
-      setFinalChanges([]); // Очищаем старые изменения
+      setFinalChanges([]);
     }
-  }, [isOpen]); // Следим только за открытием
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  // Функция расчета текущих изменений (для блокировки кнопки Сохранить)
   const getLiveChanges = () => {
     const changes = [];
     if (!client) return changes;
@@ -58,7 +55,7 @@ export const EditClientModal = ({ isOpen, onClose, client, onRefresh }) => {
     e.preventDefault();
     const currentChanges = getLiveChanges();
     if (currentChanges.length > 0) {
-      setFinalChanges(currentChanges); // ФИКСИРУЕМ изменения перед отправкой
+      setFinalChanges(currentChanges);
       setStep('confirm');
     }
   };
@@ -67,10 +64,7 @@ export const EditClientModal = ({ isOpen, onClose, client, onRefresh }) => {
     setLoading(true);
     try {
       await updateClientApi(client.id, formData);
-      // Важно: Сначала переходим в успех, используя зафиксированные finalChanges
       setStep('success');
-      // Теперь обновляем родителя. Даже если client обновится, 
-      // наше окно успеха будет использовать finalChanges и не опустеет.
       onRefresh(); 
     } catch (error) {
       alert("Ошибка при сохранении");
@@ -96,8 +90,6 @@ export const EditClientModal = ({ isOpen, onClose, client, onRefresh }) => {
         } w-full`}
         onClick={(e) => e.stopPropagation()}
       >
-        
-        {/* ШАПКА: Теперь заголовок не зависит от динамических расчетов */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-gray-50">
           <h2 className="text-[20px] font-bold text-gray-800">
             {step === 'edit' && 'Изменить данные организации'}
@@ -110,7 +102,6 @@ export const EditClientModal = ({ isOpen, onClose, client, onRefresh }) => {
         </div>
 
         <div className="p-8">
-          {/* ШАГ 1: РЕДАКТИРОВАНИЕ */}
           {step === 'edit' && (
             <form onSubmit={handleSaveClick} className="flex flex-col gap-5">
               <div className="flex flex-col gap-1.5">
@@ -148,7 +139,6 @@ export const EditClientModal = ({ isOpen, onClose, client, onRefresh }) => {
             </form>
           )}
 
-          {/* ШАГ 2: ПОДТВЕРЖДЕНИЕ (Используем finalChanges) */}
           {step === 'confirm' && (
             <div className="flex flex-col gap-6 animate-in fade-in duration-300">
               <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
@@ -170,7 +160,6 @@ export const EditClientModal = ({ isOpen, onClose, client, onRefresh }) => {
             </div>
           )}
 
-          {/* ШАГ 3: УСПЕХ (Используем те же finalChanges) */}
           {step === 'success' && (
             <div className="flex flex-col gap-6 animate-in zoom-in-95 duration-300">
               <div className="space-y-5">
