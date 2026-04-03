@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronDown, CheckCircle2, Loader2 } from 'lucide-react';
 import { updateTaskApi, fetchProjectsListApi, fetchEpicsListApi } from '../../services/taskService';
+import { formatDateTime, toInputDateTime } from '../../utils/formatters';
 // import { fetchProjectsListApi } from '../../services/projectService';
 // import { fetchEpicsListApi } from '../../services/epicService';
 import { fetchUsersListApi } from '../../services/userService';
 import { fetchTagsListApi } from '../../services/tagService';
 import { fetchClientsApi } from '../../services/clientService';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 const FIELD_LABELS = {
   title: 'Тема задачи',
@@ -19,8 +22,14 @@ const FIELD_LABELS = {
   tag_ids: 'Тэги'
 };
 
+const PRIORITY_LABELS = {
+  low: 'Низкий',
+  medium: 'Средний',
+  high: 'Высокий'
+};
+
 export const EditTaskModal = ({ isOpen, onClose, task, onRefresh }) => {
-  const [step, setStep] = useState('edit'); // edit | confirm | success
+  const [step, setStep] = useState('edit');
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [finalChanges, setFinalChanges] = useState([]);
@@ -28,7 +37,6 @@ export const EditTaskModal = ({ isOpen, onClose, task, onRefresh }) => {
   const [lists, setLists] = useState({ projects: [], epics: [], users: [], tags: [], clients: [] });
   const [formData, setFormData] = useState({});
 
-  // Загрузка справочников
   useEffect(() => {
     if (isOpen) {
       const loadData = async () => {
@@ -44,14 +52,14 @@ export const EditTaskModal = ({ isOpen, onClose, task, onRefresh }) => {
     }
   }, [isOpen]);
 
-  // Инициализация данных задачи
   useEffect(() => {
     if (isOpen && task) {
       setFormData({
         title: task.title || '',
         description: task.description || '',
         priority: task.priority || 'low',
-        deadline: task.deadline ? task.deadline.slice(0, 16) : '',
+        // deadline: task.deadline ? task.deadline.slice(0, 16) : '',
+        deadline: toInputDateTime(task.deadline),
         client_id: task.client?.id || '',
         project_id: task.project?.id || '',
         epic_id: task.epic?.id || '',
@@ -64,25 +72,83 @@ export const EditTaskModal = ({ isOpen, onClose, task, onRefresh }) => {
 
   if (!isOpen || !task) return null;
 
-  // Логика определения изменений
+  const getDisplayValue = (key, value) => {
+    if (!value || value === '') return '';
+
+    if (key === 'deadline') {
+      try {
+        return format(new Date(value), 'dd.MM.yyyy HH:mm', { locale: ru });
+      } catch (e) {
+        return value;
+      }
+    }
+
+    if (key === 'priority') return PRIORITY_LABELS[value] || value;
+
+    if (key === 'client_id') {
+      const item = lists.clients.find(c => String(c.id) === String(value));
+      return item ? item.name : value;
+    }
+
+    if (key === 'project_id') {
+      const item = lists.projects.find(p => String(p.id) === String(value));
+      return item ? item.title : value;
+    }
+
+    if (key === 'epic_id') {
+      const item = lists.epics.find(e => String(e.id) === String(value));
+      return item ? item.title : value;
+    }
+
+    return value;
+  };
+
   const getChanges = () => {
     const changes = [];
-    
-    // Сравнение простых полей
-    const simpleFields = ['title', 'description', 'priority', 'client_id', 'project_id', 'epic_id'];
-    simpleFields.forEach(key => {
-      const originalValue = key.includes('_id') ? task[key.replace('_id', '')]?.id : task[key];
-      if (String(formData[key]) !== String(originalValue || '')) {
-        changes.push({ key, label: FIELD_LABELS[key], oldValue: originalValue || 'не указано', newValue: formData[key] });
+    if (!task) return changes;
+
+    const fieldsToCompare = ['title', 'description', 'priority', 'client_id', 'project_id', 'epic_id', 'deadline'];
+
+    fieldsToCompare.forEach(key => {
+      let originalValue = key.includes('_id') ? task[key.replace('_id', '')]?.id : task[key];
+      let currentValue = formData[key];
+
+      if (key === 'deadline') {
+        const fmt = 'yyyy-MM-dd HH:mm';
+        const originalDate = originalValue ? format(new Date(originalValue), fmt) : '';
+        const currentSelection = currentValue ? format(new Date(currentValue), fmt) : '';
+        
+        if (originalDate !== currentSelection) {
+          changes.push({
+            key,
+            label: FIELD_LABELS[key],
+            oldValue: getDisplayValue(key, originalValue),
+            newValue: getDisplayValue(key, currentValue)
+          });
+        }
+        return;
+      }
+
+      if (String(currentValue || '') !== String(originalValue || '')) {
+        changes.push({
+          key,
+          label: FIELD_LABELS[key],
+          oldValue: getDisplayValue(key, originalValue),
+          newValue: getDisplayValue(key, currentValue)
+        });
       }
     });
 
-    // Сравнение массивов (Исполнители и Теги)
     const arrayFields = ['assignee_ids', 'tag_ids'];
     arrayFields.forEach(key => {
       const originalIds = (key === 'assignee_ids' ? task.assignees : task.tags)?.map(i => i.id) || [];
       if (JSON.stringify([...originalIds].sort()) !== JSON.stringify([...formData[key]].sort())) {
-        changes.push({ key, label: FIELD_LABELS[key], oldValue: `Кол-во: ${originalIds.length}`, newValue: `Кол-во: ${formData[key].length}` });
+        changes.push({ 
+          key, 
+          label: FIELD_LABELS[key], 
+          oldValue: `Выбрано: ${originalIds.length}`, 
+          newValue: `Выбрано: ${formData[key].length}` 
+        });
       }
     });
 

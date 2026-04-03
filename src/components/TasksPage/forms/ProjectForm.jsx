@@ -21,7 +21,8 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
   useEffect(() => {
     const loadRequiredData = async () => {
       try {
-        const userList = await fetchUsersListApi();
+        const userList = await fetchUsersListApi({ is_active: 'true' });
+        // const userList = await fetchUsersListApi();
         setUsers(userList || []);
       } catch (err) {
         console.error("Ошибка при загрузке списков руководителей:", err);

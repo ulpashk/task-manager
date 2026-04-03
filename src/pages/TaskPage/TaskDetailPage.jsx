@@ -24,7 +24,7 @@ export const TaskDetailPage = () => {
   const [comments, setComments] = useState([]);
   const [subtasks, setSubtasks] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const [activeTab, setActiveTab] = useState('subtasks'); // По умолчанию теперь Подзадачи
+  const [activeTab, setActiveTab] = useState('subtasks');
   const [loading, setLoading] = useState(true);
   const [isSubtaskModalOpen, setIsSubtaskModalOpen] = useState(false);
 
@@ -34,7 +34,7 @@ export const TaskDetailPage = () => {
         fetchTaskByIdApi(id),
         fetchTaskAttachmentsApi(id),
         fetchTaskCommentsApi(id),
-        fetchTasksApi({ parent_task_id: id }) // Загружаем подзадачи
+        fetchTasksApi({ parent_task: id })
       ]);
       setTask(taskData);
       setAttachments(attachData || []);
@@ -212,7 +212,7 @@ export const TaskDetailPage = () => {
             </div>
           )}
 
-          {activeTab === 'comments' ? (
+          {activeTab === 'comments' && (
             <div className="flex flex-col h-full">
               
               {/* ЧАСТЬ 1: СПИСОК КОММЕНТАРИЕВ (Теперь имеет свой скролл) */}
@@ -277,7 +277,9 @@ export const TaskDetailPage = () => {
                 </div>
               </div>
             </div>
-          ) : (
+          )}
+           
+          {activeTab === 'history' && (
             <div className="p-8 text-gray-400 text-center">
               История изменений пока пуста
             </div>

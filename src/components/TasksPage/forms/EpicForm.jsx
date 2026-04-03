@@ -26,7 +26,7 @@ export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
       try {
         const [projectsList, usersList] = await Promise.all([
           fetchProjectsListApi(),
-          fetchUsersListApi()
+          fetchUsersListApi({ is_active: 'true' })
         ]);
         setProjects(projectsList);
         setUsers(usersList);

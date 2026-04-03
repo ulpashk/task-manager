@@ -1,3 +1,27 @@
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
+
+export const formatDateTime = (dateStr) => {
+  if (!dateStr) return '—';
+  try {
+    return format(new Date(dateStr), 'dd.MM.yyyy HH:mm', { locale: ru });
+  } catch (e) {
+    return dateStr;
+  }
+};
+
+export const toInputDateTime = (dateStr) => {
+  if (!dateStr) return '';
+  try {
+    const date = new Date(dateStr);
+    const offset = date.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(date.getTime() - offset).toISOString().slice(0, 16);
+    return localISOTime;
+  } catch (e) {
+    return '';
+  }
+};
+
 export const formatPhoneNumber = (phoneNumberString) => {
   if (!phoneNumberString) return '—';
 

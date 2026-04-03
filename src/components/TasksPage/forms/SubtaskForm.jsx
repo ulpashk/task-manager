@@ -77,7 +77,7 @@ export const SubtaskForm = ({ onClose, onRefresh, initialParentId }) => {
     const loadData = async () => {
       try {
         const [usersList, tasksList] = await Promise.all([
-          fetchUsersListApi(),
+          fetchUsersListApi({ role: 'engineer', is_active: 'true' }), 
           fetchTasksListApi()
         ]);
         setUsers(usersList || []);

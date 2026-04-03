@@ -9,7 +9,11 @@ export const fetchUsersApi = async (params = {}) => {
   }
 };
 
-export const fetchUsersListApi = async () => {
-  const response = await axiosInstance.get('/api/users/?page_size=100');
+// export const fetchUsersListApi = async () => {
+//   const response = await axiosInstance.get('/api/users/?page_size=100');
+//   return response.data.results;
+// };
+export const fetchUsersListApi = async (params = {}) => {
+  const response = await axiosInstance.get('/api/users/', { params });
   return response.data.results;
 };

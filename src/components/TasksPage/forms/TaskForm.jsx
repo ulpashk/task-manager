@@ -64,7 +64,12 @@ export const TaskForm = ({ onClose, onRefresh }) => {
   const fileInputRef = useRef(null);
 
   const [lists, setLists] = useState({
-    projects: [], epics: [], users: [], tags: [], clients: []
+    projects: [], 
+    epics: [], 
+    users: [],
+    engineers: [],
+    tags: [], 
+    clients: []
   });
 
   const [formData, setFormData] = useState({
@@ -83,10 +88,12 @@ export const TaskForm = ({ onClose, onRefresh }) => {
   useEffect(() => {
     const loadAllData = async () => {
       try {
-        const [projects, epics, users, tags, clients] = await Promise.all([
+        const [projects, epics, users, engineers, tags, clients] = await Promise.all([
           fetchProjectsListApi(),
           fetchEpicsListApi(),
-          fetchUsersListApi(),
+          fetchUsersListApi({ is_active: 'true' }),
+          fetchUsersListApi({ role: 'engineer', is_active: 'true' }),
+          // fetchUsersListApi(),
           fetchTagsListApi(),
           fetchClientsApi({ page_size: 100 })
         ]);
@@ -95,6 +102,7 @@ export const TaskForm = ({ onClose, onRefresh }) => {
           projects: projects || [],
           epics: epics || [],
           users: users || [],
+          engineers: engineers || [],
           tags: tags || [],
           clients: clients?.results || []
         });
@@ -118,40 +126,6 @@ export const TaskForm = ({ onClose, onRefresh }) => {
     }
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!formData.client_id) {
-  //     alert("Выберите компанию");
-  //     return;
-  //   }
-
-  //   setLoading(true);
-    
-  //   try {
-  //     const payload = {
-  //       ...formData,
-  //       project_id: formData.project_id ? Number(formData.project_id) : null,
-  //       epic_id: formData.epic_id ? Number(formData.epic_id) : null,
-  //       client_id: Number(formData.client_id),
-  //       assignee_ids: formData.assignee_ids.map(id => Number(id)),
-  //       tag_ids: formData.tag_ids.map(id => Number(id)),
-  //       deadline: formData.deadline ? new Date(formData.deadline).toISOString() : null
-  //     };
-
-  //     const newTask = await createTaskApi(payload);
-
-  //     if (selectedFile && newTask.id) {
-  //       await uploadAttachmentApi(newTask.id, selectedFile);
-  //     }
-
-  //     onRefresh();
-  //     onClose();
-  //   } catch (err) {
-  //     alert("Ошибка при создании задачи или загрузке файла.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.client_id) {
@@ -213,7 +187,7 @@ export const TaskForm = ({ onClose, onRefresh }) => {
   if (dataLoading) return <div className="p-10 text-center text-gray-400 font-sans flex items-center justify-center gap-2"><Loader2 className="animate-spin" size={18}/> Загрузка...</div>;
 
   return (
-    <form className="flex flex-col gap-4 font-sans" onSubmit={handleSubmit}>
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-1.5">
         <label className="text-[14px] font-bold text-gray-700">Тема задачи</label>
         <input name="title" required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500" placeholder="Название задачи" />
@@ -243,10 +217,10 @@ export const TaskForm = ({ onClose, onRefresh }) => {
 
       <MultiSelect 
         label="Исполнители *" 
-        options={lists.users} 
+        options={lists.engineers}
         selectedIds={formData.assignee_ids} 
         onToggle={(id) => toggleSelection('assignee_ids', id)}
-        placeholder="Выберите исполнителей"
+        placeholder="Выберите исполнителей (инженеров)"
       />
 
       <div className="flex flex-col gap-1.5">

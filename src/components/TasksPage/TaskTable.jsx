@@ -1,5 +1,6 @@
 import { ActionMenu } from './ActionMenu';
 import { useNavigate } from 'react-router-dom';
+import { formatDateTime } from '../../utils/formatters';
 
 export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
   const navigate = useNavigate();
@@ -104,7 +105,8 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
               <td className="px-6 py-4 text-center">
                 <div className='flex flex-col items-center gap-1'>
                   <span className="px-3 py-1 text-gray-500 whitespace-nowrap">
-                    {new Date(task.deadline).toLocaleDateString()} {new Date(task.deadline).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    {/* {new Date(task.deadline).toLocaleDateString()} {new Date(task.deadline).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} */}
+                    {formatDateTime(task.deadline)}
                   </span>
                   <span className={`px-3 py-1 w-2/3 rounded-full text-xs font-medium ${getStatusStyle(task.status)}`}>
                     {getStatusLabel(task.status)}
