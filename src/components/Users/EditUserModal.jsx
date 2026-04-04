@@ -62,7 +62,7 @@ export const EditUserModal = ({ isOpen, onClose, user, onRefresh }) => {
       setStep('edit');
       setFinalChanges([]);
     }
-  }, [user, isOpen]);
+  }, [isOpen]);
 
   const getDisplayValue = (key, value) => {
     if (value === '' || value === null || value === undefined) return 'не указано';
@@ -273,7 +273,7 @@ export const EditUserModal = ({ isOpen, onClose, user, onRefresh }) => {
             <div className="text-center">
               <h3 className="text-lg font-bold text-gray-800">Пользователь обновлен</h3>
             </div>
-            <button onClick={closeAndReset} className="bg-[#1677FF] text-white px-12 py-2.5 rounded-lg font-bold mt-4 shadow-lg shadow-blue-100">Ок</button>
+            <button onClick={onClose} className="bg-[#1677FF] text-white px-12 py-2.5 rounded-lg font-bold mt-4 shadow-lg shadow-blue-100">Ок</button>
           </div>
         )}
       </div>

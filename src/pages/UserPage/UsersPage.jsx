@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
-import { fetchUsersApi, deleteUserApi } from '../services/userService';
-import { UserTable } from '../components/Users/UserTable';
-import { UserFilters } from '../components/Users/UserFilters';
-import { Pagination } from '../components/general/Pagination';
-import { AddUserModal } from '../components/Users/AddUserModal';
-import { EditUserModal } from '../components/Users/EditUserModal';
-import { Modal } from '../components/general/Modal';
+import { fetchUsersApi, deleteUserApi } from '../../services/userService';
+import { UserTable } from '../../components/Users/UserTable';
+import { UserFilters } from '../../components/Users/UserFilters';
+import { Pagination } from '../../components/general/Pagination';
+import { AddUserModal } from '../../components/Users/AddUserModal';
+import { EditUserModal } from '../../components/Users/EditUserModal';
+import { Modal } from '../../components/general/Modal';
 
 export const UsersPage = () => {
   const [data, setData] = useState({ results: [], count: 0 });

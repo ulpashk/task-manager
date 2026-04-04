@@ -4,7 +4,7 @@ import { TasksTablePage } from '../pages/TaskPage/TasksPage';
 import { KanbanPage } from '../pages/KanbanPage';
 import { OrganizationsPage } from '../pages/OrganizationsPage';
 import { ClientsPage } from '../pages/ClientPage/ClientPage';
-import { UsersPage } from '../pages/UsersPage';
+import { UsersPage } from '../pages/UserPage/UsersPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { CalendarPage } from '../pages/CalendarPage';
 import { AnalyticsPage } from '../pages/AnalyticsPage';

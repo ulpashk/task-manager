@@ -1,7 +1,10 @@
+import { useNavigate } from 'react-router-dom';
 import { ChevronsUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { ActionMenu } from '../TasksPage/ActionMenu';
 
 export const UserTable = ({ users, onSort, currentOrdering, onEdit, onDelete }) => {
+  const navigate = useNavigate();
+
   const getSortIcon = (field) => {
     if (currentOrdering === field) return <ChevronUp size={14} className="text-blue-600" />;
     if (currentOrdering === `-${field}`) return <ChevronDown size={14} className="text-blue-600" />;
@@ -25,7 +28,7 @@ export const UserTable = ({ users, onSort, currentOrdering, onEdit, onDelete }) 
       </thead>
       <tbody className="divide-y divide-gray-50 text-[14px]">
         {users.map(user => (
-          <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+          <tr key={user.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(`/users/${user.id}`)}>
             <td className="px-6 py-5 text-gray-500">{user.last_name} {user.first_name}</td>
             <td className="px-6 py-5 text-gray-500">{user.email}</td>
             <td className="px-6 py-5 uppercase text-[11px] font-bold text-gray-400">{user.role}</td>

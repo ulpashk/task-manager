@@ -10,6 +10,7 @@ import { NAVIGATION_ITEMS } from './config/navigation';
 import { ClientDetailPage } from './pages/ClientPage/ClientDetailPage';
 import { TaskDetailPage } from './pages/TaskPage/TaskDetailPage';
 import { ProjectDetailPage } from './pages/ProjectPage/ProjectDetailPage';
+import { UserDetailPage } from './pages/UserPage/UserDetailPage';
 
 const RoleGuard = ({ item, children }) => {
   const { user } = useAuth();
@@ -64,6 +65,14 @@ function App() {
                   element={
                     <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/clients')}>
                       <ClientDetailPage />
+                    </RoleGuard>
+                  } 
+                />
+                <Route 
+                  path="/users/:id" 
+                  element={
+                    <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/users')}>
+                      <UserDetailPage />
                     </RoleGuard>
                   } 
                 />

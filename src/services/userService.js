@@ -14,6 +14,11 @@ export const fetchUsersListApi = async (params = {}) => {
   return response.data.results;
 };
 
+export const fetchUserByIdApi = async (id) => {
+  const response = await axiosInstance.get(`/api/users/${id}/`);
+  return response.data;
+};
+
 export const createUserApi = async (data) => {
   const response = await axiosInstance.post('/api/users/', data);
   return response.data;
