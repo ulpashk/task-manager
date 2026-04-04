@@ -39,6 +39,7 @@ export const NAVIGATION_ITEMS = [
   },
   {
     label: 'Проекты',
+    title: 'Список проектов',
     path: '/projects',
     icon: LayoutGrid,
     component: ProjectsPage,
@@ -54,7 +55,7 @@ export const NAVIGATION_ITEMS = [
   },
   {
     label: 'Аналитика',
-    title: 'Аналиттика',
+    title: 'Аналитика',
     path: '/analytics',
     icon: BarChart2,
     component: AnalyticsPage,

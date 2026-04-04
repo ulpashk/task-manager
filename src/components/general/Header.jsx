@@ -18,7 +18,7 @@ export const Header = () => {
 
   const getPageTitle = () => {
     const activeItem = NAVIGATION_ITEMS.find(item => item.path === location.pathname);
-    if (activeItem) return activeItem.label;
+    if (activeItem) return activeItem.title;
     if (location.pathname.startsWith('/clients/')) {
       return 'Информация о компании';
     }
