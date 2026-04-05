@@ -1,6 +1,6 @@
 import { ActionMenu } from '../TasksPage/ActionMenu';
 
-export const TagTable = ({ tags }) => {
+export const TagTable = ({ tags, onEdit, onDelete }) => {
   return (
     <div className="overflow-x-auto h-full">
       <table className="w-full text-left border-separate border-spacing-0">
@@ -29,7 +29,10 @@ export const TagTable = ({ tags }) => {
                 </div>
               </td>
               <td className="px-6 py-5 text-right">
-                <ActionMenu />
+                <ActionMenu 
+                  onEdit={() => onEdit(tag)} 
+                  onDelete={() => onDelete(tag)}
+                />
               </td>
             </tr>
           ))}

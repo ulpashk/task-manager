@@ -1,6 +1,6 @@
 import { Search, Plus, ChevronDown } from 'lucide-react';
 
-export const TagFilters = ({ onSearch, onAddClick }) => {
+export const TagFilters = ({ onSearch, onAddClick, ordering, onSortChange }) => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -24,9 +24,19 @@ export const TagFilters = ({ onSearch, onAddClick }) => {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-400">Сортировать</span>
-          <div className="flex items-center gap-4 px-3 py-2 border border-gray-200 rounded-lg bg-white cursor-pointer min-w-[150px]">
-            <span className="text-sm font-medium text-gray-700">По алфавиту</span>
-            <ChevronDown size={16} className="text-gray-400" />
+          <div className="relative min-w-[180px]">
+            <select 
+              value={ordering}
+              onChange={(e) => onSortChange(e.target.value)}
+              className="w-full appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 outline-none cursor-pointer pr-10"
+            >
+              <option value="name">По алфавиту</option>
+              {/* <option value="-name">По алфавиту (Я-А)</option> */}
+              {/* <option value="id">По дате создания</option> */}
+              <option value="-id">Сначала новые</option>
+              <option value="id">Сначала старые</option>
+            </select>
+            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
         </div>
       </div>

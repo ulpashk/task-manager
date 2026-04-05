@@ -14,3 +14,12 @@ export const createTagApi = async (data) => {
   const response = await axiosInstance.post('/api/tags/', data);
   return response.data;
 };
+
+export const updateTagApi = async (id, data) => {
+  const response = await axiosInstance.patch(`/api/tags/${id}/`, data);
+  return response.data;
+};
+
+export const deleteTagApi = async (id) => {
+  await axiosInstance.delete(`/api/tags/${id}/`);
+};
