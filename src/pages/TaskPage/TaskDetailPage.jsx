@@ -45,19 +45,17 @@ export const TaskDetailPage = () => {
     }
   }, [isSubtask]);
 
-  useEffect(() => {
-    if (pageRef.current) {
-      pageRef.current.scrollTo({ top: 0, behavior: 'instant' });
-    }
-  }, [id]);
-
   const loadData = useCallback(async () => {
+    setLoading(true);
+    setTask(null);
     try {
+      const delay = (ms) => new Promise(res => setTimeout(res, ms));
       const [taskData, attachData, commentData, subtaskData] = await Promise.all([
         fetchTaskByIdApi(id),
         fetchTaskAttachmentsApi(id),
         fetchTaskCommentsApi(id),
-        fetchTasksApi({ parent_task: id })
+        fetchTasksApi({ parent_task: id }), 
+        delay(300)
       ]);
       setTask(taskData);
       setAttachments(attachData || []);
@@ -69,7 +67,13 @@ export const TaskDetailPage = () => {
     }
   }, [id]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  // useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+    if (pageRef.current) {
+      pageRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [id, loadData]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -158,8 +162,21 @@ export const TaskDetailPage = () => {
     link.remove();
   };
 
-  if (loading) return <div className="p-20 text-center"><Loader2 className="animate-spin inline mr-2"/> Загрузка...</div>;
-  if (!task) return <div className="p-10 text-center text-red-500">Задача не найдена</div>;
+  // if (loading) return <div className="p-20 text-center"><Loader2 className="animate-spin inline mr-2"/> Загрузка...</div>;
+  // if (!task) return <div className="p-10 text-center text-red-500">Задача не найдена</div>;
+  if (loading || !task) {
+    return (
+      <div className="h-full w-full flex flex-col items-center justify-center bg-[#FAFAFA] font-sans">
+        <div className="relative flex items-center justify-center">
+          {/* Внешнее кольцо */}
+          <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+          {/* Иконка в центре (опционально) */}
+          {/* <Loader2 className="absolute text-blue-600 animate-pulse" size={20} /> */}
+        </div>
+        <p className="mt-4 text-gray-400 font-medium animate-pulse">Загрузка данных...</p>
+      </div>
+    );
+  }
 
   return (
     <div ref={pageRef} className="flex flex-col h-full bg-[#FAFAFA] overflow-y-auto custom-scrollbar font-sans p-4 pt-0 gap-6 pb-20">
@@ -174,7 +191,7 @@ export const TaskDetailPage = () => {
             <Link2 size={16} className="text-blue-500" />
             <button 
               onClick={() => navigate(`/tasks/${task.parent_task.id}`)}
-              className="text-[14px] font-medium text-blue-600 hover:underline decoration-blue-300"
+              className="text-[14px] font-medium text-blue-600 underline hover:text-blue-500 decoration-blue-300"
             >
               {task.parent_task.title}
             </button>
@@ -199,65 +216,118 @@ export const TaskDetailPage = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 flex-shrink-0">
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-          <div className="flex items-center gap-3">
-            <Star size={16} className="text-gray-400" />
-            <span className="text-sm text-gray-400 w-24">Приоритет:</span>
-            <span className="bg-red-50 text-red-500 border border-red-100 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase">
-              {task.priority === 'high' ? 'Высокий' : 'Низкий'}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Calendar size={16} className="text-gray-400" />
-            <span className="text-sm text-gray-400 w-24">Дедлайн:</span>
-            <span className="text-sm font-bold text-gray-800">{format(new Date(task.deadline), 'd апреля yyyy г. HH:mm', { locale: ru })}</span>
-          </div>
-          <div className="flex items-start gap-3">
-            <Users size={16} className="text-gray-400 mt-1" />
-            <span className="text-sm text-gray-400 w-24">Исполнители:</span>
-            <div className="flex flex-wrap gap-2">
-              {task.assignees?.map(a => (
-                <div key={a.id} className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-[10px] font-bold">
-                    {a.first_name[0]}
-                  </div>
-                  <span className="text-sm font-bold text-gray-700">{a.first_name} {a.last_name}</span>
-                </div>
-              ))}
+      {isSubtask ? (
+        /* ВАРИАНТ ДЛЯ ПОДЗАДАЧИ (Как на вашем фото) */
+        <div className="grid grid-cols-2 gap-6 flex-shrink-0">
+          {/* Левая карточка: Приоритет и Дедлайн */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-5">
+            <div className="flex items-center gap-3">
+              <Star size={18} className="text-gray-400" />
+              <span className="text-[14px] text-gray-400 w-24">Приоритет:</span>
+              <span className={`px-3 py-0.5 rounded-full text-[11px] font-bold border ${task.priority === 'high' ? 'bg-red-50 text-red-500 border-red-100' : 'bg-gray-50 text-gray-500 border-gray-100'}`}>
+                {task.priority === 'high' ? 'Высокий' : 'Низкий'}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Calendar size={18} className="text-gray-400" />
+              <span className="text-[14px] text-gray-400 w-24">Дедлайн:</span>
+              <span className="text-[14px] font-bold text-gray-800">
+                {format(new Date(task.deadline), 'd MMMM yyyy г. HH:mm', { locale: ru })}
+              </span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <TagIcon size={16} className="text-gray-400" />
-            <span className="text-sm text-gray-400 w-24">Тэг:</span>
-            <div className="flex gap-2">
-              {task.tags?.map(t => (
-                <span key={t.id} className="px-2 py-0.5 border border-purple-200 text-purple-600 rounded-md text-[10px] font-bold">
-                  {t.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-[#F9FAFB]/50 p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-          <div className="flex items-center gap-3">
-            <Building2 size={16} className="text-gray-400" />
-            <span className="text-sm text-gray-400 w-24">Компания:</span>
-            <span className="text-sm font-bold text-gray-800 uppercase">{task.client?.name || '—'}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <LayoutGrid size={16} className="text-gray-400" />
-            <span className="text-sm text-gray-400 w-24">Проект:</span>
-            <span className="text-sm font-medium text-gray-700">{task.epic?.project?.title || '—'}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Layers size={16} className="text-gray-400" />
-            <span className="text-sm text-gray-400 w-24">Эпик:</span>
-            <span className="text-sm font-medium text-gray-700">{task.epic?.title || '—'}</span>
+          {/* Правая карточка: Исполнители и Тэги */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-5">
+            <div className="flex items-start gap-3">
+              <Users size={18} className="text-gray-400 mt-1" />
+              <span className="text-[14px] text-gray-400 w-24">Исполнители:</span>
+              <div className="flex flex-col gap-3">
+                {task.assignees?.map(a => (
+                  <div key={a.id} className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold">
+                      {a.first_name[0]}
+                    </div>
+                    <span className="text-[14px] font-bold text-gray-700">{a.first_name} {a.last_name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <TagIcon size={18} className="text-gray-400" />
+              <span className="text-[14px] text-gray-400 w-24">Тэг:</span>
+              <div className="flex gap-2">
+                {task.tags?.map(t => (
+                  <span key={t.id} className="px-2 py-0.5 bg-white text-purple-600 rounded-md border border-purple-200 text-[10px] font-bold">
+                    {t.name}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-6 flex-shrink-0">
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+            <div className="flex items-center gap-3">
+              <Star size={16} className="text-gray-400" />
+              <span className="text-sm text-gray-400 w-24">Приоритет:</span>
+              <span className="bg-red-50 text-red-500 border border-red-100 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase">
+                {task.priority === 'high' ? 'Высокий' : 'Низкий'}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Calendar size={16} className="text-gray-400" />
+              <span className="text-sm text-gray-400 w-24">Дедлайн:</span>
+              <span className="text-sm font-bold text-gray-800">{format(new Date(task.deadline), 'd апреля yyyy г. HH:mm', { locale: ru })}</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <Users size={16} className="text-gray-400 mt-1" />
+              <span className="text-sm text-gray-400 w-24">Исполнители:</span>
+              <div className="flex flex-wrap gap-2">
+                {task.assignees?.map(a => (
+                  <div key={a.id} className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-[10px] font-bold">
+                      {a.first_name[0]}
+                    </div>
+                    <span className="text-sm font-bold text-gray-700">{a.first_name} {a.last_name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <TagIcon size={16} className="text-gray-400" />
+              <span className="text-sm text-gray-400 w-24">Тэг:</span>
+              <div className="flex gap-2">
+                {task.tags?.map(t => (
+                  <span key={t.id} className="px-2 py-0.5 border border-purple-200 text-purple-600 rounded-md text-[10px] font-bold">
+                    {t.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* <div className="bg-[#F9FAFB]/50 p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4"> */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+            <div className="flex items-center gap-3">
+              <Building2 size={16} className="text-gray-400" />
+              <span className="text-sm text-gray-400 w-24">Компания:</span>
+              <span className="text-sm font-bold text-gray-800 uppercase">{task.client?.name || '—'}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <LayoutGrid size={16} className="text-gray-400" />
+              <span className="text-sm text-gray-400 w-24">Проект:</span>
+              <span className="text-sm font-medium text-gray-700">{task.epic?.project?.title || '—'}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Layers size={16} className="text-gray-400" />
+              <span className="text-sm text-gray-400 w-24">Эпик:</span>
+              <span className="text-sm font-medium text-gray-700">{task.epic?.title || '—'}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-3">
         <h3 className="flex items-center gap-2 text-sm font-bold text-gray-800 uppercase tracking-wider">
