@@ -5,17 +5,24 @@ import {
   fetchTaskCommentsApi, addTaskCommentApi, 
   updateTaskCommentApi, deleteTaskCommentApi 
 } from '../../services/taskService';
+import { fetchUsersListApi } from '../../services/userService';
 import { Modal } from '../general/Modal';
-import { ActionMenu } from './ActionMenu'; 
+import { ActionMenu } from './ActionMenu';
 
 export const TaskComments = ({ taskId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
+  
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState(null);
+
+  const [allUsers, setAllUsers] = useState([]);
+  const [showMentionList, setShowMentionList] = useState(false);
+  const [mentionSearch, setMentionSearch] = useState('');
+  const [cursorPos, setCursorPos] = useState(0);
 
   const commentsEndRef = useRef(null);
 
@@ -26,11 +33,21 @@ export const TaskComments = ({ taskId }) => {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadComments(); }, [taskId]);
+  // useEffect(() => { loadComments(); }, [taskId]);
 
-  // useEffect(() => {
-  //   commentsEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  // }, [comments]);
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const [commentsData, usersData] = await Promise.all([
+          fetchTaskCommentsApi(taskId),
+          fetchUsersListApi({ is_active: 'true', page_size: 100 }) // Загружаем юзеров
+        ]);
+        setComments([...commentsData].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
+        setAllUsers(usersData || []);
+      } finally { setLoading(false); }
+    };
+    init();
+  }, [taskId]);
 
   const scrollContainerRef = useRef(null);
 
@@ -80,11 +97,55 @@ export const TaskComments = ({ taskId }) => {
     } catch (e) { alert("Ошибка при удалении"); }
   };
 
+  const handleTextChange = (e) => {
+    const value = e.target.value;
+    const selectionStart = e.target.selectionStart;
+    setNewComment(value);
+    setCursorPos(selectionStart);
+
+    // Ищем последнюю "собачку" перед курсором
+    const lastAtPos = value.lastIndexOf('@', selectionStart - 1);
+    
+    if (lastAtPos !== -1) {
+      const textAfterAt = value.substring(lastAtPos + 1, selectionStart);
+      // Если после @ нет пробела, значит мы ищем пользователя
+      if (!textAfterAt.includes(' ')) {
+        setMentionSearch(textAfterAt);
+        setShowMentionList(true);
+      } else {
+        setShowMentionList(false);
+      }
+    } else {
+      setShowMentionList(false);
+    }
+  };
+
+  const insertMention = (user) => {
+    const lastAtPos = newComment.lastIndexOf('@', cursorPos - 1);
+    const beforeAt = newComment.substring(0, lastAtPos);
+    const afterMention = newComment.substring(cursorPos);
+    const fullName = `${user.first_name} ${user.last_name}`;
+    
+    // Формируем новый текст: всё что ДО @ + @Имя Фамилия + всё что ПОСЛЕ
+    const newText = `${beforeAt}@${fullName} ${afterMention}`;
+    setNewComment(newText);
+    setShowMentionList(false);
+  };
+
+  const renderFormattedText = (text) => {
+    if (!text) return '';
+    const parts = text.split(/(@[A-ZА-Я][a-zа-яё]+\s[A-ZА-Я][a-zа-яё]+)/g);
+    return parts.map((part, i) => 
+      part.startsWith('@') 
+        ? <span key={i} className="text-[#1677FF] font-bold">{part}</span> 
+        : part
+    );
+  };
+
   if (loading) return <div className="p-10 text-center text-gray-400">Загрузка комментариев...</div>;
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* 1. Список комментариев со скроллом */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8 bg-white">
         {comments.map(comment => (
           <div key={comment.id} className="flex gap-4 group">
@@ -126,7 +187,7 @@ export const TaskComments = ({ taskId }) => {
                   </div>
                 </div>
               ) : (
-                <p className="text-[14px] text-gray-600 leading-relaxed whitespace-pre-wrap">{comment.content}</p>
+                <p className="text-[14px] text-gray-600 leading-relaxed whitespace-pre-wrap">{renderFormattedText(comment.content)}</p>
               )}
             </div>
           </div>
@@ -134,12 +195,33 @@ export const TaskComments = ({ taskId }) => {
       </div>
 
       {/* 2. Поле ввода нового комментария */}
-      <div className="p-8 border-t border-gray-50 flex-shrink-0 bg-white">
+      <div className="p-8 border-t border-gray-50 flex-shrink-0 bg-white relative">
+        {showMentionList && (
+          <div className="absolute bottom-[calc(100%-20px)] left-8 w-64 bg-white border border-gray-100 shadow-2xl rounded-xl z-[100] overflow-hidden animate-in slide-in-from-bottom-2">
+            <div className="p-2 bg-gray-50 border-b text-[10px] font-bold text-gray-400 uppercase tracking-wider">Упомянуть пользователя</div>
+            <div className="max-h-48 overflow-y-auto">
+              {allUsers.filter(u => `${u.first_name} ${u.last_name}`.toLowerCase().includes(mentionSearch.toLowerCase())).map(u => (
+                <div 
+                  key={u.id}
+                  onClick={() => insertMention(u)}
+                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                >
+                  <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">
+                    {u.first_name[0]}
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">{u.first_name} {u.last_name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
         <h4 className="text-sm font-bold text-gray-800 mb-3">Ваш комментарий</h4>
         <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-blue-400 transition-all shadow-sm">
           <textarea 
             value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
+            // onChange={(e) => setNewComment(e.target.value)}
+            onChange={handleTextChange}
             placeholder="Введите текст комментария..."
             className="w-full h-24 p-4 text-sm outline-none resize-none"
           />
