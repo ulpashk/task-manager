@@ -2,12 +2,13 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   fetchTaskByIdApi, fetchTaskAttachmentsApi, 
-  fetchTaskCommentsApi, addTaskCommentApi, fetchTasksApi 
+  fetchTaskCommentsApi, addTaskCommentApi, fetchTasksApi, uploadAttachmentApi,
+  deleteAttachmentApi, downloadAttachmentApi
 } from '../../services/taskService';
 import { 
   ChevronLeft, Star, Calendar, Users, Tag as TagIcon, 
   Building2, LayoutGrid, Layers, FileText, Trash2, 
-  Pencil, Loader2, Paperclip, Bold, Underline, Link2 
+  Pencil, Loader2, Paperclip, Bold, Underline, Plus
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -27,6 +28,11 @@ export const TaskDetailPage = () => {
   const [activeTab, setActiveTab] = useState('subtasks');
   const [loading, setLoading] = useState(true);
   const [isSubtaskModalOpen, setIsSubtaskModalOpen] = useState(false);
+  const [isAttachDeleteModalOpen, setIsAttachDeleteModalOpen] = useState(false);
+  const [attachToDelete, setAttachToDelete] = useState(null);
+
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -49,6 +55,107 @@ export const TaskDetailPage = () => {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 25 * 1024 * 1024) {
+      alert("Файл слишком большой. Максимальный размер 25 МБ.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      await uploadAttachmentApi(id, file);
+      const updatedAttachments = await fetchTaskAttachmentsApi(id);
+      setAttachments(updatedAttachments);
+    } catch (err) {
+      console.error(err);
+      alert("Ошибка при загрузке файла");
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId) => {
+    if (!window.confirm("Вы уверены, что хотите удалить этот файл?")) return;
+    
+    try {
+      await deleteAttachmentApi(id, attachmentId);
+      setAttachments(prev => prev.filter(a => a.id !== attachmentId));
+    } catch (err) {
+      console.error(err);
+      alert("Не удалось удалить файл");
+    }
+  };
+
+  const handleDeleteAttachClick = (e, file) => {
+    e.stopPropagation();
+    setAttachToDelete(file);
+    setIsAttachDeleteModalOpen(true);
+  };
+
+  const confirmAttachDelete = async () => {
+    if (!attachToDelete) return;
+    
+    try {
+      await deleteAttachmentApi(id, attachToDelete.id);
+      setAttachments(prev => prev.filter(a => a.id !== attachToDelete.id));
+      setIsAttachDeleteModalOpen(false);
+      setAttachToDelete(null);
+    } catch (err) {
+      console.error(err);
+      alert("Не удалось удалить файл");
+    }
+  };
+
+  const handleViewFile = async (attachmentId, filename) => {
+    try {
+      const blob = await downloadAttachmentApi(id, attachmentId);
+      
+      // Создаем URL с учетом типа контента (blob.type)
+      const fileURL = window.URL.createObjectURL(new Blob([blob], { type: blob.type }));
+
+      // 1. Определяем расширение файла
+      const extension = filename.split('.').pop().toLowerCase();
+      
+      // Список расширений, которые браузеры обычно умеют открывать сами
+      const viewableExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'txt'];
+
+      if (viewableExtensions.includes(extension)) {
+        // Пытаемся открыть в новой вкладке (для картинок и PDF)
+        const viewWindow = window.open(fileURL, '_blank');
+        
+        // Если браузер заблокировал всплывающее окно — скачиваем принудительно
+        if (!viewWindow) {
+          triggerDownload(fileURL, filename);
+        }
+      } else {
+        // Для всех остальных (Word, Excel, Zip и т.д.) сразу вызываем скачивание с правильным именем
+        triggerDownload(fileURL, filename);
+      }
+
+      // Очистка памяти через 10 секунд
+      setTimeout(() => window.URL.revokeObjectURL(fileURL), 10000);
+      
+    } catch (err) {
+      console.error("Ошибка при открытии/скачивании файла:", err);
+      alert("Ошибка при загрузке файла");
+    }
+  };
+
+  // Вспомогательная функция для скачивания с ОРИГИНАЛЬНЫМ именем
+  const triggerDownload = (url, name) => {
+    const link = document.createElement('a');
+    link.href = url;
+    // Именно этот атрибут решает проблему "странного названия"
+    link.setAttribute('download', name); 
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+ 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     try {
@@ -63,12 +170,11 @@ export const TaskDetailPage = () => {
   if (!task) return <div className="p-10 text-center text-red-500">Задача не найдена</div>;
 
   return (
-    <div className="flex flex-col h-full bg-[#FAFAFA] overflow-y-auto custom-scrollbar font-sans p-8 gap-6 pb-20">
-      
-      {/* --- HEADER --- */}
+    <div className="flex flex-col h-full bg-[#FAFAFA] overflow-y-auto custom-scrollbar font-sans p-4 pt-0 gap-6 pb-20">
+
       <div className="flex flex-col gap-4">
         <button onClick={() => navigate('/tasks')} className="p-1 text-gray-400 hover:bg-gray-200 rounded-md w-fit transition-all">
-          <ChevronLeft size={28}/>
+          <ChevronLeft size={16}/>
         </button>
 
         <div className="flex justify-between items-start">
@@ -89,9 +195,7 @@ export const TaskDetailPage = () => {
         </div>
       </div>
 
-      {/* --- INFO BOX (Grid 2 columns) --- */}
       <div className="grid grid-cols-2 gap-6 flex-shrink-0">
-        {/* Левая часть */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
           <div className="flex items-center gap-3">
             <Star size={16} className="text-gray-400" />
@@ -132,7 +236,6 @@ export const TaskDetailPage = () => {
           </div>
         </div>
 
-        {/* Правая часть */}
         <div className="bg-[#F9FAFB]/50 p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
           <div className="flex items-center gap-3">
             <Building2 size={16} className="text-gray-400" />
@@ -142,7 +245,7 @@ export const TaskDetailPage = () => {
           <div className="flex items-center gap-3">
             <LayoutGrid size={16} className="text-gray-400" />
             <span className="text-sm text-gray-400 w-24">Проект:</span>
-            <span className="text-sm font-medium text-gray-700">{task.project?.title || '—'}</span>
+            <span className="text-sm font-medium text-gray-700">{task.epic?.project?.title || '—'}</span>
           </div>
           <div className="flex items-center gap-3">
             <Layers size={16} className="text-gray-400" />
@@ -152,7 +255,6 @@ export const TaskDetailPage = () => {
         </div>
       </div>
 
-      {/* --- DESCRIPTION --- */}
       <div className="space-y-3">
         <h3 className="flex items-center gap-2 text-sm font-bold text-gray-800 uppercase tracking-wider">
           <Pencil size={16} className="text-gray-400" /> Описание
@@ -162,24 +264,49 @@ export const TaskDetailPage = () => {
         </div>
       </div>
 
-      {/* --- ATTACHMENTS --- */}
       <div className="space-y-3">
         <h3 className="flex items-center gap-2 text-sm font-bold text-gray-800 uppercase tracking-wider">
           <Paperclip size={16} className="text-gray-400" /> Вложения
         </h3>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-4 items-center">
           {attachments.map(file => (
-            <div key={file.id} className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-200 rounded-xl shadow-sm group hover:border-blue-300 transition-all cursor-pointer">
+            <div 
+              key={file.id} 
+              onClick={() => handleViewFile(file.id, file.filename)}
+              className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-200 rounded-xl shadow-sm group hover:border-blue-300 transition-all cursor-pointer"
+            >
               <FileText size={18} className="text-green-500" />
-              <span className="text-sm font-medium text-blue-600">{file.filename}</span>
-              <Trash2 size={14} className="text-gray-300 hover:text-red-500 ml-2" />
+              <span className="text-sm font-medium text-blue-600 underline">{file.filename}</span>
+              <button
+                 onClick={(e) => handleDeleteAttachClick(e, file)}
+                className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors ml-2"
+                title="Удалить файл"
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
           ))}
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            onChange={handleFileUpload} 
+          />
+          <button 
+            onClick={() => fileInputRef.current.click()}
+            disabled={uploading}
+            className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded-xl bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+          >
+            {uploading ? (
+              <Loader2 size={20} className="animate-spin text-blue-500" />
+            ) : (
+              <Plus size={20} className="text-gray-400" />
+            )}
+          </button>
           {attachments.length === 0 && <span className="text-gray-400 text-xs italic">Нет вложений</span>}
         </div>
       </div>
 
-      {/* --- TABS SECTION --- */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden h-[600px] flex-shrink-0">
         <div className="flex px-8 border-b border-gray-50 bg-white">
           {['subtasks', 'comments', 'history'].map((t) => (
@@ -215,7 +342,6 @@ export const TaskDetailPage = () => {
           {activeTab === 'comments' && (
             <div className="flex flex-col h-full">
               
-              {/* ЧАСТЬ 1: СПИСОК КОММЕНТАРИЕВ (Теперь имеет свой скролл) */}
               <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-6 bg-white">
                 {comments.length > 0 ? (
                   [...comments].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map(comment => (
@@ -250,7 +376,6 @@ export const TaskDetailPage = () => {
                 <div ref={commentsEndRef} />
               </div>
 
-              {/* ЧАСТЬ 2: ПОЛЕ ВВОДА (Всегда зафиксировано внизу контейнера) */}
               <div className="p-8 border-t border-gray-50 flex-shrink-0 bg-white">
                 <h4 className="text-sm font-bold text-gray-800 mb-3">Ваш комментарий</h4>
                 <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-blue-400 transition-all shadow-sm">
@@ -287,10 +412,37 @@ export const TaskDetailPage = () => {
         </div>
       </div>
 
-      {/* MODAL */}
+      <Modal 
+        isOpen={isAttachDeleteModalOpen} 
+        onClose={() => setIsAttachDeleteModalOpen(false)} 
+        title="Удаление вложения"
+      >
+        <div className="flex flex-col gap-4 font-sans">
+          <p className="text-gray-600">
+            Вы уверены, что хотите удалить файл <span className="font-bold text-gray-800">"{attachToDelete?.filename}"</span>?
+          </p>
+          
+          <div className="flex justify-end gap-3 mt-4">
+            <button 
+              onClick={() => setIsAttachDeleteModalOpen(false)}
+              className="px-6 py-2 font-bold text-gray-500 hover:bg-gray-50 rounded-lg transition-colors border border-transparent"
+            >
+              Отмена
+            </button>
+            <button 
+              onClick={confirmAttachDelete}
+              className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-100 flex items-center justify-center"
+            >
+              Удалить
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       <Modal isOpen={isSubtaskModalOpen} onClose={() => setIsSubtaskModalOpen(false)} title="Добавить подзадачу">
         <SubtaskForm onClose={() => setIsSubtaskModalOpen(false)} onRefresh={loadData} initialParentId={task.id} />
       </Modal>
+
     </div>
   );
 };

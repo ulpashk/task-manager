@@ -164,7 +164,7 @@ export const SubtaskForm = ({ onClose, onRefresh, initialParentId }) => {
               onChange={(e) => setFormData({...formData, parent_task_id: e.target.value})}
               className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none appearance-none cursor-pointer focus:border-blue-500"
             >
-              <option value="">Выберите основную задачу</option>
+              <option value="" disabled>-- Обязательно выберите основную задачу --</option>
               {parentTasks.map(t => (
                 <option key={t.id} value={t.id}>{t.title}</option>
               ))}

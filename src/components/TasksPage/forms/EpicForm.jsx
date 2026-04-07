@@ -45,8 +45,13 @@ export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.project_id || !formData.assignee_id) {
-      alert("Выберите проект и ответственного");
+
+    if (!formData.project_id) {
+      alert("Создание эпика невозможно без привязки к проекту!");
+      return;
+    }
+    if (!formData.assignee_id) {
+      alert("Выберите ответственного");
       return;
     }
 
@@ -107,7 +112,7 @@ export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
               onChange={(e) => setFormData({...formData, project_id: e.target.value})}
               className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none appearance-none cursor-pointer"
             >
-              <option value="">Выберите проект</option>
+              <option value="" disabled>-- Обязательно выберите проект --</option>
               {projects.map(p => (
                 <option key={p.id} value={p.id}>{p.title}</option>
               ))}

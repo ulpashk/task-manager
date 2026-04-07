@@ -19,6 +19,11 @@ export const fetchProjectsListApi = async () => {
   return response.data.results;
 };
 
+export const fetchProjectEpicsApi = async (projectId) => {
+  const response = await axiosInstance.get(`/api/projects/${projectId}/epics/`);
+  return response.data.results;
+};
+
 export const fetchEpicsListApi = async () => {
   const res = await axiosInstance.get('/api/epics/?page_size=100');
   return res.data.results;
@@ -96,6 +101,17 @@ export const uploadAttachmentApi = async (taskId, file) => {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+  });
+  return response.data;
+};
+
+export const deleteAttachmentApi = async (taskId, attachmentId) => {
+  await axiosInstance.delete(`/api/tasks/${taskId}/attachments/${attachmentId}/`);
+};
+
+export const downloadAttachmentApi = async (taskId, attachmentId) => {
+  const response = await axiosInstance.get(`/api/tasks/${taskId}/attachments/${attachmentId}/`, {
+    responseType: 'blob', // Важно для работы с бинарными данными (файлами)
   });
   return response.data;
 };

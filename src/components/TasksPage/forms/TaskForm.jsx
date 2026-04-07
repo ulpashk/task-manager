@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Loader2, X, Check, Plus, Trash2, FileText } from 'lucide-react';
-import { createTaskApi, fetchTasksApi, fetchProjectsListApi, fetchEpicsListApi, uploadAttachmentApi } from '../../../services/taskService';
+import { createTaskApi, fetchTasksApi, fetchProjectsListApi, fetchEpicsListApi, fetchProjectEpicsApi, uploadAttachmentApi } from '../../../services/taskService';
 import { fetchUsersListApi } from '../../../services/userService';
 import { fetchTagsListApi } from '../../../services/tagService';
 import { fetchClientsApi } from '../../../services/clientService';
@@ -60,8 +60,10 @@ const MultiSelect = ({ label, options, selectedIds, onToggle, placeholder }) => 
 export const TaskForm = ({ onClose, onRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+  const [epicsLoading, setEpicsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
+  const [filteredEpics, setFilteredEpics] = useState([]);
 
   const [lists, setLists] = useState({
     projects: [], 
@@ -88,19 +90,16 @@ export const TaskForm = ({ onClose, onRefresh }) => {
   useEffect(() => {
     const loadAllData = async () => {
       try {
-        const [projects, epics, users, engineers, tags, clients] = await Promise.all([
+        const [projects, users, engineers, tags, clients] = await Promise.all([
           fetchProjectsListApi(),
-          fetchEpicsListApi(),
           fetchUsersListApi({ is_active: 'true' }),
           fetchUsersListApi({ role: 'engineer', is_active: 'true' }),
-          // fetchUsersListApi(),
           fetchTagsListApi(),
           fetchClientsApi({ page_size: 100 })
         ]);
 
         setLists({
           projects: projects || [],
-          epics: epics || [],
           users: users || [],
           engineers: engineers || [],
           tags: tags || [],
@@ -115,6 +114,28 @@ export const TaskForm = ({ onClose, onRefresh }) => {
     loadAllData();
   }, []);
 
+  useEffect(() => {
+    const loadEpics = async () => {
+      if (formData.project_id) {
+        setEpicsLoading(true);
+        try {
+          const epics = await fetchProjectEpicsApi(formData.project_id);
+          setFilteredEpics(epics || []);
+        } catch (err) {
+          console.error("Ошибка загрузки эпиков:", err);
+          setFilteredEpics([]);
+        } finally {
+          setEpicsLoading(false);
+        }
+      } else {
+        // Если проект сброшен в "(Не указано)"
+        setFilteredEpics([]);
+        setFormData(prev => ({ ...prev, epic_id: '' }));
+      }
+    };
+    loadEpics();
+  }, [formData.project_id]);
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -128,8 +149,15 @@ export const TaskForm = ({ onClose, onRefresh }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.client_id) {
-      alert("Выберите компанию");
+    
+    // Валидация: если проект выбран, эпик обязателен
+    if (formData.project_id && !formData.epic_id) {
+      alert("Пожалуйста, выберите Эпик для этого проекта");
+      return;
+    }
+
+    if (!formData.client_id || formData.assignee_ids.length === 0) {
+      alert("Выберите компанию и хотя бы одного исполнителя");
       return;
     }
 
@@ -199,19 +227,45 @@ export const TaskForm = ({ onClose, onRefresh }) => {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
+        {/* ВЫБОР ПРОЕКТА */}
         <div className="flex flex-col gap-1.5">
           <label className="text-[13px] font-bold text-gray-500">Проект</label>
-          <select name="project_id" value={formData.project_id} onChange={(e) => setFormData({...formData, project_id: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-3 py-2.5 outline-none">
-            <option value="">Выберите проект</option>
-            {lists.projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
-          </select>
+          <div className="relative">
+            <select 
+              name="project_id" 
+              value={formData.project_id} 
+              onChange={(e) => setFormData({...formData, project_id: e.target.value, epic_id: ''})} 
+              className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-3 py-2.5 outline-none appearance-none cursor-pointer"
+            >
+              <option value="">(Не указано)</option>
+              {lists.projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+            </select>
+            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
         </div>
+
+        {/* ВЫБОР ЭПИКА (Зависимый) */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-bold text-gray-500">Epic</label>
-          <select name="epic_id" value={formData.epic_id} onChange={(e) => setFormData({...formData, epic_id: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-3 py-2.5 outline-none">
-            <option value="">Выберите эпик</option>
-            {lists.epics.map(e => <option key={e.id} value={e.id}>{e.title}</option>)}
-          </select>
+          <label className={`text-[13px] font-bold ${formData.project_id ? 'text-gray-500' : 'text-gray-300'}`}>
+            Epic {formData.project_id && '*'}
+          </label>
+          <div className="relative">
+            <select 
+              name="epic_id" 
+              required={!!formData.project_id} // Обязательно, если выбран проект
+              disabled={!formData.project_id || epicsLoading} 
+              value={formData.epic_id} 
+              onChange={(e) => setFormData({...formData, epic_id: e.target.value})} 
+              className={`w-full border rounded-lg px-3 py-2.5 outline-none appearance-none transition-all ${
+                !formData.project_id ? 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed' : 'bg-[#F9FAFB] border-gray-200 text-gray-700'
+              }`}
+            >
+              <option value="">{epicsLoading ? 'Загрузка...' : formData.project_id ? 'Выберите эпик' : 'Сначала выберите проект'}</option>
+              {filteredEpics.map(e => <option key={e.id} value={e.id}>{e.title}</option>)}
+            </select>
+            {!epicsLoading && <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />}
+            {epicsLoading && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
+          </div>
         </div>
       </div>
 
