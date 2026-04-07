@@ -37,7 +37,7 @@ export const Header = () => {
   }, []);
 
   return (
-    <header className="h-[70px] w-full bg-white border-b border-gray-100 flex items-center justify-between px-8 bg-white z-20">
+    <header className="h-[70px] w-full bg-white border-b border-gray-100 flex items-center justify-between px-8 bg-white z-[50]">
       <h2 className="text-2xl font-bold text-gray-800">{pageTitle}</h2>
 
       <div className="flex items-center gap-6">
