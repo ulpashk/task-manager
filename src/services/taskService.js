@@ -58,6 +58,22 @@ export const fetchTaskCommentsApi = async (taskId) => {
   return response.data.results;
 };
 
+export const updateTaskCommentApi = async (taskId, commentId, content) => {
+  const response = await axiosInstance.patch(`/api/tasks/${taskId}/comments/${commentId}/`, {
+    content,
+  });
+  return response.data;
+};
+
+export const deleteTaskCommentApi = async (taskId, commentId) => {
+  await axiosInstance.delete(`/api/tasks/${taskId}/comments/${commentId}/`);
+};
+
+export const fetchTaskHistoryApi = async (taskId) => {
+  const response = await axiosInstance.get(`/api/tasks/${taskId}/history/`);
+  return response.data.results;
+};
+
 export const createTaskApi = async (taskData) => {
   try {
     const response = await axiosInstance.post('/api/tasks/', taskData);

@@ -8,23 +8,23 @@ import {
 import { 
   ChevronLeft, Star, Calendar, Users, Tag as TagIcon, 
   Building2, LayoutGrid, Layers, FileText, Trash2, 
-  Pencil, Loader2, Paperclip, Bold, Underline, Plus
+  Pencil, Loader2, Paperclip, Bold, Underline, Plus, Link2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { SubtaskForm } from '../../components/TasksPage/forms/SubtaskForm';
+import { TaskComments } from '../../components/TasksPage/TaskComments';
+import { TaskHistory } from '../../components/TasksPage/TaskHistory';
 import { Modal } from '../../components/general/Modal';
 
 export const TaskDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const commentsEndRef = useRef(null);
+  const pageRef = useRef(null);
   
   const [task, setTask] = useState(null);
   const [attachments, setAttachments] = useState([]);
-  const [comments, setComments] = useState([]);
   const [subtasks, setSubtasks] = useState([]);
-  const [newComment, setNewComment] = useState('');
   const [activeTab, setActiveTab] = useState('subtasks');
   const [loading, setLoading] = useState(true);
   const [isSubtaskModalOpen, setIsSubtaskModalOpen] = useState(false);
@@ -33,6 +33,23 @@ export const TaskDetailPage = () => {
 
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+
+  const isSubtask = !!task?.parent_task;
+  const availableTabs = isSubtask 
+    ? ['comments', 'history'] 
+    : ['subtasks', 'comments', 'history'];
+  
+  useEffect(() => {
+    if (isSubtask && activeTab === 'subtasks') {
+      setActiveTab('comments');
+    }
+  }, [isSubtask]);
+
+  useEffect(() => {
+    if (pageRef.current) {
+      pageRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [id]);
 
   const loadData = useCallback(async () => {
     try {
@@ -44,7 +61,6 @@ export const TaskDetailPage = () => {
       ]);
       setTask(taskData);
       setAttachments(attachData || []);
-      setComments(commentData || []);
       setSubtasks(subtaskData.results || []);
     } catch (err) {
       console.error(err);
@@ -75,18 +91,6 @@ export const TaskDetailPage = () => {
     } finally {
       setUploading(false);
       e.target.value = '';
-    }
-  };
-
-  const handleDeleteAttachment = async (attachmentId) => {
-    if (!window.confirm("Вы уверены, что хотите удалить этот файл?")) return;
-    
-    try {
-      await deleteAttachmentApi(id, attachmentId);
-      setAttachments(prev => prev.filter(a => a.id !== attachmentId));
-    } catch (err) {
-      console.error(err);
-      alert("Не удалось удалить файл");
     }
   };
 
@@ -145,41 +149,41 @@ export const TaskDetailPage = () => {
     }
   };
 
-  // Вспомогательная функция для скачивания с ОРИГИНАЛЬНЫМ именем
   const triggerDownload = (url, name) => {
     const link = document.createElement('a');
     link.href = url;
-    // Именно этот атрибут решает проблему "странного названия"
     link.setAttribute('download', name); 
     document.body.appendChild(link);
     link.click();
     link.remove();
-  };
- 
-  const handleAddComment = async () => {
-    if (!newComment.trim()) return;
-    try {
-      await addTaskCommentApi(id, newComment);
-      setNewComment('');
-      const updatedComments = await fetchTaskCommentsApi(id);
-      setComments(updatedComments);
-    } catch (err) { alert("Ошибка при отправке"); }
   };
 
   if (loading) return <div className="p-20 text-center"><Loader2 className="animate-spin inline mr-2"/> Загрузка...</div>;
   if (!task) return <div className="p-10 text-center text-red-500">Задача не найдена</div>;
 
   return (
-    <div className="flex flex-col h-full bg-[#FAFAFA] overflow-y-auto custom-scrollbar font-sans p-4 pt-0 gap-6 pb-20">
+    <div ref={pageRef} className="flex flex-col h-full bg-[#FAFAFA] overflow-y-auto custom-scrollbar font-sans p-4 pt-0 gap-6 pb-20">
 
       <div className="flex flex-col gap-4">
         <button onClick={() => navigate('/tasks')} className="p-1 text-gray-400 hover:bg-gray-200 rounded-md w-fit transition-all">
           <ChevronLeft size={16}/>
         </button>
 
+        {isSubtask && (
+          <div className="flex items-center gap-2 -mb-2 animate-in fade-in slide-in-from-left-2">
+            <Link2 size={16} className="text-blue-500" />
+            <button 
+              onClick={() => navigate(`/tasks/${task.parent_task.id}`)}
+              className="text-[14px] font-medium text-blue-600 hover:underline decoration-blue-300"
+            >
+              {task.parent_task.title}
+            </button>
+          </div>
+        )}
+
         <div className="flex justify-between items-start">
           <div className="flex flex-col gap-1">
-            <span className="text-[12px] font-bold text-gray-500 uppercase tracking-tight">Тема задачи</span>
+            <span className="text-[12px] font-bold text-gray-500 uppercase tracking-tight">{isSubtask ? 'Тема подзадачи' : 'Тема задачи'}</span>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-gray-900">{task.title}</h1>
               <span className="bg-gray-200/50 text-gray-500 px-3 py-1 rounded-lg text-[12px] font-bold">
@@ -309,7 +313,7 @@ export const TaskDetailPage = () => {
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden h-[600px] flex-shrink-0">
         <div className="flex px-8 border-b border-gray-50 bg-white">
-          {['subtasks', 'comments', 'history'].map((t) => (
+          {availableTabs.map((t) => (
             <button 
               key={t}
               onClick={() => setActiveTab(t)}
@@ -322,12 +326,20 @@ export const TaskDetailPage = () => {
         </div>
 
         <div className="flex-1 overflow-hidden flex flex-col">
-          {activeTab === 'subtasks' && (
+          {activeTab === 'subtasks' && !isSubtask && (
             <div className="p-8 space-y-4 overflow-y-auto">
               {subtasks.map(st => (
-                <div key={st.id} className="p-4 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center">
-                  <span className="font-bold text-gray-800">{st.title}</span>
-                  <span className="text-xs bg-white px-2 py-1 rounded border">{st.status}</span>
+                <div 
+                  key={st.id} 
+                  // className="p-4 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center"
+                  className="p-4 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center cursor-pointer hover:border-blue-300 transition-all group"
+                  onClick={() => navigate(`/tasks/${st.id}`)}
+                >
+                  <span className="font-bold text-gray-800 group-hover:text-blue-600">{st.title}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] bg-white px-2 py-1 rounded border font-bold uppercase text-gray-400">{st.status}</span>
+                    <ChevronLeft className="rotate-180 text-gray-300" size={16} />
+                  </div>
                 </div>
               ))}
               <button 
@@ -339,76 +351,9 @@ export const TaskDetailPage = () => {
             </div>
           )}
 
-          {activeTab === 'comments' && (
-            <div className="flex flex-col h-full">
-              
-              <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-6 bg-white">
-                {comments.length > 0 ? (
-                  [...comments].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map(comment => (
-                    <div key={comment.id} className="flex gap-4 animate-in fade-in duration-300">
-                      <div className="w-9 h-9 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm">
-                        {comment.author?.first_name?.[0] || 'U'}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-gray-800 text-[14px]">
-                            {comment.author?.first_name} {comment.author?.last_name}
-                          </span>
-                          <div className="flex items-center gap-4">
-                            <span className="text-[11px] text-gray-400">
-                              {format(new Date(comment.created_at), 'dd.MM.yyyy HH:mm')}
-                            </span>
-                            <button className="text-gray-300 hover:text-gray-600"><Pencil size={14}/></button>
-                            <button className="text-gray-300 hover:text-red-500"><Trash2 size={14}/></button>
-                          </div>
-                        </div>
-                        <p className="text-[14px] text-gray-600 mt-2 leading-relaxed whitespace-pre-wrap">
-                          {comment.content}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="h-full flex items-center justify-center text-gray-400 text-sm">
-                    Комментариев пока нет
-                  </div>
-                )}
-                <div ref={commentsEndRef} />
-              </div>
+          {activeTab === 'comments' && <TaskComments taskId={id} />}
 
-              <div className="p-8 border-t border-gray-50 flex-shrink-0 bg-white">
-                <h4 className="text-sm font-bold text-gray-800 mb-3">Ваш комментарий</h4>
-                <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-blue-400 transition-all shadow-sm">
-                  <textarea 
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Введите текст комментария..."
-                    className="w-full h-24 p-4 text-sm outline-none resize-none"
-                  />
-                  <div className="bg-[#F9FAFB] px-4 py-3 flex items-center justify-between border-t border-gray-50">
-                    <div className="flex items-center gap-4 text-gray-400">
-                       <Paperclip size={18} className="hover:text-blue-500 cursor-pointer" />
-                       <Bold size={18} className="hover:text-blue-500 cursor-pointer" />
-                       <Underline size={18} className="hover:text-blue-500 cursor-pointer" />
-                    </div>
-                    <button 
-                      onClick={handleAddComment}
-                      disabled={!newComment.trim()}
-                      className="bg-[#1677FF] text-white px-6 py-2 rounded-lg font-bold text-xs hover:bg-blue-600 disabled:bg-gray-200 transition-all shadow-md"
-                    >
-                      Добавить
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-           
-          {activeTab === 'history' && (
-            <div className="p-8 text-gray-400 text-center">
-              История изменений пока пуста
-            </div>
-          )}
+          {activeTab === 'history' && <TaskHistory taskId={id} />}
         </div>
       </div>
 
