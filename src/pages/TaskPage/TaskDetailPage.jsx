@@ -152,6 +152,15 @@ export const TaskDetailPage = () => {
     link.remove();
   };
 
+  const refreshAttachments = useCallback(async () => {
+    try {
+      const updatedAttachments = await fetchTaskAttachmentsApi(id);
+      setAttachments(updatedAttachments || []);
+    } catch (err) {
+      console.error("Ошибка при обновлении вложений:", err);
+    }
+  }, [id]);
+
   if (loading || !task) {
     return (
       <div className="h-full w-full flex flex-col items-center justify-center bg-[#FAFAFA] font-sans">
@@ -459,7 +468,7 @@ export const TaskDetailPage = () => {
             </div>
           )}
 
-          {activeTab === 'comments' && <TaskComments taskId={id} />}
+          {activeTab === 'comments' && <TaskComments taskId={id} onCommentAdded={refreshAttachments} />}
 
           {activeTab === 'history' && <TaskHistory taskId={id} />}
         </div>

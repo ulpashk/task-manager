@@ -47,7 +47,7 @@ const ProtectedImage = React.memo(({ attachment, taskId }) => {
   );
 });
 
-export const TaskComments = ({ taskId }) => {
+export const TaskComments = ({ taskId, onCommentAdded }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
@@ -172,11 +172,16 @@ export const TaskComments = ({ taskId }) => {
 
   const handleAdd = async () => {
     if (!newComment.trim() && selectedFiles.length === 0) return;
+    
     try {
       await addTaskCommentApi(taskId, newComment, selectedFiles);
       setNewComment('');
       setSelectedFiles([]);
       loadComments();
+      if (onCommentAdded) {
+        onCommentAdded(); 
+      }
+      
     } catch (e) { 
       alert("Ошибка при отправке"); 
     }
