@@ -27,6 +27,7 @@ export const TaskDetailPage = () => {
   const [subtasks, setSubtasks] = useState([]);
   const [activeTab, setActiveTab] = useState('subtasks');
   const [loading, setLoading] = useState(true);
+  const [statusUpdating, setStatusUpdating] = useState(false)
   const [isSubtaskModalOpen, setIsSubtaskModalOpen] = useState(false);
   const [isAttachDeleteModalOpen, setIsAttachDeleteModalOpen] = useState(false);
   const [attachToDelete, setAttachToDelete] = useState(null);
@@ -192,7 +193,7 @@ export const TaskDetailPage = () => {
 
   const handleStatusUpdate = async (newStatus) => {
     try {
-      setLoading(true);
+      setStatusUpdating(true);
       await changeTaskStatusApi(id, newStatus, "Статус изменен пользователем");
       const updatedTask = await fetchTaskByIdApi(id);
       setTask(updatedTask);
@@ -201,7 +202,7 @@ export const TaskDetailPage = () => {
       const errorMsg = err.response?.data?.detail || "Ошибка при смене статуса";
       alert(errorMsg);
     } finally {
-      setLoading(false);
+      setStatusUpdating(false);
     }
   };
 
@@ -244,24 +245,27 @@ export const TaskDetailPage = () => {
           <div className="flex gap-2">
             <button 
               onClick={() => handleStatusUpdate('in_progress')}
-              disabled={!canStart || loading}
-              className={`px-6 py-2 rounded-lg font-bold text-[13px] transition-all shadow-md ${
+              disabled={!canStart || statusUpdating}
+              className={`flex items-center justify-center gap-2 px-6 py-2 rounded-lg font-bold text-[13px] transition-all shadow-md ${
                 canStart 
                   ? 'bg-[#1677FF] text-white hover:bg-blue-600 shadow-blue-100' 
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
+              {statusUpdating && task.status === 'created' && <Loader2 size={16} className="animate-spin" />}
               Начать работу
             </button>
+            
             <button 
               onClick={() => handleStatusUpdate('waiting')}
-              disabled={!canFinish || loading}
-              className={`px-6 py-2 rounded-lg font-bold text-[13px] transition-all border ${
+              disabled={!canFinish || statusUpdating}
+              className={`flex items-center justify-center gap-2 px-6 py-2 rounded-lg font-bold text-[13px] transition-all border ${
                 canFinish 
                   ? 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50 shadow-sm' 
                   : 'bg-white text-gray-200 border-gray-100 cursor-not-allowed'
               }`}
             >
+              {statusUpdating && (task.status === 'in_progress' || task.status === 'revision') && <Loader2 size={16} className="animate-spin" />}
               Завершить
             </button>
           </div>

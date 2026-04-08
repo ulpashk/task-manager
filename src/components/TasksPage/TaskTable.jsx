@@ -47,7 +47,7 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Компания</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Тема задачи</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Тэг</th>
-            {/* <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Исполнитель</th> */}
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Исполнитель</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Инициатор</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">Приоритет</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">Статус</th>
@@ -72,11 +72,6 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
               >
                 {task.title}
               </td>
-              {/* <td className="px-6 py-4">
-                <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded-md text-xs border border-purple-100 font-medium">
-                  {task.tags[0]?.name || '-'}
-                </span>
-              </td> */}
               <td className="px-4 py-5">
                 <div className="flex flex-wrap gap-1.5">
                   {task.tags && task.tags.length > 0 ? (
@@ -100,13 +95,34 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
                   )}
                 </div>
               </td>
+
+              <td className="px-6 py-4">
+                <div className="flex flex-wrap gap-2">
+                  {task.assignees && task.assignees.length > 0 ? (
+                    task.assignees.map((assignee) => (
+                      <div className="flex items-center gap-2">
+                        <img className="w-6 h-6 rounded-full" src={`https://ui-avatars.com/api/?name=${assignee.first_name}`} alt="" />
+                        <span
+                          key={assignee.id}
+                          className="text-gray-700"
+                        >
+                          {assignee.first_name} {assignee.last_name}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="px-2 py-1 bg-gray-50 text-gray-400 rounded-md border border-gray-100 text-xs font-medium">
+                      Нет исполнителей
+                    </span>
+                  )}
+                </div>
+              </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
                   <img className="w-6 h-6 rounded-full" src={`https://ui-avatars.com/api/?name=${task.created_by?.first_name}`} alt="" />
-                  <span className="text-gray-700">{task.created_by?.first_name || 'Unknown User'}</span>
+                  <span className="text-gray-700">{task.created_by?.first_name} {task.created_by?.last_name}</span>
                 </div>
               </td>
-              {/* <td className="px-6 py-4 text-gray-600">Кемелбай Мерей</td> */}
               <td className="px-6 py-4 text-center">
                 <span className={`px-3 py-1 rounded-full text-xs border font-medium ${getPriorityStyle(task.priority)}`}>
                   {(task.priority === 'high' || task.priority === 'HIGH') ? 'Высокий' : (task.priority === 'medium' || task.priority === 'MEDIUM') ? 'Средний' : 'Низкий'}

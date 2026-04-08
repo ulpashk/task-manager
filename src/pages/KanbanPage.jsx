@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback  } from 'react';
 import { fetchTasksApi, deleteTaskApi } from '../services/taskService';
 import { TaskFilters } from '../components/TasksPage/TaskFilters';
 import { KanbanColumn } from '../components/Kanban/KanbanColumn';
-import { EditTaskModal } from '../components/TasksPage/EditTaskModal'; // Импорт вашей модалки
+import { EditTaskModal } from '../components/TasksPage/EditTaskModal';
 import { Modal } from '../components/general/Modal';
 import { fetchUsersListApi } from '../services/userService';
 import { fetchTagsListApi } from '../services/tagService';
