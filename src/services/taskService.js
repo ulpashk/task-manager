@@ -147,3 +147,11 @@ export const updateTaskApi = async (id, data) => {
   const response = await axiosInstance.patch(`/api/tasks/${id}/`, data);
   return response.data;
 };
+
+export const changeTaskStatusApi = async (taskId, status, comment = "") => {
+  const response = await axiosInstance.post(`/api/tasks/${taskId}/status/`, {
+    status: status,
+    comment: comment // Опциональный комментарий, если бэкенд его требует
+  });
+  return response.data;
+};

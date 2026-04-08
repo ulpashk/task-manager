@@ -28,6 +28,7 @@ export const TaskComments = ({ taskId }) => {
   const [mentionSearch, setMentionSearch] = useState('');
   const [cursorPos, setCursorPos] = useState(0);
 
+  const scrollContainerRef = useRef(null);
 
   const triggerDownload = (url, name) => {
     const link = document.createElement('a');
@@ -40,7 +41,6 @@ export const TaskComments = ({ taskId }) => {
 
   const handleViewFile = async (attachmentId, filename) => {
     try {
-      // КРИТИЧЕСКИЙ МОМЕНТ: Используем taskId из пропсов и ID вложения
       const blob = await downloadAttachmentApi(taskId, attachmentId);
       
       const fileURL = window.URL.createObjectURL(new Blob([blob], { type: blob.type }));
@@ -91,7 +91,6 @@ export const TaskComments = ({ taskId }) => {
     );
   };
 
-
   const handleFileAction = async (attachment) => {
     try {
       const response = await axiosInstance.get(attachment.download_url, {
@@ -141,8 +140,6 @@ export const TaskComments = ({ taskId }) => {
     };
     init();
   }, [taskId]);
-
-  const scrollContainerRef = useRef(null);
 
   const scrollToBottom = () => {
     if (scrollContainerRef.current) {
@@ -245,13 +242,31 @@ export const TaskComments = ({ taskId }) => {
     );
   };
 
+  const handleMenuOpen = (event) => {
+    const commentElement = event.currentTarget.closest('.comment-row');
+    const container = scrollContainerRef.current;
+
+    if (commentElement && container) {
+      const elementTop = commentElement.offsetTop;
+      const elementHeight = commentElement.offsetHeight;
+      const containerHeight = container.offsetHeight;
+
+      const targetScrollTop = elementTop - (containerHeight / 2) + (elementHeight / 2);
+
+      container.scrollTo({
+        top: targetScrollTop,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   if (loading) return <div className="p-10 text-center text-gray-400">Загрузка комментариев...</div>;
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8 bg-white">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8 bg-white relative z-10">
         {comments.map(comment => (
-          <div key={comment.id} className="flex gap-4 group">
+          <div key={comment.id} className="comment-row flex gap-4 group transition-all duration-300">
             <div className="w-9 h-9 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm">
               {comment.author?.first_name?.[0]}
             </div>
@@ -265,7 +280,8 @@ export const TaskComments = ({ taskId }) => {
                   <span className="text-[11px] text-gray-400">
                     {format(new Date(comment.created_at), 'dd.MM.yyyy HH:mm')}
                   </span>
-                  <ActionMenu 
+                  <ActionMenu
+                    onOpen={handleMenuOpen}
                     onEdit={() => startEdit(comment)} 
                     onDelete={() => handleDeleteClick(comment)}
                   />
@@ -321,6 +337,7 @@ export const TaskComments = ({ taskId }) => {
             </div>
           </div>
         ))}
+        <div className="h-18 flex-shrink-0 pointer-events-none" />
       </div>
 
       <div className="p-8 border-t border-gray-50 flex-shrink-0 bg-white relative">

@@ -29,6 +29,16 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
     return s;
   }
 
+  const handleMenuOpen = (e) => {
+    const rowElement = e.currentTarget.closest('.task-row');
+    if (rowElement) {
+      rowElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  };
+
   return (
     <div className="h-full overflow-y-auto custom-scrollbar">
       <table className="w-full text-left border-separate border-spacing-0">
@@ -47,7 +57,7 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
         </thead>
         <tbody className="divide-y divide-gray-50 text-[14px]">
           {tasks.map((task) => (
-            <tr key={task.id} className="hover:bg-gray-50 transition-colors group cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
+            <tr key={task.id} className="task-row hover:bg-gray-50 transition-colors group cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
@@ -118,12 +128,14 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
               </td> */}
               <td className="px-4" onClick={(e) => e.stopPropagation()}>
                 <ActionMenu 
+                  onOpen={handleMenuOpen}
                   onDelete={() => onDeleteRequest(task)} 
                   onEdit={() => onEditRequest(task)}
                 />
               </td>
             </tr>
           ))}
+          <tr className="h-16 pointer-events-none"><td></td></tr>
         </tbody>
       </table>
     </div>

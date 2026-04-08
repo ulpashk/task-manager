@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   fetchTaskByIdApi, fetchTaskAttachmentsApi, 
   fetchTaskCommentsApi, addTaskCommentApi, fetchTasksApi, uploadAttachmentApi,
-  deleteAttachmentApi, downloadAttachmentApi
+  deleteAttachmentApi, downloadAttachmentApi, changeTaskStatusApi 
 } from '../../services/taskService';
 import { 
   ChevronLeft, Star, Calendar, Users, Tag as TagIcon, 
@@ -121,29 +121,20 @@ export const TaskDetailPage = () => {
     try {
       const blob = await downloadAttachmentApi(id, attachmentId);
       
-      // Создаем URL с учетом типа контента (blob.type)
       const fileURL = window.URL.createObjectURL(new Blob([blob], { type: blob.type }));
 
-      // 1. Определяем расширение файла
       const extension = filename.split('.').pop().toLowerCase();
       
-      // Список расширений, которые браузеры обычно умеют открывать сами
       const viewableExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'txt'];
 
       if (viewableExtensions.includes(extension)) {
-        // Пытаемся открыть в новой вкладке (для картинок и PDF)
         const viewWindow = window.open(fileURL, '_blank');
-        
-        // Если браузер заблокировал всплывающее окно — скачиваем принудительно
         if (!viewWindow) {
           triggerDownload(fileURL, filename);
         }
       } else {
-        // Для всех остальных (Word, Excel, Zip и т.д.) сразу вызываем скачивание с правильным именем
         triggerDownload(fileURL, filename);
       }
-
-      // Очистка памяти через 10 секунд
       setTimeout(() => window.URL.revokeObjectURL(fileURL), 10000);
       
     } catch (err) {
@@ -172,6 +163,42 @@ export const TaskDetailPage = () => {
     );
   }
 
+  const getStatusStyle = (status) => {
+    if (status === 'completed' || status === 'done') return 'bg-green-50 text-green-500 border-green-100';
+    if (status === 'TODO' || status === 'created') return 'bg-gray-100 text-gray-500 border-gray-200';
+    if (status === 'IN_PROGRESS' || status === 'in_progress') return 'bg-yellow-50 text-yellow-500 border-yellow-100';
+    if (status === 'revision') return 'bg-blue-50 text-blue-500 border-blue-100';
+    if (status === 'waiting') return 'bg-blue-50 text-blue-500 border-blue-100';
+    return 'bg-gray-50 text-gray-500 border-gray-100';
+  };
+
+  const getStatusLabel = (s) => {
+    if (s === 'done' || s === 'completed' || s === 'COMPLETED') return 'Выполнено';
+    if (s === 'todo' || s === 'Todo' || s === 'TODO' || s === 'created') return 'Создано';
+    if (s === 'in_progress' || s === 'IN_PROGRESS') return 'В обработке';
+    if (s === 'revision') return 'На доработке';
+    if (s === 'waiting') return 'На проверке';
+    return s;
+  };
+
+  const handleStatusUpdate = async (newStatus) => {
+    try {
+      setLoading(true);
+      await changeTaskStatusApi(id, newStatus, "Статус изменен пользователем");
+      const updatedTask = await fetchTaskByIdApi(id);
+      setTask(updatedTask);
+    } catch (err) {
+      console.error(err);
+      const errorMsg = err.response?.data?.detail || "Ошибка при смене статуса";
+      alert(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const canStart = task?.status === 'created';
+  const canFinish = task?.status === 'in_progress' || task?.status === 'revision';
+
   return (
     <div ref={pageRef} className="flex flex-col h-full bg-[#FAFAFA] overflow-y-auto custom-scrollbar font-sans p-4 pt-0 gap-6">
 
@@ -197,15 +224,37 @@ export const TaskDetailPage = () => {
             <span className="text-[12px] font-bold text-gray-500 uppercase tracking-tight">{isSubtask ? 'Тема подзадачи' : 'Тема задачи'}</span>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-gray-900">{task.title}</h1>
-              <span className="bg-gray-200/50 text-gray-500 px-3 py-1 rounded-lg text-[12px] font-bold">
-                {task.status === 'created' ? 'Создано' : task.status}
-              </span>
+              <div className="mt-2">
+                <span className={`px-3 py-1 rounded-lg text-[12px] font-bold uppercase border ${getStatusStyle(task.status)}`}>
+                    {getStatusLabel(task.status)}
+                </span>
+              </div>
             </div>
             <p className="text-[11px] text-gray-400">Дата создания: {format(new Date(task.created_at), 'd апреля yyyy г. HH:mm:ss', { locale: ru })}</p>
           </div>
           <div className="flex gap-2">
-            <button className="bg-[#1677FF] text-white px-6 py-2 rounded-lg font-bold text-[13px] hover:bg-blue-600 shadow-md">Начать работу</button>
-            <button className="bg-white text-gray-300 border border-gray-100 px-6 py-2 rounded-lg font-bold text-[13px] cursor-not-allowed">Завершить</button>
+            <button 
+              onClick={() => handleStatusUpdate('in_progress')}
+              disabled={!canStart || loading}
+              className={`px-6 py-2 rounded-lg font-bold text-[13px] transition-all shadow-md ${
+                canStart 
+                  ? 'bg-[#1677FF] text-white hover:bg-blue-600 shadow-blue-100' 
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              Начать работу
+            </button>
+            <button 
+              onClick={() => handleStatusUpdate('waiting')}
+              disabled={!canFinish || loading}
+              className={`px-6 py-2 rounded-lg font-bold text-[13px] transition-all border ${
+                canFinish 
+                  ? 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50 shadow-sm' 
+                  : 'bg-white text-gray-200 border-gray-100 cursor-not-allowed'
+              }`}
+            >
+              Завершить
+            </button>
           </div>
         </div>
       </div>
