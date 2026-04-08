@@ -2,13 +2,13 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   fetchTaskByIdApi, fetchTaskAttachmentsApi, 
-  fetchTaskCommentsApi, addTaskCommentApi, fetchTasksApi, uploadAttachmentApi,
+  fetchTaskCommentsApi, fetchTasksApi, uploadAttachmentApi,
   deleteAttachmentApi, downloadAttachmentApi, changeTaskStatusApi 
 } from '../../services/taskService';
 import { 
   ChevronLeft, Star, Calendar, Users, Tag as TagIcon, 
   Building2, LayoutGrid, Layers, FileText, Trash2, 
-  Pencil, Loader2, Paperclip, Bold, Underline, Plus, Link2
+  Pencil, Loader2, Paperclip, Plus, Link2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';

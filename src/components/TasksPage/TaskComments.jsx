@@ -1,14 +1,51 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
-import { Pencil, Trash2, Paperclip, Bold, Underline, Loader2, X, FileText, Image as ImageIcon, ExternalLink } from 'lucide-react';
+import { Paperclip, Bold, Underline, X, FileText } from 'lucide-react';
 import { 
   fetchTaskCommentsApi, addTaskCommentApi, 
   updateTaskCommentApi, deleteTaskCommentApi, downloadAttachmentApi
 } from '../../services/taskService';
 import { fetchUsersListApi } from '../../services/userService';
-import axiosInstance from '../../api/axiosConfig';
 import { Modal } from '../general/Modal';
 import { ActionMenu } from './ActionMenu';
+
+// ВЫНЕСЕНО ЗА ПРЕДЕЛЫ TaskComments
+const ProtectedImage = React.memo(({ attachment, taskId }) => {
+  const [imgSrc, setImgSrc] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadImg = async () => {
+      try {
+        const blob = await downloadAttachmentApi(taskId, attachment.id);
+        if (isMounted) {
+          setImgSrc(URL.createObjectURL(blob));
+        }
+      } catch (e) {
+        console.error("Error loading comment image", e);
+      }
+    };
+    loadImg();
+    return () => {
+      isMounted = false;
+      if (imgSrc) URL.revokeObjectURL(imgSrc);
+    };
+  }, [attachment.id, taskId]); // Теперь запросы будут только если ID вложения реально изменится
+
+  if (!imgSrc) return <div className="w-full h-32 bg-gray-100 animate-pulse rounded-xl" />;
+  
+  return (
+    <img 
+      src={imgSrc} 
+      alt={attachment.filename} 
+      className="rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:opacity-90 transition-all max-h-64 object-cover"
+      onClick={() => {
+        // Мы вынесем handleViewFile тоже или передадим как проп
+        window.open(imgSrc, '_blank');
+      }}
+    />
+  );
+});
 
 export const TaskComments = ({ taskId }) => {
   const [comments, setComments] = useState([]);
@@ -39,7 +76,7 @@ export const TaskComments = ({ taskId }) => {
     link.remove();
   };
 
-  const handleViewFile = async (attachmentId, filename) => {
+  const handleViewFile = useCallback(async (attachmentId, filename) => {
     try {
       const blob = await downloadAttachmentApi(taskId, attachmentId);
       
@@ -61,64 +98,35 @@ export const TaskComments = ({ taskId }) => {
       console.error("Ошибка при открытии файла:", err);
       alert("Ошибка при загрузке файла");
     }
-  };
+  }, [taskId]);
 
-  const ProtectedImage = ({ attachment }) => {
-    const [imgSrc, setImgSrc] = useState(null);
+  // const ProtectedImage = ({ attachment }) => {
+  //   const [imgSrc, setImgSrc] = useState(null);
 
-    useEffect(() => {
-      const loadImg = async () => {
-        try {
-          const blob = await downloadAttachmentApi(taskId, attachment.id);
-          setImgSrc(URL.createObjectURL(blob));
-        } catch (e) {
-          console.error("Error loading comment image", e);
-        }
-      };
-      loadImg();
-      return () => { if (imgSrc) URL.revokeObjectURL(imgSrc); };
-    }, [attachment.id]);
+  //   useEffect(() => {
+  //     const loadImg = async () => {
+  //       try {
+  //         const blob = await downloadAttachmentApi(taskId, attachment.id);
+  //         setImgSrc(URL.createObjectURL(blob));
+  //       } catch (e) {
+  //         console.error("Error loading comment image", e);
+  //       }
+  //     };
+  //     loadImg();
+  //     return () => { if (imgSrc) URL.revokeObjectURL(imgSrc); };
+  //   }, [attachment.id]);
 
-    if (!imgSrc) return <div className="w-full h-32 bg-gray-100 animate-pulse rounded-xl" />;
+  //   if (!imgSrc) return <div className="w-full h-32 bg-gray-100 animate-pulse rounded-xl" />;
     
-    return (
-      <img 
-        src={imgSrc} 
-        alt={attachment.filename} 
-        className="rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:opacity-90 transition-all max-h-64 object-cover"
-        onClick={() => handleViewFile(attachment.id, attachment.filename)}
-      />
-    );
-  };
-
-  const handleFileAction = async (attachment) => {
-    try {
-      const response = await axiosInstance.get(attachment.download_url, {
-        responseType: 'blob'
-      });
-      
-      const blob = response.data;
-      const fileURL = window.URL.createObjectURL(blob);
-      const extension = attachment.filename.split('.').pop().toLowerCase();
-      const viewable = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension);
-
-      if (viewable) {
-        window.open(fileURL, '_blank');
-      } else {
-        const link = document.createElement('a');
-        link.href = fileURL;
-        link.setAttribute('download', attachment.filename);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      }
-
-      setTimeout(() => window.URL.revokeObjectURL(fileURL), 10000);
-    } catch (err) {
-      console.error("Ошибка при работе с файлом:", err);
-      alert("Не удалось загрузить файл");
-    }
-  };
+  //   return (
+  //     <img 
+  //       src={imgSrc} 
+  //       alt={attachment.filename} 
+  //       className="rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:opacity-90 transition-all max-h-64 object-cover"
+  //       onClick={() => handleViewFile(attachment.id, attachment.filename)}
+  //     />
+  //   );
+  // };
 
   const loadComments = async () => {
     try {
@@ -260,6 +268,26 @@ export const TaskComments = ({ taskId }) => {
     }
   };
 
+  const handlePaste = (e) => {
+    const items = e.clipboardData.items;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          const screenshot = new File([file], `screenshot_${Date.now()}.png`, {
+            type: file.type,
+          });
+
+          setSelectedFiles((prev) => [...prev, screenshot]);
+          
+          // Опционально: если вы не хотите, чтобы в textarea вставлялся текст (если он был скопирован вместе с фото)
+          // e.preventDefault(); 
+        }
+      }
+    }
+  };
+
   if (loading) return <div className="p-10 text-center text-gray-400">Загрузка комментариев...</div>;
 
   return (
@@ -312,7 +340,7 @@ export const TaskComments = ({ taskId }) => {
                     return (
                       <div key={file.id} className="max-w-[400px]">
                         {isImage ? (
-                          <ProtectedImage attachment={file} />
+                          <ProtectedImage attachment={file} taskId={taskId} />
                         ) : (
                           <div 
                             onClick={() => handleViewFile(file.id, file.filename)} // Вызов новой функции
@@ -378,6 +406,7 @@ export const TaskComments = ({ taskId }) => {
           <textarea 
             value={newComment}
             onChange={handleTextChange}
+            onPaste={handlePaste}
             placeholder="Введите текст комментария..."
             className="w-full h-24 p-4 text-sm outline-none resize-none"
           />
