@@ -101,10 +101,17 @@ export const createEpicApi = async (taskData) => {
   }
 };
 
-export const addTaskCommentApi = async (taskId, content) => {
-  const response = await axiosInstance.post(`/api/tasks/${taskId}/comments/`, {
-    content,
-    is_public: true
+export const addTaskCommentApi = async (taskId, content, files = []) => {
+  const formData = new FormData();
+  formData.append('content', content);
+  formData.append('is_public', 'true');
+  
+  files.forEach((file) => {
+    formData.append('files', file);
+  });
+
+  const response = await axiosInstance.post(`/api/tasks/${taskId}/comments/`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
   });
   return response.data;
 };

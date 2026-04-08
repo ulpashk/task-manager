@@ -67,7 +67,6 @@ export const TaskDetailPage = () => {
     }
   }, [id]);
 
-  // useEffect(() => { loadData(); }, [loadData]);
   useEffect(() => {
     loadData();
     if (pageRef.current) {
@@ -162,16 +161,11 @@ export const TaskDetailPage = () => {
     link.remove();
   };
 
-  // if (loading) return <div className="p-20 text-center"><Loader2 className="animate-spin inline mr-2"/> Загрузка...</div>;
-  // if (!task) return <div className="p-10 text-center text-red-500">Задача не найдена</div>;
   if (loading || !task) {
     return (
       <div className="h-full w-full flex flex-col items-center justify-center bg-[#FAFAFA] font-sans">
         <div className="relative flex items-center justify-center">
-          {/* Внешнее кольцо */}
           <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
-          {/* Иконка в центре (опционально) */}
-          {/* <Loader2 className="absolute text-blue-600 animate-pulse" size={20} /> */}
         </div>
         <p className="mt-4 text-gray-400 font-medium animate-pulse">Загрузка данных...</p>
       </div>
@@ -179,7 +173,7 @@ export const TaskDetailPage = () => {
   }
 
   return (
-    <div ref={pageRef} className="flex flex-col h-full bg-[#FAFAFA] overflow-y-auto custom-scrollbar font-sans p-4 pt-0 gap-6 pb-20">
+    <div ref={pageRef} className="flex flex-col h-full bg-[#FAFAFA] overflow-y-auto custom-scrollbar font-sans p-4 pt-0 gap-6">
 
       <div className="flex flex-col gap-4">
         <button onClick={() => navigate('/tasks')} className="p-1 text-gray-400 hover:bg-gray-200 rounded-md w-fit transition-all">
@@ -217,9 +211,7 @@ export const TaskDetailPage = () => {
       </div>
 
       {isSubtask ? (
-        /* ВАРИАНТ ДЛЯ ПОДЗАДАЧИ (Как на вашем фото) */
         <div className="grid grid-cols-2 gap-6 flex-shrink-0">
-          {/* Левая карточка: Приоритет и Дедлайн */}
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-5">
             <div className="flex items-center gap-3">
               <Star size={18} className="text-gray-400" />
@@ -237,7 +229,6 @@ export const TaskDetailPage = () => {
             </div>
           </div>
 
-          {/* Правая карточка: Исполнители и Тэги */}
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-5">
             <div className="flex items-start gap-3">
               <Users size={18} className="text-gray-400 mt-1" />
@@ -308,7 +299,6 @@ export const TaskDetailPage = () => {
             </div>
           </div>
 
-          {/* <div className="bg-[#F9FAFB]/50 p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4"> */}
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
             <div className="flex items-center gap-3">
               <Building2 size={16} className="text-gray-400" />
@@ -400,8 +390,7 @@ export const TaskDetailPage = () => {
             <div className="p-8 space-y-4 overflow-y-auto">
               {subtasks.map(st => (
                 <div 
-                  key={st.id} 
-                  // className="p-4 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center"
+                  key={st.id}
                   className="p-4 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center cursor-pointer hover:border-blue-300 transition-all group"
                   onClick={() => navigate(`/tasks/${st.id}`)}
                 >

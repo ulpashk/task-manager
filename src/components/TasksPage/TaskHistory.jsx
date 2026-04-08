@@ -53,10 +53,8 @@ export const TaskHistory = ({ taskId }) => {
       {history.length > 0 ? (
         history.map((item) => (
           <div key={item.id} className="flex gap-4 relative">
-            {/* Линия таймлайна */}
             <div className="absolute left-[17px] top-10 bottom-[-24px] w-px bg-gray-100 last:hidden" />
             
-            {/* Иконка и аватар */}
             <div className="relative z-10">
               <div className="w-9 h-9 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center shadow-sm text-gray-600 font-bold text-xs uppercase">
                 {item.changed_by?.first_name?.[0] || 'U'}
@@ -66,7 +64,6 @@ export const TaskHistory = ({ taskId }) => {
               </div>
             </div>
 
-            {/* Контент истории */}
             <div className="flex-1 pt-1 pb-4">
               <div className="flex items-center justify-between">
                 <p className="text-[14px] font-bold text-gray-800">
@@ -84,7 +81,6 @@ export const TaskHistory = ({ taskId }) => {
                 {getActionLabel(item)}
               </p>
 
-              {/* Отображение изменений (старое -> новое) */}
               {(item.old_value || item.new_value) && (
                 <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center gap-3">
                   {item.old_value && (

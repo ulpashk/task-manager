@@ -1,18 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Pencil, Trash2, Paperclip, Bold, Underline, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, Paperclip, Bold, Underline, Loader2, X, FileText, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { 
   fetchTaskCommentsApi, addTaskCommentApi, 
   updateTaskCommentApi, deleteTaskCommentApi 
 } from '../../services/taskService';
 import { fetchUsersListApi } from '../../services/userService';
+import axiosInstance from '../../api/axiosConfig';
 import { Modal } from '../general/Modal';
 import { ActionMenu } from './ActionMenu';
+import { ProtectedImage } from './ProtectedImage';
 
 export const TaskComments = ({ taskId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const fileInputRef = useRef(null);
   
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -26,6 +31,35 @@ export const TaskComments = ({ taskId }) => {
 
   const commentsEndRef = useRef(null);
 
+  const handleFileAction = async (attachment) => {
+    try {
+      const response = await axiosInstance.get(attachment.download_url, {
+        responseType: 'blob'
+      });
+      
+      const blob = response.data;
+      const fileURL = window.URL.createObjectURL(blob);
+      const extension = attachment.filename.split('.').pop().toLowerCase();
+      const viewable = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension);
+
+      if (viewable) {
+        window.open(fileURL, '_blank');
+      } else {
+        const link = document.createElement('a');
+        link.href = fileURL;
+        link.setAttribute('download', attachment.filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+
+      setTimeout(() => window.URL.revokeObjectURL(fileURL), 10000);
+    } catch (err) {
+      console.error("Ошибка при работе с файлом:", err);
+      alert("Не удалось загрузить файл");
+    }
+  };
+
   const loadComments = async () => {
     try {
       const data = await fetchTaskCommentsApi(taskId);
@@ -33,14 +67,12 @@ export const TaskComments = ({ taskId }) => {
     } finally { setLoading(false); }
   };
 
-  // useEffect(() => { loadComments(); }, [taskId]);
-
   useEffect(() => {
     const init = async () => {
       try {
         const [commentsData, usersData] = await Promise.all([
           fetchTaskCommentsApi(taskId),
-          fetchUsersListApi({ is_active: 'true', page_size: 100 }) // Загружаем юзеров
+          fetchUsersListApi({ is_active: 'true', page_size: 100 }) 
         ]);
         setComments([...commentsData].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
         setAllUsers(usersData || []);
@@ -63,11 +95,43 @@ export const TaskComments = ({ taskId }) => {
     }
   }, [comments.length]);
 
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeSelectedFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleAdd = async () => {
-    if (!newComment.trim()) return;
-    await addTaskCommentApi(taskId, newComment);
-    setNewComment('');
-    loadComments();
+    if (!newComment.trim() && selectedFiles.length === 0) return;
+    try {
+      await addTaskCommentApi(taskId, newComment, selectedFiles);
+      setNewComment('');
+      setSelectedFiles([]);
+      loadComments();
+    } catch (e) { 
+      alert("Ошибка при отправке"); 
+    }
+  };
+
+  const isViewable = (filename) => {
+    const ext = filename.split('.').pop().toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf'].includes(ext);
+  };
+
+  const handleFileClick = (fileUrl, filename) => {
+    if (isViewable(filename)) {
+      window.open(fileUrl, '_blank');
+    } else {
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
   };
 
   const startEdit = (comment) => {
@@ -103,12 +167,10 @@ export const TaskComments = ({ taskId }) => {
     setNewComment(value);
     setCursorPos(selectionStart);
 
-    // Ищем последнюю "собачку" перед курсором
     const lastAtPos = value.lastIndexOf('@', selectionStart - 1);
     
     if (lastAtPos !== -1) {
       const textAfterAt = value.substring(lastAtPos + 1, selectionStart);
-      // Если после @ нет пробела, значит мы ищем пользователя
       if (!textAfterAt.includes(' ')) {
         setMentionSearch(textAfterAt);
         setShowMentionList(true);
@@ -125,8 +187,6 @@ export const TaskComments = ({ taskId }) => {
     const beforeAt = newComment.substring(0, lastAtPos);
     const afterMention = newComment.substring(cursorPos);
     const fullName = `${user.first_name} ${user.last_name}`;
-    
-    // Формируем новый текст: всё что ДО @ + @Имя Фамилия + всё что ПОСЛЕ
     const newText = `${beforeAt}@${fullName} ${afterMention}`;
     setNewComment(newText);
     setShowMentionList(false);
@@ -162,11 +222,6 @@ export const TaskComments = ({ taskId }) => {
                   <span className="text-[11px] text-gray-400">
                     {format(new Date(comment.created_at), 'dd.MM.yyyy HH:mm')}
                   </span>
-                  {/* Кнопки появляются при наведении на блок комментария */}
-                  {/* <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => startEdit(comment)} className="text-gray-300 hover:text-blue-500"><Pencil size={14}/></button>
-                    <button onClick={() => handleDeleteClick(comment)} className="text-gray-300 hover:text-red-500"><Trash2 size={14}/></button>
-                  </div> */}
                   <ActionMenu 
                     onEdit={() => startEdit(comment)} 
                     onDelete={() => handleDeleteClick(comment)}
@@ -189,12 +244,43 @@ export const TaskComments = ({ taskId }) => {
               ) : (
                 <p className="text-[14px] text-gray-600 leading-relaxed whitespace-pre-wrap">{renderFormattedText(comment.content)}</p>
               )}
+              {comment.attachments && comment.attachments.length > 0 && (
+                <div className="flex flex-wrap gap-4 mt-2">
+                  {comment.attachments.map(file => {
+                    const ext = file.filename.split('.').pop().toLowerCase();
+                    const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
+
+                    return (
+                      <div key={file.id} className="max-w-[400px]">
+                        {isImage ? (
+                          <ProtectedImage url={file.download_url} filename={file.filename} />
+                        ) : (
+                          <div 
+                            onClick={() => handleFileAction(file)}
+                            className="flex items-center gap-3 px-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl hover:border-blue-300 transition-all cursor-pointer group/file"
+                          >
+                            <FileText className={ext === 'pdf' ? "text-red-500" : "text-blue-500"} size={20} />
+                            <div className="flex flex-col">
+                              <span className="text-[13px] font-bold text-blue-600 underline decoration-blue-200 group-hover/file:decoration-blue-500">
+                                {file.filename}
+                              </span>
+                              <span className="text-[10px] text-gray-400 uppercase font-medium">
+                                {(file.file_size / 1024).toFixed(1)} KB
+                              </span>
+                            </div>
+                            <ExternalLink size={14} className="text-gray-300 ml-2" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
 
-      {/* 2. Поле ввода нового комментария */}
       <div className="p-8 border-t border-gray-50 flex-shrink-0 bg-white relative">
         {showMentionList && (
           <div className="absolute bottom-[calc(100%-20px)] left-8 w-64 bg-white border border-gray-100 shadow-2xl rounded-xl z-[100] overflow-hidden animate-in slide-in-from-bottom-2">
@@ -215,25 +301,40 @@ export const TaskComments = ({ taskId }) => {
             </div>
           </div>
         )}
+
+        {selectedFiles.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4 animate-in slide-in-from-bottom-2">
+            {selectedFiles.map((file, index) => (
+              <div key={index} className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-[12px] text-blue-600 font-medium shadow-sm">
+                <FileText size={14} />
+                <span className="truncate max-w-[150px]">{file.name}</span>
+                <X size={14} className="cursor-pointer hover:text-red-500" onClick={() => removeSelectedFile(index)} />
+              </div>
+            ))}
+          </div>
+        )}
         
         <h4 className="text-sm font-bold text-gray-800 mb-3">Ваш комментарий</h4>
         <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-blue-400 transition-all shadow-sm">
           <textarea 
             value={newComment}
-            // onChange={(e) => setNewComment(e.target.value)}
             onChange={handleTextChange}
             placeholder="Введите текст комментария..."
             className="w-full h-24 p-4 text-sm outline-none resize-none"
           />
           <div className="bg-[#F9FAFB] px-4 py-3 flex items-center justify-between border-t border-gray-50">
             <div className="flex items-center gap-4 text-gray-400">
-               <Paperclip size={18} className="hover:text-blue-500 cursor-pointer" />
-               <Bold size={18} className="hover:text-blue-500 cursor-pointer" />
-               <Underline size={18} className="hover:text-blue-500 cursor-pointer" />
+              <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" multiple />
+              <button type="button" onClick={() => fileInputRef.current.click()} className="hover:text-blue-500 transition-colors">
+                <Paperclip size={18} />
+              </button>
+              {/* <div className="w-px h-4 bg-gray-200 mx-1"></div> */}
+              <Bold size={18} className="hover:text-blue-500 cursor-pointer" />
+              <Underline size={18} className="hover:text-blue-500 cursor-pointer" />
             </div>
             <button 
               onClick={handleAdd}
-              disabled={!newComment.trim()}
+              disabled={!newComment.trim() && selectedFiles.length === 0}
               className="bg-[#1677FF] text-white px-6 py-2 rounded-lg font-bold text-xs hover:bg-blue-600 disabled:bg-gray-200 transition-all"
             >
               Добавить
@@ -242,7 +343,6 @@ export const TaskComments = ({ taskId }) => {
         </div>
       </div>
 
-      {/* Модалка подтверждения удаления */}
       <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Удалить комментарий">
         <div className="flex flex-col gap-4 p-2">
           <p className="text-gray-600 text-sm">Вы уверены, что хотите удалить этот комментарий? Это действие нельзя отменить.</p>
