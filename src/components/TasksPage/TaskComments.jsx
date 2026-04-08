@@ -3,13 +3,12 @@ import { format } from 'date-fns';
 import { Pencil, Trash2, Paperclip, Bold, Underline, Loader2, X, FileText, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { 
   fetchTaskCommentsApi, addTaskCommentApi, 
-  updateTaskCommentApi, deleteTaskCommentApi 
+  updateTaskCommentApi, deleteTaskCommentApi, downloadAttachmentApi
 } from '../../services/taskService';
 import { fetchUsersListApi } from '../../services/userService';
 import axiosInstance from '../../api/axiosConfig';
 import { Modal } from '../general/Modal';
 import { ActionMenu } from './ActionMenu';
-import { ProtectedImage } from './ProtectedImage';
 
 export const TaskComments = ({ taskId }) => {
   const [comments, setComments] = useState([]);
@@ -29,7 +28,69 @@ export const TaskComments = ({ taskId }) => {
   const [mentionSearch, setMentionSearch] = useState('');
   const [cursorPos, setCursorPos] = useState(0);
 
-  const commentsEndRef = useRef(null);
+
+  const triggerDownload = (url, name) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', name); 
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const handleViewFile = async (attachmentId, filename) => {
+    try {
+      // КРИТИЧЕСКИЙ МОМЕНТ: Используем taskId из пропсов и ID вложения
+      const blob = await downloadAttachmentApi(taskId, attachmentId);
+      
+      const fileURL = window.URL.createObjectURL(new Blob([blob], { type: blob.type }));
+      const extension = filename.split('.').pop().toLowerCase();
+      const viewableExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'txt'];
+
+      if (viewableExtensions.includes(extension)) {
+        const viewWindow = window.open(fileURL, '_blank');
+        if (!viewWindow) {
+          triggerDownload(fileURL, filename);
+        }
+      } else {
+        triggerDownload(fileURL, filename);
+      }
+
+      setTimeout(() => window.URL.revokeObjectURL(fileURL), 10000);
+    } catch (err) {
+      console.error("Ошибка при открытии файла:", err);
+      alert("Ошибка при загрузке файла");
+    }
+  };
+
+  const ProtectedImage = ({ attachment }) => {
+    const [imgSrc, setImgSrc] = useState(null);
+
+    useEffect(() => {
+      const loadImg = async () => {
+        try {
+          const blob = await downloadAttachmentApi(taskId, attachment.id);
+          setImgSrc(URL.createObjectURL(blob));
+        } catch (e) {
+          console.error("Error loading comment image", e);
+        }
+      };
+      loadImg();
+      return () => { if (imgSrc) URL.revokeObjectURL(imgSrc); };
+    }, [attachment.id]);
+
+    if (!imgSrc) return <div className="w-full h-32 bg-gray-100 animate-pulse rounded-xl" />;
+    
+    return (
+      <img 
+        src={imgSrc} 
+        alt={attachment.filename} 
+        className="rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:opacity-90 transition-all max-h-64 object-cover"
+        onClick={() => handleViewFile(attachment.id, attachment.filename)}
+      />
+    );
+  };
+
 
   const handleFileAction = async (attachment) => {
     try {
@@ -113,24 +174,6 @@ export const TaskComments = ({ taskId }) => {
       loadComments();
     } catch (e) { 
       alert("Ошибка при отправке"); 
-    }
-  };
-
-  const isViewable = (filename) => {
-    const ext = filename.split('.').pop().toLowerCase();
-    return ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf'].includes(ext);
-  };
-
-  const handleFileClick = (fileUrl, filename) => {
-    if (isViewable(filename)) {
-      window.open(fileUrl, '_blank');
-    } else {
-      const link = document.createElement('a');
-      link.href = fileUrl;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
     }
   };
 
@@ -253,10 +296,10 @@ export const TaskComments = ({ taskId }) => {
                     return (
                       <div key={file.id} className="max-w-[400px]">
                         {isImage ? (
-                          <ProtectedImage url={file.download_url} filename={file.filename} />
+                          <ProtectedImage attachment={file} />
                         ) : (
                           <div 
-                            onClick={() => handleFileAction(file)}
+                            onClick={() => handleViewFile(file.id, file.filename)} // Вызов новой функции
                             className="flex items-center gap-3 px-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl hover:border-blue-300 transition-all cursor-pointer group/file"
                           >
                             <FileText className={ext === 'pdf' ? "text-red-500" : "text-blue-500"} size={20} />
@@ -268,7 +311,6 @@ export const TaskComments = ({ taskId }) => {
                                 {(file.file_size / 1024).toFixed(1)} KB
                               </span>
                             </div>
-                            <ExternalLink size={14} className="text-gray-300 ml-2" />
                           </div>
                         )}
                       </div>
