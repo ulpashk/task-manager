@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
-import { Paperclip, Bold, Underline, X, FileText } from 'lucide-react';
+import { Paperclip, Bold, Underline, X, FileText, MessageSquare } from 'lucide-react';
 import { 
   fetchTaskCommentsApi, addTaskCommentApi, 
   updateTaskCommentApi, deleteTaskCommentApi, downloadAttachmentApi
@@ -9,7 +9,6 @@ import { fetchUsersListApi } from '../../services/userService';
 import { Modal } from '../general/Modal';
 import { ActionMenu } from './ActionMenu';
 
-// ВЫНЕСЕНО ЗА ПРЕДЕЛЫ TaskComments
 const ProtectedImage = React.memo(({ attachment, taskId }) => {
   const [imgSrc, setImgSrc] = useState(null);
 
@@ -99,8 +98,6 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
       alert("Ошибка при загрузке файла");
     }
   }, [taskId]);
-
-  // const ProtectedImage = ({ attachment }) => {
   //   const [imgSrc, setImgSrc] = useState(null);
 
   //   useEffect(() => {
@@ -286,8 +283,6 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
 
           setSelectedFiles((prev) => [...prev, screenshot]);
           
-          // Опционально: если вы не хотите, чтобы в textarea вставлялся текст (если он был скопирован вместе с фото)
-          // e.preventDefault(); 
         }
       }
     }
@@ -298,78 +293,89 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8 bg-white relative z-10">
-        {comments.map(comment => (
-          <div key={comment.id} className="comment-row flex gap-4 group transition-all duration-300">
-            <div className="w-9 h-9 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm">
-              {comment.author?.first_name?.[0]}
-            </div>
-            
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-gray-800 text-[14px]">
-                  {comment.author?.first_name} {comment.author?.last_name}
-                </span>
-                <div className="flex items-center gap-4">
-                  <span className="text-[11px] text-gray-400">
-                    {format(new Date(comment.created_at), 'dd.MM.yyyy HH:mm')}
-                  </span>
-                  <ActionMenu
-                    onOpen={handleMenuOpen}
-                    onEdit={() => startEdit(comment)} 
-                    onDelete={() => handleDeleteClick(comment)}
-                  />
-                </div>
+        {comments.length > 0 ? (
+          comments.map(comment => (
+            <div key={comment.id} className="comment-row flex gap-4 group transition-all duration-300">
+              <div className="w-9 h-9 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm">
+                {comment.author?.first_name?.[0]}
               </div>
-              
-              {editingId === comment.id ? (
-                <div className="mt-2 animate-in fade-in duration-200">
-                  <textarea 
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    className="w-full p-3 border border-blue-400 rounded-xl text-sm outline-none shadow-sm min-h-[80px] focus:ring-2 focus:ring-blue-50"
-                  />
-                  <div className="flex justify-end gap-2 mt-2">
-                    <button onClick={() => setEditingId(null)} className="px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-500 hover:bg-gray-50">Отменить</button>
-                    <button onClick={() => handleUpdate(comment.id)} className="px-4 py-1.5 bg-[#1677FF] text-white rounded-lg text-xs font-bold hover:bg-blue-600">Редактировать</button>
+            
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-gray-800 text-[14px]">
+                    {comment.author?.first_name} {comment.author?.last_name}
+                  </span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[11px] text-gray-400">
+                      {format(new Date(comment.created_at), 'dd.MM.yyyy HH:mm')}
+                    </span>
+                    <ActionMenu
+                      onOpen={handleMenuOpen}
+                      onEdit={() => startEdit(comment)} 
+                      onDelete={() => handleDeleteClick(comment)}
+                    />
                   </div>
                 </div>
-              ) : (
-                <p className="text-[14px] text-gray-600 leading-relaxed whitespace-pre-wrap">{renderFormattedText(comment.content)}</p>
-              )}
-              {comment.attachments && comment.attachments.length > 0 && (
-                <div className="flex flex-wrap gap-4 mt-2">
-                  {comment.attachments.map(file => {
-                    const ext = file.filename.split('.').pop().toLowerCase();
-                    const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
+                
+                {editingId === comment.id ? (
+                  <div className="mt-2 animate-in fade-in duration-200">
+                    <textarea 
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      className="w-full p-3 border border-blue-400 rounded-xl text-sm outline-none shadow-sm min-h-[80px] focus:ring-2 focus:ring-blue-50"
+                    />
+                    <div className="flex justify-end gap-2 mt-2">
+                      <button onClick={() => setEditingId(null)} className="px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-500 hover:bg-gray-50">Отменить</button>
+                      <button onClick={() => handleUpdate(comment.id)} className="px-4 py-1.5 bg-[#1677FF] text-white rounded-lg text-xs font-bold hover:bg-blue-600">Редактировать</button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[14px] text-gray-600 leading-relaxed whitespace-pre-wrap">{renderFormattedText(comment.content)}</p>
+                )}
 
-                    return (
-                      <div key={file.id} className="max-w-[400px]">
-                        {isImage ? (
-                          <ProtectedImage attachment={file} taskId={taskId} />
-                        ) : (
-                          <div 
-                            onClick={() => handleViewFile(file.id, file.filename)} // Вызов новой функции
-                            className="flex items-center gap-3 px-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl hover:border-blue-300 transition-all cursor-pointer group/file"
-                          >
-                            <FileText className={ext === 'pdf' ? "text-red-500" : "text-blue-500"} size={20} />
-                            <div className="flex flex-col">
-                              <span className="text-[13px] font-bold text-blue-600 underline decoration-blue-200 group-hover/file:decoration-blue-500">
-                                {file.filename}
-                              </span>
-                              <span className="text-[10px] text-gray-400 uppercase font-medium">
-                                {(file.file_size / 1024).toFixed(1)} KB
-                              </span>
+                {comment.attachments && comment.attachments.length > 0 && (
+                  <div className="flex flex-wrap gap-4 mt-2">
+                    {comment.attachments.map(file => {
+                      const ext = file.filename.split('.').pop().toLowerCase();
+                      const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
+
+                      return (
+                        <div key={file.id} className="max-w-[400px]">
+                          {isImage ? (
+                            <ProtectedImage attachment={file} taskId={taskId} />
+                          ) : (
+                            <div 
+                              onClick={() => handleViewFile(file.id, file.filename)} // Вызов новой функции
+                              className="flex items-center gap-3 px-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl hover:border-blue-300 transition-all cursor-pointer group/file"
+                            >
+                              <FileText className={ext === 'pdf' ? "text-red-500" : "text-blue-500"} size={20} />
+                              <div className="flex flex-col">
+                                <span className="text-[13px] font-bold text-blue-600 underline decoration-blue-200 group-hover/file:decoration-blue-500">
+                                  {file.filename}
+                                </span>
+                                <span className="text-[10px] text-gray-400 uppercase font-medium">
+                                  {(file.file_size / 1024).toFixed(1)} KB
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
             </div>
-          </div>
-        ))}
+          ))) : (
+            <div className="h-full flex flex-col items-center justify-center text-gray-400 py-20">
+              <div className="bg-gray-50 p-4 rounded-full mb-4">
+                <MessageSquare size={32} className="opacity-20" />
+              </div>
+              <p className="text-sm font-medium">Комментариев пока нет</p>
+              <p className="text-xs opacity-60">Будьте первым, кто оставит отзыв к этой задаче</p>
+            </div>
+        )}
         <div className="h-18 flex-shrink-0 pointer-events-none" />
       </div>
 
