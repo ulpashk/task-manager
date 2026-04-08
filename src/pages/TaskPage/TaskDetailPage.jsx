@@ -16,6 +16,7 @@ import { SubtaskForm } from '../../components/TasksPage/forms/SubtaskForm';
 import { TaskComments } from '../../components/TasksPage/TaskComments';
 import { TaskHistory } from '../../components/TasksPage/TaskHistory';
 import { Modal } from '../../components/general/Modal';
+import { formatDateTime } from '../../utils/formatters';
 
 export const TaskDetailPage = () => {
   const { id } = useParams();
@@ -456,7 +457,10 @@ export const TaskDetailPage = () => {
                   className="p-4 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center cursor-pointer hover:border-blue-300 transition-all group"
                   onClick={() => navigate(`/tasks/${st.id}`)}
                 >
-                  <span className="font-bold text-gray-800 group-hover:text-blue-600">{st.title}</span>
+                  <div className='flex flex-col'>
+                    <span className="font-bold text-gray-800 group-hover:text-blue-600">{st.title}</span>
+                    <span className="text-gray-500 text-xs group-hover:text-gray-600">{formatDateTime(st.deadline)}</span>
+                  </div>
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] bg-white px-2 py-1 rounded border font-bold uppercase text-gray-400">{st.status}</span>
                     <ChevronLeft className="rotate-180 text-gray-300" size={16} />
