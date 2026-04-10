@@ -40,5 +40,20 @@ export const summaryService = {
       responseType: 'blob' 
     });
     return res.data;
+  },
+
+  getById: async (id) => {
+    const res = await axiosInstance.get(`/api/summaries/${id}/`);
+    return res.data;
+  },
+
+  getVersions: async (id) => {
+    const res = await axiosInstance.get(`/api/summaries/${id}/versions/`);
+    return res.data;
+  },
+
+  regenerate: async (id) => {
+    const res = await axiosInstance.post(`/api/summaries/${id}/regenerate/`);
+    return res.data;
   }
 };

@@ -36,7 +36,7 @@ export const Header = () => {
     const isDetailPage = 
       location.pathname.startsWith('/projects/') || 
       location.pathname.startsWith('/tasks/') || 
-      location.pathname.startsWith('/companies/');
+      location.pathname.startsWith('/clients/');
 
     if (isDetailPage && !shouldShowFallback) {
       return "";
@@ -45,7 +45,7 @@ export const Header = () => {
     const activeItem = NAVIGATION_ITEMS.find(item => item.path === location.pathname);
     if (activeItem) return activeItem.label;
 
-    if (location.pathname.startsWith('/companies/')) return 'Информация о компании';
+    if (location.pathname.startsWith('/clients/')) return 'Информация о компании';
     if (location.pathname.startsWith('/projects/')) return 'Детали проекта';
     if (location.pathname.startsWith('/tasks/')) return 'Детали задачи';
 
@@ -114,7 +114,7 @@ export const Header = () => {
               </div>
               
               <div className="p-1">
-                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors" onClick={() => navigate('/settings')}>
                   <User size={16} /> Профиль
                 </button>
                 <button 

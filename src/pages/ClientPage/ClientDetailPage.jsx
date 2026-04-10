@@ -37,6 +37,16 @@ export const ClientDetailPage = () => {
     { label: 'Выполнено', value: client.task_summary?.done },
   ];
 
+  const getJobTitle = (job) => {
+    if (job === '') return 'Не указано';
+    if (job === 'manager') return 'Менеджер';
+    if (job === 'employee') return 'Сотрудник';
+    if (job === 'client') return 'Клиент';
+    if (job === 'engineer') return 'Инженер';
+    if (job === 'admin' || job === 'superadmin') return 'Администратор';
+    return job;
+  };
+
   return (
     <div className="flex flex-col gap-6 h-full overflow-hidden font-sans pb-4">
       <div className="relative bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex-shrink-0 flex items-center gap-8">
@@ -129,12 +139,24 @@ export const ClientDetailPage = () => {
                  </tr>
                </thead>
                <tbody className="divide-y divide-gray-50 text-[13px]">
-                  <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-8 py-4 font-medium text-gray-700">Кемелбай Мерей Мураткызы</td>
-                    <td className="px-8 py-4 text-gray-500">m_kemelbay@kbtu.kz</td>
-                    <td className="px-8 py-4 text-center text-gray-600">Менеджер</td>
-                    <td className="px-8 py-4 text-gray-500">+7 (727) 357-42-42</td>
+                {client.employees.length !== 0 ? (
+                  client.employees.filter(e => 
+                    e.first_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    e.last_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    e.email.toLowerCase().includes(searchTerm.toLowerCase())
+                  ).map(employee => (
+                    <tr key={employee.id} className="hover:bg-gray-50 transition-colors" onClick={() => navigate(`/users/${employee.id}`)} style={{ cursor: 'pointer' }}>
+                      <td className="px-8 py-4 font-medium text-gray-700">{employee.first_name} {employee.last_name}</td>
+                      <td className="px-8 py-4 text-gray-500">{employee.email}</td>
+                      <td className="px-8 py-4 text-center text-gray-600">{getJobTitle(employee.job_title)}</td>
+                      <td className="px-8 py-4 text-gray-500">{formatPhoneNumber(employee.phone)}</td>
+                    </tr>
+                  ))
+                ): (
+                  <tr>
+                    <td colSpan="4" className="px-8 py-6 text-center text-gray-400">Сотрудники не найдены</td>
                   </tr>
+                )}
                </tbody>
              </table>
            </div>

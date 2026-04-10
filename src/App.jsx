@@ -10,6 +10,7 @@ import { NAVIGATION_ITEMS } from './config/navigation';
 import { ClientDetailPage } from './pages/ClientPage/ClientDetailPage';
 import { TaskDetailPage } from './pages/TaskPage/TaskDetailPage';
 import { ProjectDetailPage } from './pages/ProjectPage/ProjectDetailPage';
+import { ReportDetailPage } from './pages/AnalyticsPage/ReportDetailPage';
 import { UserDetailPage } from './pages/UserPage/UserDetailPage';
 import { PageProvider } from './context/PageContext';
 
@@ -78,6 +79,7 @@ function App() {
                       </RoleGuard>
                     } 
                   />
+                  <Route path="/reports/summaries/:id" element={<ReportDetailPage />} />
                 </Route>
               </Route>
               <Route path="*" element={<HomeRedirect />} />

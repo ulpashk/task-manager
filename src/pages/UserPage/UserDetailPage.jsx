@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchUserByIdApi, deleteUserApi } from '../../services/userService';
 import { fetchClientByIdApi } from '../../services/clientService';
-import { Mail, Phone, Briefcase, Building2, User as UserIcon, Trash2, Pencil, Loader2, ArrowLeft } from 'lucide-react';
+import { Trash2, Pencil, Loader2, ChevronLeft } from 'lucide-react';
 import { formatPhoneNumber } from '../../utils/formatters';
 import { Modal } from '../../components/general/Modal';
 import { EditUserModal } from '../../components/Users/EditUserModal';
@@ -70,10 +70,16 @@ export const UserDetailPage = () => {
       <div className="relative bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-4 flex-shrink-0">
         
         <button 
-          onClick={() => navigate('/users')}
+          onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1)
+            } else {
+              navigate('/users')
+            }
+          }} 
           className="absolute top-8 left-4 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
         >
-          <ArrowLeft size={18} />
+          <ChevronLeft size={18} />
         </button>
 
         <div className="absolute top-6 right-6 flex gap-2">

@@ -7,7 +7,7 @@ import { ClientsPage } from '../pages/ClientPage/ClientPage';
 import { UsersPage } from '../pages/UserPage/UsersPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { CalendarPage } from '../pages/CalendarPage';
-import { AnalyticsPage } from '../pages/AnalyticsPage';
+import { AnalyticsPage } from '../pages/AnalyticsPage/AnalyticsPage';
 import { ArchivePage } from '../pages/ArchivePage';
 import { TagsPage } from '../pages/TagsPage';
 import { ProjectsPage } from '../pages/ProjectPage/ProjectsPage';

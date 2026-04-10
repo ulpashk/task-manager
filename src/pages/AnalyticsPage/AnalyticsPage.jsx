@@ -1,17 +1,18 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sparkles, FileText, Table, History, Loader2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { summaryService } from '../services/summaryService';
-import { AISummaryCard } from '../components/Analytics/AISummaryCard';
-import { Modal } from '../components/general/Modal';
+import { summaryService } from '../../services/summaryService';
+import { AISummaryCard } from '../../components/Analytics/AISummaryCard';
 
 export const AnalyticsPage = () => {
+  const navigate = useNavigate();
   const [latest, setLatest] = useState({ daily: null, weekly: null });
   const [stats, setStats] = useState(null); // Данные из /api/reports/summary/
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedReport, setSelectedReport] = useState(null);
+  // const [selectedReport, setSelectedReport] = useState(null);
   
   // Состояния кнопок
   const [generating, setGenerating] = useState(false);
@@ -103,8 +104,12 @@ export const AnalyticsPage = () => {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          <AISummaryCard title="Ежедневный отчет" summary={latest.daily} />
-          <AISummaryCard title="Еженедельный отчет" summary={latest.weekly} />
+          <div onClick={() => latest.daily && navigate(`/reports/summaries/${latest.daily.id}`)} className="cursor-pointer">
+            <AISummaryCard title="Ежедневный отчет" summary={latest.daily} />
+          </div>
+          <div onClick={() => latest.weekly && navigate(`/reports/summaries/${latest.weekly.id}`)} className="cursor-pointer">
+            <AISummaryCard title="Еженедельный отчет" summary={latest.weekly} />
+          </div>
         </div>
       </section>
 
@@ -159,7 +164,7 @@ export const AnalyticsPage = () => {
           {history.map(item => (
             <div 
               key={item.id} 
-              onClick={() => setSelectedReport(item)}
+              onClick={() => navigate(`/reports/summaries/${item.id}`)}
               className="p-5 bg-blue-50/20 border border-blue-50 rounded-2xl flex justify-between items-center group hover:border-blue-200 transition-all cursor-pointer">
               <div>
                 <p className="text-sm font-bold text-gray-800">
@@ -174,31 +179,6 @@ export const AnalyticsPage = () => {
           ))}
         </div>
       </section>
-      <Modal 
-        isOpen={!!selectedReport} 
-        onClose={() => setSelectedReport(null)} 
-        title="Просмотр ИИ отчета"
-      >
-        {selectedReport && (
-          <div className="font-sans">
-            <div className="flex justify-between mb-6 pb-4 border-b">
-              <span className="text-sm font-bold text-blue-600 uppercase">{selectedReport.period_type}</span>
-              <span className="text-sm text-gray-400">{selectedReport.period_start} — {selectedReport.period_end}</span>
-            </div>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-line">
-              {selectedReport.summary_text}
-            </div>
-            <div className="mt-8 flex justify-end">
-              <button 
-                onClick={() => setSelectedReport(null)}
-                className="bg-gray-100 px-6 py-2 rounded-lg font-bold text-gray-600"
-              >
-                Закрыть
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 };
