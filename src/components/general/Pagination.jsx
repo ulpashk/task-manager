@@ -1,18 +1,15 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const Pagination = ({ totalCount = 0, pageSize = 9, currentPage = 1, onPageChange }) => {
-  // Ensure we have numbers to avoid NaN
   const count = Number(totalCount) || 0;
   const size = Number(pageSize) || 9;
   const page = Number(currentPage) || 1;
 
   const totalPages = Math.ceil(count / size);
   
-  // Calculate the "Showing X-Y" range
   const from = count === 0 ? 0 : (page - 1) * size + 1;
   const to = Math.min(page * size, count);
 
-  // Don't show anything if there are no results
   if (count === 0) return null;
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);

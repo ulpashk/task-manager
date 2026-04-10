@@ -33,8 +33,7 @@ export const AddTagModal = ({ isOpen, onClose, onRefresh }) => {
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Добавить тэг">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6 font-sans">
-        
-        {/* Наименование тэга */}
+
         <div className="flex flex-col gap-2">
           <label className="text-[14px] font-medium text-gray-700">Наименование тэга</label>
           <input 
@@ -47,11 +46,9 @@ export const AddTagModal = ({ isOpen, onClose, onRefresh }) => {
           />
         </div>
 
-        {/* Выбор цвета (Тэг) */}
         <div className="flex flex-col gap-2">
           <label className="text-[14px] font-medium text-gray-700">Тэг</label>
           <div className="relative flex items-center">
-            {/* Текстовое поле для HEX-кода */}
             <input 
               type="text"
               value={color.toUpperCase()}
@@ -59,14 +56,12 @@ export const AddTagModal = ({ isOpen, onClose, onRefresh }) => {
               className="w-full h-[48px] bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 outline-none focus:border-blue-500 text-[14px] font-mono"
             />
             
-            {/* Квадратик-превью, при клике на который открывается палитра */}
             <div 
               onClick={() => colorInputRef.current.click()}
               className="absolute right-3 w-6 h-6 rounded-md cursor-pointer border border-gray-200 shadow-sm transition-transform active:scale-90"
               style={{ backgroundColor: color }}
             />
             
-            {/* Скрытый системный выбор цвета */}
             <input 
               type="color"
               ref={colorInputRef}
@@ -77,7 +72,6 @@ export const AddTagModal = ({ isOpen, onClose, onRefresh }) => {
           </div>
         </div>
 
-        {/* Кнопки управления */}
         <div className="flex justify-end gap-3 mt-4">
           <button 
             type="button" 

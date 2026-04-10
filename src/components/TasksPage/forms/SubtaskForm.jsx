@@ -153,7 +153,6 @@ export const SubtaskForm = ({ onClose, onRefresh, initialParentId }) => {
         />
       </div>
 
-      {/* Выбор РОДИТЕЛЬСКОЙ ЗАДАЧИ */}
       {!isPredefined && (
         <div className="flex flex-col gap-1.5">
           <label className="text-[14px] font-bold text-gray-700">Задача</label>
@@ -174,7 +173,6 @@ export const SubtaskForm = ({ onClose, onRefresh, initialParentId }) => {
         </div>
       )}
 
-      {/* МУЛЬТИ-СЕЛЕКТ ИСПОЛНИТЕЛЕЙ */}
       <MultiSelect 
         label="Исполнители"
         options={users}

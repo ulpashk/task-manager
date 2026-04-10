@@ -31,7 +31,6 @@ export const EditProjectModal = ({ isOpen, onClose, project, onRefresh }) => {
     start_date: '', deadline: '', assignee_id: ''
   });
 
-  // Загрузка списка пользователей (руководителей)
   useEffect(() => {
     if (isOpen) {
       setDataLoading(true);
@@ -41,7 +40,6 @@ export const EditProjectModal = ({ isOpen, onClose, project, onRefresh }) => {
     }
   }, [isOpen]);
 
-  // Инициализация данных при открытии
   useEffect(() => {
     if (isOpen && project) {
       setFormData({
@@ -78,7 +76,6 @@ export const EditProjectModal = ({ isOpen, onClose, project, onRefresh }) => {
       let originalValue = key === 'assignee_id' ? project.assignee?.id : project[key];
       let currentValue = formData[key];
 
-      // Сравнение дат до минут
       if (key === 'start_date' || key === 'deadline') {
         const origFmt = formatDateTime(originalValue);
         const currFmt = formatDateTime(currentValue);
@@ -88,7 +85,6 @@ export const EditProjectModal = ({ isOpen, onClose, project, onRefresh }) => {
         return;
       }
 
-      // Сравнение остальных полей
       if (String(currentValue || '') !== String(originalValue || '')) {
         changes.push({
           key,

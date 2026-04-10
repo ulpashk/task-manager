@@ -19,7 +19,6 @@ export const EditTagModal = ({ isOpen, onClose, tag, onRefresh }) => {
     color: '#000000'
   });
 
-  // Инициализация данных при открытии
   useEffect(() => {
     if (tag && isOpen) {
       setFormData({
@@ -33,7 +32,6 @@ export const EditTagModal = ({ isOpen, onClose, tag, onRefresh }) => {
 
   if (!isOpen || !tag) return null;
 
-  // Функция для определения, что изменилось
   const getChanges = () => {
     const changes = [];
     if (formData.name.trim() !== (tag.name || '').trim()) {
@@ -50,7 +48,7 @@ export const EditTagModal = ({ isOpen, onClose, tag, onRefresh }) => {
         label: FIELD_LABELS.color,
         oldValue: tag.color || '#000000',
         newValue: formData.color,
-        isColor: true // Флаг для спец. отображения цвета
+        isColor: true
       });
     }
     return changes;
@@ -63,7 +61,7 @@ export const EditTagModal = ({ isOpen, onClose, tag, onRefresh }) => {
       setFinalChanges(changes);
       setStep('confirm');
     } else {
-      onClose(); // Если ничего не изменилось, просто закрываем
+      onClose(); 
     }
   };
 
@@ -72,7 +70,7 @@ export const EditTagModal = ({ isOpen, onClose, tag, onRefresh }) => {
     try {
       await updateTagApi(tag.id, formData);
       setStep('success');
-      onRefresh(); // Обновляем таблицу в фоне
+      onRefresh();
     } catch (error) {
       alert("Ошибка при обновлении тэга");
       setStep('edit');
@@ -94,7 +92,6 @@ export const EditTagModal = ({ isOpen, onClose, tag, onRefresh }) => {
     >
       <div className="font-sans">
         
-        {/* --- ШАГ 1: РЕДАКТИРОВАНИЕ --- */}
         {step === 'edit' && (
           <form onSubmit={handleSaveClick} className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
@@ -145,7 +142,6 @@ export const EditTagModal = ({ isOpen, onClose, tag, onRefresh }) => {
           </form>
         )}
 
-        {/* --- ШАГ 2: ПОДТВЕРЖДЕНИЕ --- */}
         {step === 'confirm' && (
           <div className="flex flex-col gap-6 animate-in fade-in duration-300">
             <div className="space-y-3">
@@ -187,7 +183,6 @@ export const EditTagModal = ({ isOpen, onClose, tag, onRefresh }) => {
           </div>
         )}
 
-        {/* --- ШАГ 3: УСПЕХ --- */}
         {step === 'success' && (
           <div className="flex flex-col items-center py-6 gap-4 animate-in zoom-in-95 duration-300">
             <CheckCircle2 size={56} className="text-[#52C41A]" />
@@ -203,7 +198,6 @@ export const EditTagModal = ({ isOpen, onClose, tag, onRefresh }) => {
             </button>
           </div>
         )}
-
       </div>
     </Modal>
   );

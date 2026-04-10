@@ -51,6 +51,7 @@ export const Header = () => {
 
     return 'Заявки';
   };
+  
   const pageTitle = getPageTitle();
 
   useEffect(() => {

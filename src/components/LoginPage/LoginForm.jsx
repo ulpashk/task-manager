@@ -12,22 +12,6 @@ export const LoginForm = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-  //   setError('');
-    
-  //   try {
-  //     const data = await loginUserApi(email, password);
-  //     login(data.access);
-  //     navigate('/'); 
-  //   } catch (err) {
-  //     setError("Неверный логин или пароль. Попробуйте снова.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);

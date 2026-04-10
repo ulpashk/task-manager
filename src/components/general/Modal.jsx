@@ -9,7 +9,6 @@ export const Modal = ({ isOpen, onClose, title, children }) => {
         className="bg-white w-full max-w-[560px] rounded-[16px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-gray-50 shadow-sm">
           <h2 className="text-[24px] font-bold text-gray-800">{title}</h2>
           <button 
@@ -20,7 +19,6 @@ export const Modal = ({ isOpen, onClose, title, children }) => {
           </button>
         </div>
 
-        {/* Content */}
         <div className="px-8 py-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
           {children}
         </div>
