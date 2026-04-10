@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown, Loader2 } from 'lucide-react';
 import { createProjectApi } from '../../../services/taskService';
 import { fetchUsersListApi } from '../../../services/userService';
+import { MultiSelect } from '../../general/MultiSelectDropdown';
 
 export const ProjectForm = ({ onClose, onRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
+  const [engineers, setEngineers] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     title: '', 
     description: '', 
     assignee_id: '',
-    start_date: '', 
+    team_member_ids: [],
     deadline: '', 
     status: 'created',
     priority: 'medium'
@@ -21,11 +23,13 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
   useEffect(() => {
     const loadRequiredData = async () => {
       try {
-        const userList = await fetchUsersListApi({ is_active: 'true' });
+        const userList = await fetchUsersListApi({ is_active: 'true', role: 'manager' });
+        const engineerList = await fetchUsersListApi({ is_active: 'true', role: 'engineer' });
         // const userList = await fetchUsersListApi();
         setUsers(userList || []);
+        setEngineers(engineerList || []);
       } catch (err) {
-        console.error("Ошибка при загрузке списков руководителей:", err);
+        console.error("Ошибка при загрузке списков ответственных:", err);
       } finally {
         setDataLoading(false);
       }
@@ -33,11 +37,20 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
     loadRequiredData();
   }, []);
 
+  const toggleTeamMember = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      team_member_ids: prev.team_member_ids.includes(id) 
+        ? prev.team_member_ids.filter(tId => tId !== id) 
+        : [...prev.team_member_ids, id]
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.assignee_id) {
-      alert("Пожалуйста, выберите руководителя проекта");
+      alert("Пожалуйста, выберите ответственного за проект");
       return;
     }
 
@@ -46,7 +59,7 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
       const payload = {
         ...formData,
         assignee_id: Number(formData.assignee_id),
-        start_date: formData.start_date ? new Date(formData.start_date).toISOString() : null,
+        team_member_ids: formData.team_member_ids.map(id => Number(id)),
         deadline: formData.deadline ? new Date(formData.deadline).toISOString() : null
       };
 
@@ -95,7 +108,7 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[14px] font-bold text-gray-700">Руководитель</label>
+        <label className="text-[14px] font-bold text-gray-700">Ответственный</label>
         <div className="relative">
           <select 
             required
@@ -103,7 +116,7 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
             onChange={(e) => setFormData({...formData, assignee_id: e.target.value})}
             className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none appearance-none cursor-pointer focus:border-blue-500"
           >
-            <option value="">Выберите руководителя</option>
+            <option value="">Выберите ответственного</option>
             {users.map(u => (
               <option key={u.id} value={u.id}>
                 {u.first_name} {u.last_name}
@@ -114,37 +127,23 @@ export const ProjectForm = ({ onClose, onRefresh }) => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[14px] font-bold text-gray-700">Команда</label>
-        <div className="relative opacity-60">
-          <select disabled className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none appearance-none cursor-not-allowed">
-            <option>Добавьте участников</option>
-          </select>
-          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-        </div>
-      </div>
+      <MultiSelect 
+        label="Команда"
+        options={engineers}
+        selectedIds={formData.team_member_ids}
+        onToggle={toggleTeamMember}
+        placeholder="Выберите участников команды"
+      />
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[14px] font-bold text-gray-700">Дата начала</label>
-          <input 
-            required
-            type="datetime-local" 
-            value={formData.start_date}
-            onChange={(e) => setFormData({...formData, start_date: e.target.value})}
-            className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none focus:border-blue-500" 
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[14px] font-bold text-gray-700">Дата окончания</label>
-          <input 
-            required
-            type="datetime-local" 
-            value={formData.deadline}
-            onChange={(e) => setFormData({...formData, deadline: e.target.value})}
-            className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none focus:border-blue-500" 
-          />
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-[14px] font-bold text-gray-700">Дедлайн</label>
+        <input 
+          required
+          type="datetime-local" 
+          value={formData.deadline}
+          onChange={(e) => setFormData({...formData, deadline: e.target.value})}
+          className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none focus:border-blue-500" 
+        />
       </div>
 
       <div className="flex justify-end gap-3 mt-6 border-t pt-6">

@@ -12,8 +12,6 @@ export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    priority: 'low',
-    deadline: '',
     status: 'created',
     project_id: initialProjectId || '',
     assignee_id: '',
@@ -26,7 +24,7 @@ export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
       try {
         const [projectsList, usersList] = await Promise.all([
           fetchProjectsListApi(),
-          fetchUsersListApi({ is_active: 'true' })
+          fetchUsersListApi({ is_active: 'true', role: 'engineer' })
         ]);
         setProjects(projectsList);
         setUsers(usersList);
@@ -77,7 +75,6 @@ export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
   return (
     <form className="flex flex-col gap-5 font-sans" onSubmit={handleSubmit}>
       
-      {/* Название эпика */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[14px] font-semibold text-gray-700">Название эпика</label>
         <input 
@@ -89,7 +86,6 @@ export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
         />
       </div>
 
-      {/* Описание */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[14px] font-semibold text-gray-700">Описание</label>
         <textarea 
@@ -101,7 +97,6 @@ export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
         />
       </div>
 
-      {/* Выбор ПРОЕКТА */}
       {!isPredefined && (
         <div className="flex flex-col gap-1.5">
           <label className="text-[14px] font-semibold text-gray-700">Проект</label>
@@ -122,7 +117,6 @@ export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
         </div>
       )}
       
-      {/* Выбор ОТВЕТСТВЕННОГО */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[14px] font-semibold text-gray-700">Ответственный</label>
         <div className="relative">
@@ -140,32 +134,6 @@ export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
           <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
         </div>
       </div>
-
-      {/* Приоритет и Дедлайн */}
-      {/* <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[14px] font-semibold text-gray-700">Приоритет</label>
-          <select 
-            value={formData.priority}
-            onChange={(e) => setFormData({...formData, priority: e.target.value})}
-            className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none"
-          >
-            <option value="low">Низкий</option>
-            <option value="medium">Средний</option>
-            <option value="high">Высокий</option>
-          </select>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[14px] font-semibold text-gray-700">Дедлайн</label>
-          <input 
-            required
-            type="datetime-local" 
-            value={formData.deadline}
-            onChange={(e) => setFormData({...formData, deadline: e.target.value})}
-            className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none" 
-          />
-        </div>
-      </div> */}
 
       <div className="flex justify-end gap-3 mt-6 border-t pt-6">
         <button type="button" onClick={onClose} className="px-8 py-2.5 font-bold text-gray-500 hover:bg-gray-50 rounded-lg transition-colors">

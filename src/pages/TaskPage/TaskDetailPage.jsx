@@ -11,14 +11,16 @@ import {
   Pencil, Loader2, Paperclip, Plus, Link2
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { is, ru } from 'date-fns/locale';
 import { SubtaskForm } from '../../components/TasksPage/forms/SubtaskForm';
 import { TaskComments } from '../../components/TasksPage/TaskComments';
 import { TaskHistory } from '../../components/TasksPage/TaskHistory';
 import { Modal } from '../../components/general/Modal';
 import { formatDateTime } from '../../utils/formatters';
+import { usePage } from '../../context/PageContext';
 
 export const TaskDetailPage = () => {
+  const { setCustomTitle } = usePage();
   const { id } = useParams();
   const navigate = useNavigate();
   const pageRef = useRef(null);
@@ -62,12 +64,19 @@ export const TaskDetailPage = () => {
       setTask(taskData);
       setAttachments(attachData || []);
       setSubtasks(subtaskData.results || []);
+
+      const headerTitle = taskData.parent_task ? 'Детали подзадачи' : 'Детали задачи';
+      setCustomTitle(headerTitle);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, setCustomTitle]);
+
+  useEffect(() => {
+    return () => setCustomTitle(null);
+  }, [setCustomTitle]);
 
   useEffect(() => {
     loadData();

@@ -6,8 +6,10 @@ import { Search, Plus, Loader2 } from 'lucide-react';
 import { CreateTaskWizard } from '../../components/TasksPage/CreateTaskWizard';
 import { EditEpicModal } from '../../components/Epics/EditEpicModal';
 import { Modal } from '../../components/general/Modal';
+import { usePage } from '../../context/PageContext';
 
 export const ProjectDetailPage = () => {
+  const { setCustomTitle } = usePage();
   const { id } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [project, setProject] = useState(null);
@@ -38,12 +40,17 @@ export const ProjectDetailPage = () => {
       ]);
       setProject(projData);
       setEpics(epicsData.results || []);
+      setCustomTitle(projData.title); 
     } catch (err) { 
       console.error(err); 
     } finally { 
       setLoading(false); 
     }
   }, [id, searchTerm]);
+
+  useEffect(() => {
+    return () => setCustomTitle(null);
+  }, [setCustomTitle]);
 
   useEffect(() => {
     loadData();
@@ -53,9 +60,6 @@ export const ProjectDetailPage = () => {
 
   return (
     <div className="flex flex-col gap-6 h-full overflow-y-auto custom-scrollbar pr-2 font-sans pb-10">
-      <h1 className="text-2xl font-bold text-gray-900 max-w-2xl leading-tight">
-        {project?.title}
-      </h1>
 
       <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-8 flex flex-col gap-8">
         <div className="flex justify-between items-center">

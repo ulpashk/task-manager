@@ -4,6 +4,7 @@ import { createTaskApi, fetchTasksApi, fetchProjectsListApi, fetchEpicsListApi, 
 import { fetchUsersListApi } from '../../../services/userService';
 import { fetchTagsListApi } from '../../../services/tagService';
 import { fetchClientsApi } from '../../../services/clientService';
+import { SingleSelect } from '../../general/SingleSelect';
 
 const MultiSelect = ({ label, options, selectedIds, onToggle, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -64,6 +65,12 @@ export const TaskForm = ({ onClose, onRefresh }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
   const [filteredEpics, setFilteredEpics] = useState([]);
+
+  const priorityOptions = [
+    { id: 'low', title: 'Низкий' },
+    { id: 'medium', title: 'Средний' },
+    { id: 'high', title: 'Высокий' }
+  ];
 
   const [lists, setLists] = useState({
     projects: [], 
@@ -128,7 +135,6 @@ export const TaskForm = ({ onClose, onRefresh }) => {
           setEpicsLoading(false);
         }
       } else {
-        // Если проект сброшен в "(Не указано)"
         setFilteredEpics([]);
         setFormData(prev => ({ ...prev, epic_id: '' }));
       }
@@ -150,7 +156,6 @@ export const TaskForm = ({ onClose, onRefresh }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Валидация: если проект выбран, эпик обязателен
     if (formData.project_id && !formData.epic_id) {
       alert("Пожалуйста, выберите Эпик для этого проекта");
       return;
@@ -226,64 +231,25 @@ export const TaskForm = ({ onClose, onRefresh }) => {
         <textarea name="description" required value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg p-3 h-20 outline-none resize-none focus:border-blue-500" placeholder="Подробное описание" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        {/* ВЫБОР ПРОЕКТА */}
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-bold text-gray-500">Проект</label>
-          <div className="relative">
-            <select 
-              name="project_id" 
-              value={formData.project_id} 
-              onChange={(e) => setFormData({...formData, project_id: e.target.value, epic_id: ''})} 
-              className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-3 py-2.5 outline-none appearance-none cursor-pointer"
-            >
-              <option value="">(Не указано)</option>
-              {lists.projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
-            </select>
-            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          </div>
-        </div>
-
-        {/* ВЫБОР ЭПИКА (Зависимый) */}
-        <div className="flex flex-col gap-1.5">
-          <label className={`text-[13px] font-bold ${formData.project_id ? 'text-gray-500' : 'text-gray-300'}`}>
-            Epic {formData.project_id && '*'}
-          </label>
-          <div className="relative">
-            <select 
-              name="epic_id" 
-              required={!!formData.project_id} // Обязательно, если выбран проект
-              disabled={!formData.project_id || epicsLoading} 
-              value={formData.epic_id} 
-              onChange={(e) => setFormData({...formData, epic_id: e.target.value})} 
-              className={`w-full border rounded-lg px-3 py-2.5 outline-none appearance-none transition-all ${
-                !formData.project_id ? 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed' : 'bg-[#F9FAFB] border-gray-200 text-gray-700'
-              }`}
-            >
-              <option value="">{epicsLoading ? 'Загрузка...' : formData.project_id ? 'Выберите эпик' : 'Сначала выберите проект'}</option>
-              {filteredEpics.map(e => <option key={e.id} value={e.id}>{e.title}</option>)}
-            </select>
-            {!epicsLoading && <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />}
-            {epicsLoading && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 animate-spin" />}
-          </div>
-        </div>
-      </div>
-
-      <MultiSelect 
-        label="Исполнители *" 
-        options={lists.engineers}
-        selectedIds={formData.assignee_ids} 
-        onToggle={(id) => toggleSelection('assignee_ids', id)}
-        placeholder="Выберите исполнителей (инженеров)"
+     <div className="grid grid-cols-2 gap-4">
+      <SingleSelect 
+        label="Проект"
+        options={lists.projects}
+        selectedId={formData.project_id}
+        onSelect={(id) => setFormData({...formData, project_id: id, epic_id: ''})}
+        placeholder="(Не указано)"
       />
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[13px] font-bold text-gray-700">Компания *</label>
-        <select name="client_id" required value={formData.client_id} onChange={(e) => setFormData({...formData, client_id: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500">
-          <option value="">Выберите компанию</option>
-          {lists.clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-      </div>
+      <SingleSelect 
+        label={`Epic ${formData.project_id ? '*' : ''}`}
+        options={filteredEpics}
+        selectedId={formData.epic_id}
+        onSelect={(id) => setFormData({...formData, epic_id: id})}
+        disabled={!formData.project_id}
+        isLoading={epicsLoading}
+        placeholder={formData.project_id ? "Выберите эпик" : "Сначала выберите проект"}
+      />
+    </div>
 
       <div className="grid grid-cols-2 gap-4">
         <MultiSelect 
@@ -294,15 +260,30 @@ export const TaskForm = ({ onClose, onRefresh }) => {
           placeholder="Выберите тэги"
         />
 
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-bold text-gray-700">Приоритет</label>
-          <select name="priority" value={formData.priority} onChange={(e) => setFormData({...formData, priority: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-3 py-2.5 outline-none">
-            <option value="low">Низкий</option>
-            <option value="medium">Средний</option>
-            <option value="high">Высокий</option>
-          </select>
-        </div>
+        <SingleSelect 
+          label="Приоритет"
+          options={priorityOptions}
+          selectedId={formData.priority}
+          onSelect={(val) => setFormData({...formData, priority: val})}
+          placeholder="Выберите приоритет"
+        />
       </div>
+
+      <MultiSelect 
+        label="Исполнители *" 
+        options={lists.engineers}
+        selectedIds={formData.assignee_ids} 
+        onToggle={(id) => toggleSelection('assignee_ids', id)}
+        placeholder="Выберите исполнителей (инженеров)"
+      />
+
+      <SingleSelect 
+        label="Компания *" 
+        options={lists.clients}
+        selectedId={formData.client_id} 
+        onSelect={(id) => setFormData({...formData, client_id: id})}
+        placeholder="Выберите компанию"
+      />
 
       <div className="flex flex-col gap-1.5">
         <label className="text-[13px] font-bold text-gray-700">Дедлайн</label>

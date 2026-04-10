@@ -5,8 +5,10 @@ import { useAuth } from '../../context/AuthContext';
 import { NAVIGATION_ITEMS } from '../../config/navigation';
 import { useNotifications } from '../../context/NotificationContext';
 import { NotificationPanel } from './NotificationPanel';
+import { usePage } from '../../context/PageContext'; 
 
 export const Header = () => {
+  const { customTitle } = usePage();
   const { unreadCount, notifications, refreshNotifications } = useNotifications();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifRef = useRef(null);
@@ -16,12 +18,37 @@ export const Header = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const [shouldShowFallback, setShouldShowFallback] = useState(false);
+
+  useEffect(() => {
+    setShouldShowFallback(false);
+
+    const timer = setTimeout(() => {
+      setShouldShowFallback(true);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
   const getPageTitle = () => {
-    const activeItem = NAVIGATION_ITEMS.find(item => item.path === location.pathname);
-    if (activeItem) return activeItem.title;
-    if (location.pathname.startsWith('/clients/')) {
-      return 'Информация о компании';
+    if (customTitle) return customTitle;
+
+    const isDetailPage = 
+      location.pathname.startsWith('/projects/') || 
+      location.pathname.startsWith('/tasks/') || 
+      location.pathname.startsWith('/companies/');
+
+    if (isDetailPage && !shouldShowFallback) {
+      return "";
     }
+
+    const activeItem = NAVIGATION_ITEMS.find(item => item.path === location.pathname);
+    if (activeItem) return activeItem.label;
+
+    if (location.pathname.startsWith('/companies/')) return 'Информация о компании';
+    if (location.pathname.startsWith('/projects/')) return 'Детали проекта';
+    if (location.pathname.startsWith('/tasks/')) return 'Детали задачи';
+
     return 'Заявки';
   };
   const pageTitle = getPageTitle();
@@ -38,7 +65,7 @@ export const Header = () => {
 
   return (
     <header className="h-[70px] w-full bg-white border-b border-gray-100 flex items-center justify-between px-8 bg-white z-[50]">
-      <h2 className="text-2xl font-bold text-gray-800">{pageTitle}</h2>
+      <h2 className={`text-2xl font-bold text-gray-800 transition-opacity duration-300 ${pageTitle ? 'opacity-100' : 'opacity-0'}`}>{pageTitle}</h2>
 
       <div className="flex items-center gap-6">
         <div className="relative">
@@ -57,7 +84,6 @@ export const Header = () => {
             <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold border-2 border-white">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
-            {/* <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">24</span> */}
           </div>
           {isNotifOpen && (
             <NotificationPanel 
