@@ -1,7 +1,7 @@
 import { ActionMenu } from '../TasksPage/ActionMenu';
 import { useNavigate } from 'react-router-dom';
 
-export const ProjectTable = ({ projects }) => {
+export const ProjectTable = ({ projects, onEditRequest, onDeleteRequest }) => {
   const navigate = useNavigate();
   const statusStyles = {
     created: 'bg-[#E1F9E6] text-[#56AD6C] border-[#B7EB8F]',
@@ -12,6 +12,16 @@ export const ProjectTable = ({ projects }) => {
   const getStatusLabel = (s) => {
     const labels = { created: 'Активный', done: 'Завершен', frozen: 'Заморожен' };
     return labels[s] || 'Активный';
+  };
+
+  const handleMenuOpen = (e) => {
+    const rowElement = e.currentTarget.closest('.project-row');
+    if (rowElement) {
+      rowElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
   };
 
   return (
@@ -31,7 +41,7 @@ export const ProjectTable = ({ projects }) => {
           {projects.map((project) => (
             <tr
               key={project.id} 
-              className="hover:bg-gray-50 transition-colors group cursor-pointer"
+              className="project-row hover:bg-gray-50 transition-colors group cursor-pointer"
               onClick={() => navigate(`/projects/${project.id}`)}
             >
               <td className="px-6 py-5">
@@ -61,11 +71,16 @@ export const ProjectTable = ({ projects }) => {
                   </span>
                 </div>
               </td>
-              <td className="px-4">
-                <ActionMenu />
+              <td className="px-4" onClick={(e) => e.stopPropagation()}>
+                <ActionMenu 
+                  onOpen={handleMenuOpen}
+                  onDelete={() => onDeleteRequest(project)} 
+                  onEdit={() => onEditRequest(project)}
+                />
               </td>
             </tr>
           ))}
+          <tr className="h-16 pointer-events-none"><td></td></tr>
         </tbody>
       </table>
     </div>

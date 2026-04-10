@@ -141,17 +141,6 @@ export const EpicForm = ({ onClose, onRefresh, initialProjectId }) => {
         </div>
       </div>
 
-      {/* Поле КОМАНДА (пока без функционала) */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[14px] font-semibold text-gray-700">Команда (необязательно)</label>
-        <div className="relative opacity-60">
-          <select disabled className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none appearance-none">
-            <option>Добавьте участников</option>
-          </select>
-          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-        </div>
-      </div>
-
       {/* Приоритет и Дедлайн */}
       {/* <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">

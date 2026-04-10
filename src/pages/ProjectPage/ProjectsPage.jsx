@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
-import { fetchProjectsApi } from '../../services/projectService';
+import { fetchProjectsApi, deleteProjectApi } from '../../services/projectService';
 import { ProjectFilters } from '../../components/Projects/ProjectFilters';
 import { ProjectTable } from '../../components/Projects/ProjectTable';
-import { TaskTabs } from '../../components/TasksPage/TaskTabs';
 import { Pagination } from '../../components/general/Pagination';
 import { CreateTaskWizard } from '../../components/TasksPage/CreateTaskWizard';
+import { EditProjectModal } from '../../components/Projects/EditProjectModal';
+import { Modal } from '../../components/general/Modal';
 
 export const ProjectsPage = () => {
   const [data, setData] = useState({ results: [], count: 0 });
@@ -13,6 +14,10 @@ export const ProjectsPage = () => {
   const [pageSize, setPageSize] = useState(8);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filters, setFilters] = useState({ search: '', status: '' });
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
@@ -32,6 +37,26 @@ export const ProjectsPage = () => {
   }, [currentPage, pageSize, filters]);
 
   useEffect(() => { loadProjects(); }, [loadProjects]);
+
+  const handleDeleteClick = (project) => {
+    setProjectToDelete(project);
+    setIsDeleteModalOpen(true);
+  };
+  
+  const confirmDelete = async () => {
+    try {
+      await deleteProjectApi(projectToDelete.id);
+      setIsDeleteModalOpen(false);
+      loadProjects();
+    } catch (err) {
+      alert("Ошибка при удалении проекта");
+    }
+  };
+    
+  const handleEditRequest = (project) => {
+    setSelectedProject(project);
+    setIsEditModalOpen(true);
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-full flex flex-col overflow-hidden font-sans">
@@ -68,7 +93,11 @@ export const ProjectsPage = () => {
         {loading ? (
           <div className="p-10 text-center text-gray-400">Загрузка проектов...</div>
         ) : (
-          <ProjectTable projects={data.results} />
+          <ProjectTable 
+            projects={data.results} 
+            onEditRequest={handleEditRequest}
+            onDeleteRequest={handleDeleteClick}
+          />
         )}
       </div>
 
@@ -85,6 +114,39 @@ export const ProjectsPage = () => {
         onRefresh={loadProjects}
         initialType="project"
       />
+
+      <EditProjectModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+        project={selectedProject} 
+        onRefresh={loadProjects} 
+      />
+
+      <Modal 
+        isOpen={isDeleteModalOpen} 
+        onClose={() => setIsDeleteModalOpen(false)} 
+        title="Удаление проекта"
+      >
+        <div className="flex flex-col gap-4 font-sans">
+          <p className="text-gray-600">
+            Вы уверены, что хотите удалить проект <span className="font-bold text-gray-800">"{projectToDelete?.title}"</span>? Это действие удалит все связанные данные.
+          </p>
+          <div className="flex justify-end gap-3 mt-4">
+            <button 
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="px-6 py-2 font-bold text-gray-500 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              Отмена
+            </button>
+            <button 
+              onClick={confirmDelete}
+              className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-100"
+            >
+              Удалить проект
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

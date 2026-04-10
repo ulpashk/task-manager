@@ -1,9 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { fetchProjectEpicsApi, fetchProjectByIdApi } from '../../services/projectService';
+import { useParams } from 'react-router-dom';
+import { fetchProjectEpicsApi, fetchProjectByIdApi, deleteEpicApi } from '../../services/projectService';
 import { EpicCard } from '../../components/Epics/EpicCard';
 import { Search, Plus, Loader2 } from 'lucide-react';
 import { CreateTaskWizard } from '../../components/TasksPage/CreateTaskWizard';
+import { EditEpicModal } from '../../components/Epics/EditEpicModal';
+import { Modal } from '../../components/general/Modal';
 
 export const ProjectDetailPage = () => {
   const { id } = useParams();
@@ -11,13 +13,28 @@ export const ProjectDetailPage = () => {
   const [project, setProject] = useState(null);
   const [epics, setEpics] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedEpic, setSelectedEpic] = useState(null);
+
+  const handleEdit = (epic) => { setSelectedEpic(epic); setIsEditOpen(true); };
+  const handleDelete = (epic) => { setSelectedEpic(epic); setIsDeleteOpen(true); };
+  
+  const confirmDelete = async () => {
+    try {
+      await deleteEpicApi(selectedEpic.id);
+      setIsDeleteOpen(false);
+      loadData();
+    } catch (e) { alert("Ошибка при удалении"); }
+  };
 
   const loadData = useCallback(async () => {
     try {
       const [projData, epicsData] = await Promise.all([
         fetchProjectByIdApi(id),
-        fetchProjectEpicsApi(id)
+        fetchProjectEpicsApi(id, { search: searchTerm })
       ]);
       setProject(projData);
       setEpics(epicsData.results || []);
@@ -26,7 +43,7 @@ export const ProjectDetailPage = () => {
     } finally { 
       setLoading(false); 
     }
-  }, [id]);
+  }, [id, searchTerm]);
 
   useEffect(() => {
     loadData();
@@ -52,16 +69,42 @@ export const ProjectDetailPage = () => {
         </div>
 
         <div className="relative max-w-xl">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-blue-400 transition-all" placeholder="Поиск по эпикам..." />
+          <Search 
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <input 
+            className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-blue-400 transition-all" 
+            placeholder="Поиск по эпикам..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {epics.map(epic => (
-            <EpicCard key={epic.id} epic={epic} />
+            <EpicCard 
+              key={epic.id} 
+              epic={epic} 
+              onEditRequest={handleEdit} 
+              onDeleteRequest={handleDelete}/>
           ))}
           {epics.length === 0 && <div className="col-span-2 text-center py-20 text-gray-400 font-medium bg-gray-50 rounded-2xl border-2 border-dashed">В этом проекте пока нет эпиков</div>}
         </div>
+        
+        <EditEpicModal 
+          isOpen={isEditOpen} 
+          onClose={() => setIsEditOpen(false)} 
+          epic={selectedEpic} 
+          onRefresh={loadData} 
+        />
+        <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title="Удалить эпик">
+          <div className="p-4 flex flex-col gap-6">
+            <p className="text-gray-600">Вы уверены, что хотите удалить эпик <b>"{selectedEpic?.title}"</b>? Все задачи внутри него тоже будут удалены.</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setIsDeleteOpen(false)} className="px-6 py-2 font-bold text-gray-400">Отмена</button>
+              <button onClick={confirmDelete} className="bg-red-500 text-white px-6 py-2 rounded-lg font-bold">Удалить</button>
+            </div>
+          </div>
+        </Modal>
       </div>
 
       <CreateTaskWizard 

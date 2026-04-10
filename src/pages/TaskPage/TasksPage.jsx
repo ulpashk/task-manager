@@ -6,9 +6,9 @@ import { TaskTable } from '../../components/TasksPage/TaskTable';
 import { EditTaskModal } from '../../components/TasksPage/EditTaskModal';
 import { CreateTaskWizard } from '../../components/TasksPage/CreateTaskWizard';
 import { Pagination } from '../../components/general/Pagination';
-import { Modal } from '../../components/general/Modal';
 import { fetchUsersListApi } from '../../services/userService';
 import { fetchTagsListApi } from '../../services/tagService';
+import { Modal } from '../../components/general/Modal';
 
 export const TasksTablePage = () => {
   const [data, setData] = useState({ results: [], count: 0 });
@@ -130,14 +130,6 @@ export const TasksTablePage = () => {
         )}
       </div>
 
-      <EditTaskModal 
-        isOpen={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)} 
-        task={selectedTask}
-        onRefresh={loadTasks} 
-      />
-
-      
 
       <Pagination 
         totalCount={data.count} 
@@ -151,6 +143,39 @@ export const TasksTablePage = () => {
         onClose={() => setIsModalOpen(false)}
         onRefresh={loadTasks}
       />
+
+      <EditTaskModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+        task={selectedTask}
+        onRefresh={loadTasks} 
+      />
+
+      <Modal 
+        isOpen={isDeleteModalOpen} 
+        onClose={() => setIsDeleteModalOpen(false)} 
+        title="Удаление задачи"
+      >
+        <div className="flex flex-col gap-4 font-sans">
+          <p className="text-gray-600">
+            Вы уверены, что хотите удалить задачу <span className="font-bold text-gray-800">"{taskToDelete?.title}"</span>? Это действие удалит все связанные данные.
+          </p>
+          <div className="flex justify-end gap-3 mt-4">
+            <button 
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="px-6 py-2 font-bold text-gray-500 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              Отмена
+            </button>
+            <button 
+              onClick={confirmDelete}
+              className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-100"
+            >
+              Удалить задачу
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -214,7 +214,15 @@ export const TaskDetailPage = () => {
     <div ref={pageRef} className="flex flex-col h-full bg-[#FAFAFA] overflow-y-auto custom-scrollbar font-sans p-4 pt-0 gap-6">
 
       <div className="flex flex-col gap-4">
-        <button onClick={() => navigate('/tasks')} className="p-1 text-gray-400 hover:bg-gray-200 rounded-md w-fit transition-all">
+        <button 
+          onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1)
+            } else {
+              navigate('/tasks')
+            }
+          }} 
+          className="p-1 text-gray-400 hover:bg-gray-200 rounded-md w-fit transition-all">
           <ChevronLeft size={16}/>
         </button>
 
