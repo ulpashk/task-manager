@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchProjectEpicsApi, fetchProjectByIdApi, deleteEpicApi, generateEpicTasksApi, pollGenerationStatusApi, confirmEpicTasksApi } from '../../services/projectService';
 import { EpicCard } from '../../components/Epics/EpicCard';
+import { fetchUsersListApi } from '../../services/userService';
+import { fetchTagsListApi } from '../../services/tagService';
 import { Search, Plus, Loader2, Sparkles } from 'lucide-react';
 import { CreateTaskWizard } from '../../components/TasksPage/CreateTaskWizard';
 import { EditEpicModal } from '../../components/Epics/EditEpicModal';
@@ -26,6 +28,13 @@ export const ProjectDetailPage = () => {
   const [generatedData, setGeneratedData] = useState({ tasks: [], warnings: [], epicId: null });
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [tags, setTags] = useState([]);
+
+  useEffect(() => {
+    fetchUsersListApi({ role: 'engineer' }).then(setUsers);
+    fetchTagsListApi().then(setTags);
+  }, []);
 
   const handleEdit = (epic) => { setSelectedEpic(epic); setIsEditOpen(true); };
   const handleDelete = (epic) => { setSelectedEpic(epic); setIsDeleteOpen(true); };
@@ -94,14 +103,14 @@ export const ProjectDetailPage = () => {
     }, 3000);
   };
 
-  const handleConfirmTasks = async () => {
+  const handleConfirmTasks = async (finalTasks) => {
     setIsConfirming(true);
     try {
-      await confirmEpicTasksApi(generatedData.epicId, generatedData.tasks);
+      await confirmEpicTasksApi(generatedData.epicId, finalTasks);
       setIsPreviewOpen(false);
       loadData();
     } catch (err) {
-      alert("Ошибка при сохранении задач");
+      alert("Ошибка сохранения");
     } finally {
       setIsConfirming(false);
     }
@@ -151,6 +160,9 @@ export const ProjectDetailPage = () => {
           isOpen={isPreviewOpen}
           onClose={() => setIsPreviewOpen(false)}
           tasks={generatedData.tasks}
+          warnings={generatedData.warnings}
+          users={users}
+          tags={tags}
           onConfirm={handleConfirmTasks}
           loading={isConfirming}
         />
