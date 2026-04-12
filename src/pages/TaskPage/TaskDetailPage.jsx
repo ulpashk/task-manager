@@ -18,9 +18,11 @@ import { TaskHistory } from '../../components/TasksPage/TaskHistory';
 import { Modal } from '../../components/general/Modal';
 import { formatDateTime } from '../../utils/formatters';
 import { usePage } from '../../context/PageContext';
+import { useAuth } from '../../context/AuthContext';
 
 export const TaskDetailPage = () => {
   const { setCustomTitle } = usePage();
+  const { user: authUser } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const pageRef = useRef(null);
@@ -216,8 +218,11 @@ export const TaskDetailPage = () => {
     }
   };
 
-  const canStart = task?.status === 'created';
-  const canFinish = task?.status === 'in_progress' || task?.status === 'revision';
+  const isManager = authUser?.role === 'manager';
+  const isAssigned = task?.assignees?.some(a => a.id === authUser?.id);
+  const canChangeStatus = isManager || (authUser?.role === 'engineer' && isAssigned);
+  const canStart = canChangeStatus && task?.status === 'created';
+  const canFinish = canChangeStatus && (task?.status === 'in_progress' || task?.status === 'revision');
 
   return (
     <div ref={pageRef} className="flex flex-col h-full bg-[#FAFAFA] overflow-y-auto custom-scrollbar font-sans p-4 pt-0 gap-6">
@@ -421,13 +426,15 @@ export const TaskDetailPage = () => {
             >
               <FileText size={18} className="text-green-500" />
               <span className="text-sm font-medium text-blue-600 underline">{file.filename}</span>
-              <button
-                 onClick={(e) => handleDeleteAttachClick(e, file)}
-                className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors ml-2"
-                title="Удалить файл"
-              >
-                <Trash2 size={14} />
-              </button>
+              {isManager && (
+                <button
+                  onClick={(e) => handleDeleteAttachClick(e, file)}
+                  className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors ml-2"
+                  title="Удалить файл"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
             </div>
           ))}
           <input 

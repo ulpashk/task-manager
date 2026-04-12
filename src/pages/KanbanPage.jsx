@@ -6,6 +6,7 @@ import { EditTaskModal } from '../components/TasksPage/EditTaskModal';
 import { Modal } from '../components/general/Modal';
 import { fetchUsersListApi } from '../services/userService';
 import { fetchTagsListApi } from '../services/tagService';
+import { useAuth } from '../context/AuthContext';
 
 const COLUMNS = [
   { id: 'created', title: 'Создано', headerBg: 'bg-gray-200', columnBg: 'bg-gray-50/50', textColor: 'text-gray-600' },
@@ -16,6 +17,7 @@ const COLUMNS = [
 ];
 
 export const KanbanPage = () => {
+  const { user: authUser } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
@@ -92,7 +94,8 @@ export const KanbanPage = () => {
     try {
       await changeTaskStatusApi(taskId, newStatus);
     } catch (err) {
-      console.error(err);
+      const detail = err.response?.data?.detail;
+      if (detail) alert(detail);
       loadTasks(); // Revert on failure
     }
   };
