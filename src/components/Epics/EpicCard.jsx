@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { getStatusStyle, getStatusLabel } from '../../utils/statusStyles';
 import { ActionMenu } from '../TasksPage/ActionMenu';
+import { Sparkles, Loader2, MoreVertical } from 'lucide-react';
 
-export const EpicCard = ({ epic, onEditRequest, onDeleteRequest }) => {
+export const EpicCard = ({ epic, onEditRequest, onDeleteRequest, onGenerateAI, isGenerating }) => {
   const navigate = useNavigate();
   const statusStyles = {
     created: 'bg-[#E1F9E6] text-[#56AD6C] border-[#B7EB8F]',
@@ -11,11 +12,8 @@ export const EpicCard = ({ epic, onEditRequest, onDeleteRequest }) => {
 
   function getTaskProgress(stats) {
     if (!stats || stats.total === 0) return 0;
-
     const weightedCompleted = stats.completed + stats.in_progress * 0.5;
-
     const progress = (weightedCompleted / stats.total) * 100;
-
     return Math.round(progress);
   }
 
@@ -23,7 +21,19 @@ export const EpicCard = ({ epic, onEditRequest, onDeleteRequest }) => {
     <div className="bg-white rounded-[20px] border border-gray-100 shadow-sm p-6 flex flex-col gap-4 font-sans h-full">
       <div className="flex justify-between items-start">
         <h3 className="text-lg font-bold text-gray-800">{epic.title}</h3>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => onGenerateAI(epic.id)}
+            disabled={isGenerating}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-blue-100 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase hover:bg-blue-100 transition-all disabled:opacity-50"
+          >
+            {isGenerating ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <Sparkles size={12} />
+            )}
+            ИИ Задачи
+          </button>
           <span className={`px-3 py-0.5 rounded-lg border text-[11px] font-bold ${statusStyles[epic.status] || statusStyles.created}`}>
             {(epic.status === 'done' || epic.status === 'completed')  ? 'Завершено' : 'Активный'}
           </span>

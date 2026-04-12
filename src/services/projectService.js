@@ -37,3 +37,20 @@ export const fetchEpicByIdApi = async (id) => {
   const response = await axiosInstance.get(`/api/epics/${id}/`);
   return response.data;
 };
+
+export const generateEpicTasksApi = async (epicId) => {
+  const res = await axiosInstance.post(`/api/epics/${epicId}/generate-tasks/`);
+  return res.data;
+};
+
+export const pollGenerationStatusApi = async (epicId, taskId) => {
+  const res = await axiosInstance.get(`/api/epics/${epicId}/generate-tasks/status/`, {
+    params: { task_id: taskId }
+  });
+  return res.data;
+};
+
+export const confirmEpicTasksApi = async (epicId, tasks) => {
+  const res = await axiosInstance.post(`/api/epics/${epicId}/confirm-tasks/`, { tasks });
+  return res.data;
+};

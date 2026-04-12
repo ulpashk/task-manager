@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, LayoutGrid, List, Plus, ChevronDown } from 'lucide-react';
-import { FilterDropdown } from './FilterDropdown';
 import { MultiSelectDropdown } from '../general/MultiSelectDropdown';
 
 export const TaskFilters = ({ 

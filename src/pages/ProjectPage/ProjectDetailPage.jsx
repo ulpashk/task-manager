@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchProjectEpicsApi, fetchProjectByIdApi, deleteEpicApi } from '../../services/projectService';
+import { fetchProjectEpicsApi, fetchProjectByIdApi, deleteEpicApi, generateEpicTasksApi, pollGenerationStatusApi, confirmEpicTasksApi } from '../../services/projectService';
 import { EpicCard } from '../../components/Epics/EpicCard';
-import { Search, Plus, Loader2 } from 'lucide-react';
+import { Search, Plus, Loader2, Sparkles } from 'lucide-react';
 import { CreateTaskWizard } from '../../components/TasksPage/CreateTaskWizard';
 import { EditEpicModal } from '../../components/Epics/EditEpicModal';
 import { Modal } from '../../components/general/Modal';
 import { usePage } from '../../context/PageContext';
+import { AiTaskPreviewModal } from '../../components/Epics/AiTaskPreviewModal';
 
 export const ProjectDetailPage = () => {
   const { setCustomTitle } = usePage();
@@ -20,6 +21,11 @@ export const ProjectDetailPage = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedEpic, setSelectedEpic] = useState(null);
+
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedData, setGeneratedData] = useState({ tasks: [], warnings: [], epicId: null });
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const handleEdit = (epic) => { setSelectedEpic(epic); setIsEditOpen(true); };
   const handleDelete = (epic) => { setSelectedEpic(epic); setIsDeleteOpen(true); };
@@ -56,6 +62,51 @@ export const ProjectDetailPage = () => {
     loadData();
   }, [loadData]);
 
+  const handleGenerateAI = async (epicId) => {
+    setIsGenerating(true);
+    try {
+      const { task_id } = await generateEpicTasksApi(epicId);
+      startPolling(epicId, task_id);
+    } catch (err) {
+      alert("Ошибка при запуске генерации");
+      setIsGenerating(false);
+    }
+  };
+
+  const startPolling = async (epicId, taskId) => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await pollGenerationStatusApi(epicId, taskId);
+        if (res.status === 'completed') {
+          clearInterval(interval);
+          setGeneratedData({ tasks: res.result.tasks, warnings: res.result.warnings || [], epicId });
+          setIsPreviewOpen(true);
+          setIsGenerating(false);
+        } else if (res.status === 'failed') {
+          clearInterval(interval);
+          alert("ИИ не смог сгенерировать задачи");
+          setIsGenerating(false);
+        }
+      } catch (e) {
+        clearInterval(interval);
+        setIsGenerating(false);
+      }
+    }, 3000);
+  };
+
+  const handleConfirmTasks = async () => {
+    setIsConfirming(true);
+    try {
+      await confirmEpicTasksApi(generatedData.epicId, generatedData.tasks);
+      setIsPreviewOpen(false);
+      loadData();
+    } catch (err) {
+      alert("Ошибка при сохранении задач");
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
   if (loading) return <div className="p-10 text-center text-gray-400"><Loader2 className="animate-spin inline mr-2"/> Загрузка проекта...</div>;
 
   return (
@@ -88,11 +139,21 @@ export const ProjectDetailPage = () => {
             <EpicCard 
               key={epic.id} 
               epic={epic} 
+              onGenerateAI={handleGenerateAI}
+              isGenerating={isGenerating}
               onEditRequest={handleEdit} 
               onDeleteRequest={handleDelete}/>
           ))}
           {epics.length === 0 && <div className="col-span-2 text-center py-20 text-gray-400 font-medium bg-gray-50 rounded-2xl border-2 border-dashed">В этом проекте пока нет эпиков</div>}
         </div>
+
+        <AiTaskPreviewModal 
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+          tasks={generatedData.tasks}
+          onConfirm={handleConfirmTasks}
+          loading={isConfirming}
+        />
         
         <EditEpicModal 
           isOpen={isEditOpen} 
