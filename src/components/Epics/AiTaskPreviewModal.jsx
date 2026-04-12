@@ -9,12 +9,11 @@ export const AiTaskPreviewModal = ({
   warnings, 
   onConfirm, 
   loading,
-  users = [], // Список пользователей для выбора
-  tags = []   // Список тегов для выбора
+  users = [],
+  tags = []
 }) => {
   const [editableTasks, setEditableTasks] = useState([]);
 
-  // При открытии модалки копируем задачи из пропсов в локальный стейт
   useEffect(() => {
     if (isOpen && initialTasks) {
       setEditableTasks(initialTasks.map(t => ({
@@ -48,7 +47,6 @@ export const AiTaskPreviewModal = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Просмотр сгенерированных задач">
       <div className="flex flex-col gap-6 font-sans max-w-4xl mx-auto">
         
-        {/* Предупреждения ИИ */}
         {warnings?.length > 0 && (
           <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex gap-3 text-amber-700 text-sm">
             <AlertCircle size={20} className="flex-shrink-0" />
@@ -63,7 +61,6 @@ export const AiTaskPreviewModal = ({
           {editableTasks.map((task, idx) => (
             <div key={idx} className="relative p-6 border border-gray-200 bg-white rounded-2xl shadow-sm group hover:border-blue-200 transition-all">
               
-              {/* Кнопка удаления задачи */}
               <button 
                 onClick={() => handleDeleteTask(idx)}
                 className="absolute top-4 right-4 p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
@@ -74,7 +71,6 @@ export const AiTaskPreviewModal = ({
               <span className="text-xs font-black text-gray-300 uppercase mb-4 block">Задача #{idx + 1}</span>
 
               <div className="flex flex-col gap-5">
-                {/* Название */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Название*</label>
                   <input 
@@ -84,7 +80,6 @@ export const AiTaskPreviewModal = ({
                   />
                 </div>
 
-                {/* Описание */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Описание</label>
                   <textarea 
@@ -94,10 +89,8 @@ export const AiTaskPreviewModal = ({
                   />
                 </div>
 
-                {/* Ряд параметров: Приоритет, Ответственный, Теги, Оценка */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   
-                  {/* Приоритет */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Приоритет</label>
                     <div className="relative">
@@ -112,7 +105,6 @@ export const AiTaskPreviewModal = ({
                     </div>
                   </div>
 
-                  {/* Ответственный */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Ответственный</label>
                     <div className="relative">
@@ -121,14 +113,12 @@ export const AiTaskPreviewModal = ({
                         onChange={(e) => handleUpdateTask(idx, 'assignee_id', e.target.value)}
                         className="w-full appearance-none bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-400 cursor-pointer transition-all"
                       >
-                        <option value="">Не назначен</option>
                         {users.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>)}
                       </select>
                       <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                     </div>
                   </div>
 
-                  {/* Теги (Single select для простоты в превью) */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Тэг</label>
                     <div className="relative">
@@ -137,14 +127,13 @@ export const AiTaskPreviewModal = ({
                         onChange={(e) => handleUpdateTask(idx, 'tag_ids', [Number(e.target.value)])}
                         className="w-full appearance-none bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-400 cursor-pointer transition-all"
                       >
-                        <option value="">Без тэга</option>
+                        {/* <option value="">Без тэга</option> */}
                         {tags.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                       </select>
                       <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                     </div>
                   </div>
 
-                  {/* Оценка */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Оценка (ч)</label>
                     <input 
@@ -162,13 +151,12 @@ export const AiTaskPreviewModal = ({
           ))}
         </div>
 
-        {/* Подвал модалки */}
         <div className="flex justify-end gap-3 mt-4 border-t pt-6">
           <button onClick={onClose} className="px-6 py-2.5 font-bold text-gray-400 hover:text-gray-600 transition-all">
             Отмена
           </button>
           <button 
-            onClick={() => onConfirm(editableTasks)} // Отправляем ИЗМЕНЕННЫЙ список
+            onClick={() => onConfirm(editableTasks)}
             disabled={loading || editableTasks.length === 0}
             className="bg-[#1677FF] text-white px-10 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-600 transition-all shadow-lg disabled:bg-gray-200"
           >
