@@ -10,6 +10,7 @@ import { EditEpicModal } from '../../components/Epics/EditEpicModal';
 import { Modal } from '../../components/general/Modal';
 import { usePage } from '../../context/PageContext';
 import { AiTaskPreviewModal } from '../../components/Epics/AiTaskPreviewModal';
+import { GenerationPipeline } from '../../components/Epics/GenerationPipeline';
 
 export const ProjectDetailPage = () => {
   const { setCustomTitle } = usePage();
@@ -25,6 +26,8 @@ export const ProjectDetailPage = () => {
   const [selectedEpic, setSelectedEpic] = useState(null);
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingEpicId, setGeneratingEpicId] = useState(null);
+  const [generatingTaskId, setGeneratingTaskId] = useState(null);
   const [generatedData, setGeneratedData] = useState({ tasks: [], warnings: [], epicId: null });
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -73,34 +76,39 @@ export const ProjectDetailPage = () => {
 
   const handleGenerateAI = async (epicId) => {
     setIsGenerating(true);
+    setGeneratingEpicId(epicId);
     try {
       const { task_id } = await generateEpicTasksApi(epicId);
-      startPolling(epicId, task_id);
+      setGeneratingTaskId(task_id);
     } catch (err) {
       alert("Ошибка при запуске генерации");
       setIsGenerating(false);
+      setGeneratingEpicId(null);
     }
   };
 
-  const startPolling = async (epicId, taskId) => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await pollGenerationStatusApi(epicId, taskId);
-        if (res.status === 'completed') {
-          clearInterval(interval);
-          setGeneratedData({ tasks: res.result.tasks, warnings: res.result.warnings || [], epicId });
-          setIsPreviewOpen(true);
-          setIsGenerating(false);
-        } else if (res.status === 'failed') {
-          clearInterval(interval);
-          alert("ИИ не смог сгенерировать задачи");
-          setIsGenerating(false);
-        }
-      } catch (e) {
-        clearInterval(interval);
-        setIsGenerating(false);
+  const handlePipelineCompleted = async () => {
+    // Pipeline completed — fetch the final results
+    try {
+      const res = await pollGenerationStatusApi(generatingEpicId, generatingTaskId);
+      if (res.status === 'completed' && res.result) {
+        setGeneratedData({ tasks: res.result.tasks, warnings: res.result.warnings || [], epicId: generatingEpicId });
+        setIsPreviewOpen(true);
       }
-    }, 3000);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsGenerating(false);
+      setGeneratingEpicId(null);
+      setGeneratingTaskId(null);
+    }
+  };
+
+  const handlePipelineFailed = () => {
+    alert("ИИ не смог сгенерировать задачи");
+    setIsGenerating(false);
+    setGeneratingEpicId(null);
+    setGeneratingTaskId(null);
   };
 
   const handleConfirmTasks = async (finalTasks) => {
@@ -155,6 +163,15 @@ export const ProjectDetailPage = () => {
           ))}
           {epics.length === 0 && <div className="col-span-2 text-center py-20 text-gray-400 font-medium bg-gray-50 rounded-2xl border-2 border-dashed">В этом проекте пока нет эпиков</div>}
         </div>
+
+        {isGenerating && generatingEpicId && generatingTaskId && (
+          <GenerationPipeline
+            epicId={generatingEpicId}
+            taskId={generatingTaskId}
+            onCompleted={handlePipelineCompleted}
+            onFailed={handlePipelineFailed}
+          />
+        )}
 
         <AiTaskPreviewModal 
           isOpen={isPreviewOpen}

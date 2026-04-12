@@ -1,4 +1,4 @@
-export const OrganizationTable = ({ orgs }) => {
+export const OrganizationTable = ({ orgs, onRowClick }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <table className="w-full text-left border-separate border-spacing-0">
@@ -14,7 +14,7 @@ export const OrganizationTable = ({ orgs }) => {
         </thead>
         <tbody className="divide-y divide-gray-50 text-[14px]">
           {orgs.map((org) => (
-            <tr key={org.id} className="hover:bg-gray-50 transition-colors">
+            <tr key={org.id} onClick={() => onRowClick?.(org)} className="hover:bg-gray-50 transition-colors cursor-pointer">
               <td className="px-6 py-5 font-medium text-gray-800">{org.name}</td>
               <td className="px-6 py-5 text-gray-500">{org.slug}</td>
               <td className="px-6 py-5 text-center">

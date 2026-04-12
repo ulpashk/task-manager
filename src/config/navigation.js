@@ -1,4 +1,4 @@
-import { Table as TableIcon, LayoutDashboard, Building2, Users, Settings, Calendar, BarChart2, Archive, Tag, LayoutGrid } from 'lucide-react';
+import { Table as TableIcon, LayoutDashboard, Building2, Users, Settings, Calendar, BarChart2, Archive, Tag, LayoutGrid, Ticket } from 'lucide-react';
 
 import { TasksTablePage } from '../pages/TaskPage/TasksPage';
 import { KanbanPage } from '../pages/KanbanPage';
@@ -11,6 +11,7 @@ import { AnalyticsPage } from '../pages/AnalyticsPage/AnalyticsPage';
 import { ArchivePage } from '../pages/ArchivePage';
 import { TagsPage } from '../pages/TagsPage';
 import { ProjectsPage } from '../pages/ProjectPage/ProjectsPage';
+import { PortalTicketsPage } from '../pages/PortalPage/PortalTicketsPage';
 
 export const NAVIGATION_ITEMS = [
   {
@@ -20,6 +21,14 @@ export const NAVIGATION_ITEMS = [
     icon: Building2,
     component: OrganizationsPage,
     allowedRoles: ['superadmin', 'admin'],
+  },
+  {
+    label: 'Портал',
+    title: 'Мои заявки',
+    path: '/portal',
+    icon: Ticket,
+    component: PortalTicketsPage,
+    allowedRoles: ['client'],
   },
   {
     label: 'Заявки',

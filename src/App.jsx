@@ -12,6 +12,8 @@ import { TaskDetailPage } from './pages/TaskPage/TaskDetailPage';
 import { ProjectDetailPage } from './pages/ProjectPage/ProjectDetailPage';
 import { ReportDetailPage } from './pages/AnalyticsPage/ReportDetailPage';
 import { UserDetailPage } from './pages/UserPage/UserDetailPage';
+import { PortalTicketDetailPage } from './pages/PortalPage/PortalTicketDetailPage';
+import { OrganizationDetailPage } from './pages/OrganizationPage/OrganizationDetailPage';
 import { PageProvider } from './context/PageContext';
 
 const RoleGuard = ({ item, children }) => {
@@ -78,6 +80,22 @@ function App() {
                         <UserDetailPage />
                       </RoleGuard>
                     } 
+                  />
+                  <Route
+                    path="/portal/:id"
+                    element={
+                      <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/portal')}>
+                        <PortalTicketDetailPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/organizations/:id"
+                    element={
+                      <RoleGuard item={NAVIGATION_ITEMS.find(i => i.path === '/organizations')}>
+                        <OrganizationDetailPage />
+                      </RoleGuard>
+                    }
                   />
                   <Route path="/reports/summaries/:id" element={<ReportDetailPage />} />
                 </Route>

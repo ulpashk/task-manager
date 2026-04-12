@@ -5,6 +5,9 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { summaryService } from '../../services/summaryService';
 import { AISummaryCard } from '../../components/Analytics/AISummaryCard';
+import { llmModelService } from '../../services/llmModelService';
+import { fetchProjectsListApi } from '../../services/taskService';
+import { fetchClientsApi } from '../../services/clientService';
 
 export const AnalyticsPage = () => {
   const navigate = useNavigate();
@@ -22,17 +25,30 @@ export const AnalyticsPage = () => {
   const [aiDates, setAiDates] = useState({ from: '', to: '' });
   const [reportDates, setReportDates] = useState({ from: '', to: '' });
 
+  // New: focus prompt, LLM model, project/client scope
+  const [focusPrompt, setFocusPrompt] = useState('');
+  const [llmModels, setLlmModels] = useState([]);
+  const [selectedModelId, setSelectedModelId] = useState('');
+  const [projects, setProjects] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [selectedClientId, setSelectedClientId] = useState('');
+
   const loadInitialData = useCallback(async () => {
     setLoading(true);
     try {
       const [latestRes, historyRes, statsRes] = await Promise.all([
         summaryService.getLatest(),
         summaryService.list(1),
-        summaryService.getStats('', '') // Начальная статистика (все время)
+        summaryService.getStats('', '')
       ]);
       setLatest(latestRes);
       setHistory(historyRes.results || []);
       setStats(statsRes);
+      // Load dropdowns in background
+      llmModelService.list().then(setLlmModels).catch(() => {});
+      fetchProjectsListApi().then(r => setProjects(r || [])).catch(() => {});
+      fetchClientsApi({ page_size: 100 }).then(r => setClients(r.results || [])).catch(() => {});
     } catch (err) {
       console.error("Ошибка загрузки:", err);
     } finally {
@@ -46,7 +62,12 @@ export const AnalyticsPage = () => {
   const handleAiGenerate = async () => {
     setGenerating(true);
     try {
-      await summaryService.generateAI(aiDates.from, aiDates.to);
+      await summaryService.generateAI(aiDates.from, aiDates.to, {
+        projectId: selectedProjectId || undefined,
+        clientId: selectedClientId || undefined,
+        focusPrompt: focusPrompt || undefined,
+        llmModelId: selectedModelId ? Number(selectedModelId) : undefined,
+      });
       const latestRes = await summaryService.getLatest();
       setLatest(latestRes);
       alert("Запрос на генерацию отправлен!");
@@ -90,17 +111,58 @@ export const AnalyticsPage = () => {
       <section className="bg-white rounded-[24px] p-8 border border-gray-100 shadow-sm">
         <h3 className="text-xl font-bold text-gray-800 mb-8">ИИ аналитика</h3>
         
-        <div className="flex items-center gap-4 mb-10">
-          <input type="date" value={aiDates.from} onChange={(e) => setAiDates({...aiDates, from: e.target.value})} className="pl-4 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-400 text-sm w-[200px]" />
-          <input type="date" value={aiDates.to} onChange={(e) => setAiDates({...aiDates, to: e.target.value})} className="pl-4 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-400 text-sm w-[200px]" />
-          <button 
-            onClick={handleAiGenerate}
-            disabled={generating || !aiDates.from || !aiDates.to}
-            className="flex items-center gap-2 px-6 py-2.5 bg-[#1677FF] text-white rounded-xl font-bold text-sm hover:bg-blue-600 disabled:bg-gray-200"
-          >
-            {generating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-            Сгенерировать отчет
-          </button>
+        <div className="flex flex-col gap-4 mb-10">
+          <div className="flex items-center gap-4 flex-wrap">
+            <input type="date" value={aiDates.from} onChange={(e) => setAiDates({...aiDates, from: e.target.value})} className="pl-4 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-400 text-sm w-[180px]" />
+            <input type="date" value={aiDates.to} onChange={(e) => setAiDates({...aiDates, to: e.target.value})} className="pl-4 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-400 text-sm w-[180px]" />
+            <select
+              value={selectedProjectId}
+              onChange={e => setSelectedProjectId(e.target.value)}
+              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm w-[180px]"
+            >
+              <option value="">Все проекты</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+            </select>
+            <select
+              value={selectedClientId}
+              onChange={e => setSelectedClientId(e.target.value)}
+              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm w-[180px]"
+            >
+              <option value="">Все клиенты</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            {llmModels.length > 0 && (
+              <select
+                value={selectedModelId}
+                onChange={e => setSelectedModelId(e.target.value)}
+                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm w-[200px]"
+              >
+                <option value="">Модель по умолчанию</option>
+                {llmModels.map(m => <option key={m.id} value={m.id}>{m.display_name || m.model_id}</option>)}
+              </select>
+            )}
+          </div>
+          <div className="flex items-end gap-4">
+            <div className="flex-1 max-w-xl">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Фокус запроса (необязательно)</label>
+              <textarea
+                value={focusPrompt}
+                onChange={e => setFocusPrompt(e.target.value)}
+                maxLength={500}
+                rows={2}
+                placeholder="Например: Сфокусируйся на просроченных задачах и загрузке команды..."
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-400 text-sm resize-none"
+              />
+            </div>
+            <button
+              onClick={handleAiGenerate}
+              disabled={generating || !aiDates.from || !aiDates.to}
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#1677FF] text-white rounded-xl font-bold text-sm hover:bg-blue-600 disabled:bg-gray-200 h-fit"
+            >
+              {generating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+              Сгенерировать
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">

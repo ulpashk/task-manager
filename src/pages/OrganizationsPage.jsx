@@ -1,14 +1,21 @@
 import { useEffect, useState } from 'react';
-import { fetchOrganizationsApi } from '../services/organizationService';
+import { useNavigate } from 'react-router-dom';
+import { fetchOrganizationsApi, createOrganizationApi } from '../services/organizationService';
 import { OrganizationTable } from '../components/Organizations/OrganizationTable';
-import { Plus, AlertCircle } from 'lucide-react';
+import { Modal } from '../components/general/Modal';
+import { Plus, AlertCircle, Loader2 } from 'lucide-react';
 
 export const OrganizationsPage = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState({ results: [] });
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newOrgName, setNewOrgName] = useState('');
+  const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
+  const loadOrgs = () => {
+    setLoading(true);
     fetchOrganizationsApi()
       .then(res => {
         setData(res);
@@ -22,18 +29,38 @@ export const OrganizationsPage = () => {
         }
       })
       .finally(() => setLoading(false));
-  }, []);
+  };
 
-  if (loading) return <div className="p-10 text-center text-gray-400">Загрузка компаний...</div>;
+  useEffect(() => { loadOrgs(); }, []);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      await createOrganizationApi({ name: newOrgName });
+      setShowCreateModal(false);
+      setNewOrgName('');
+      loadOrgs();
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Ошибка создания');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  if (loading) return <div className="p-10 text-center text-gray-400">Загрузка организаций...</div>;
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Компании</h2>
+        <h2 className="text-2xl font-bold text-gray-800">Организации</h2>
         {!errorMessage && (
-            <button className="bg-[#3F51B5] hover:bg-[#303F9F] text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors">
-                <Plus size={20}/> Новая компания
-            </button>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-bold transition-all"
+          >
+            <Plus size={20}/> Новая организация
+          </button>
         )}
       </div>
 
@@ -43,8 +70,28 @@ export const OrganizationsPage = () => {
           <p className="font-medium">{errorMessage}</p>
         </div>
       ) : (
-        <OrganizationTable orgs={data.results} />
+        <OrganizationTable orgs={data.results} onRowClick={(org) => navigate(`/organizations/${org.id}`)} />
       )}
+
+      <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Новая организация">
+        <form onSubmit={handleCreate} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold text-gray-400 uppercase">Название</label>
+            <input
+              required
+              className="bg-gray-50 border p-2.5 rounded-lg outline-none focus:border-blue-500"
+              value={newOrgName}
+              onChange={e => setNewOrgName(e.target.value)}
+            />
+          </div>
+          <div className="flex justify-end gap-3 mt-4">
+            <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-2 font-bold text-gray-400">Отмена</button>
+            <button type="submit" disabled={creating} className="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center gap-2">
+              {creating && <Loader2 size={16} className="animate-spin" />} Создать
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

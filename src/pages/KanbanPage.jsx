@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback  } from 'react';
-import { fetchTasksApi, deleteTaskApi } from '../services/taskService';
+import { fetchTasksApi, deleteTaskApi, changeTaskStatusApi } from '../services/taskService';
 import { TaskFilters } from '../components/TasksPage/TaskFilters';
 import { KanbanColumn } from '../components/Kanban/KanbanColumn';
 import { EditTaskModal } from '../components/TasksPage/EditTaskModal';
@@ -84,6 +84,19 @@ export const KanbanPage = () => {
     } catch (err) { alert("Ошибка при удалении"); }
   };
 
+  const handleDropTask = async (taskId, newStatus) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || task.status === newStatus) return;
+    // Optimistic update
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+    try {
+      await changeTaskStatusApi(taskId, newStatus);
+    } catch (err) {
+      console.error(err);
+      loadTasks(); // Revert on failure
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-full flex flex-col overflow-hidden">
       <TaskFilters 
@@ -102,12 +115,13 @@ export const KanbanPage = () => {
           <div className="w-full text-center py-10 text-gray-400">Загрузка...</div>
         ) : (
           COLUMNS.map(col => (
-            <KanbanColumn 
+            <KanbanColumn
               key={col.id}
               column={col}
               tasks={tasks.filter(t => t.status?.toLowerCase() === col.id.toLowerCase())}
               onEditRequest={handleEditRequest}
               onDeleteRequest={handleDeleteRequest}
+              onDropTask={handleDropTask}
             />
           ))
         )}

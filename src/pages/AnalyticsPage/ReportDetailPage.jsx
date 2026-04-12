@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, RefreshCw, Clock, Cpu, Hash, User, CheckCircle2, Calendar } from 'lucide-react';
+import { ChevronLeft, RefreshCw, Clock, Cpu, Hash, User, CheckCircle2, Calendar, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { summaryService } from '../../services/summaryService';
 import { ReportCharts } from '../../components/Analytics/ReportCharts';
 import { useAuth } from '../../context/AuthContext';
+import { llmModelService } from '../../services/llmModelService';
 
 export const ReportDetailPage = () => {
   const { id } = useParams();
@@ -15,6 +16,9 @@ export const ReportDetailPage = () => {
   const [versions, setVersions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
+  const [llmModels, setLlmModels] = useState([]);
+  const [regenModelId, setRegenModelId] = useState('');
+  const [showRegenPicker, setShowRegenPicker] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -33,6 +37,31 @@ export const ReportDetailPage = () => {
   }, [id]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  useEffect(() => {
+    if (user?.role === 'manager') {
+      llmModelService.list().then(setLlmModels).catch(() => {});
+    }
+  }, [user?.role]);
+
+  const handleRegenerate = async () => {
+    setRegenerating(true);
+    try {
+      const newSummary = await summaryService.regenerate(id, regenModelId ? Number(regenModelId) : null);
+      setShowRegenPicker(false);
+      setRegenModelId('');
+      // Navigate to the new version
+      if (newSummary.id && newSummary.id !== Number(id)) {
+        navigate(`/reports/summaries/${newSummary.id}`);
+      } else {
+        loadData();
+      }
+    } catch (err) {
+      alert("Ошибка перегенерации");
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   if (loading) return <div className="h-full flex items-center justify-center text-gray-400 animate-pulse">Загрузка отчета...</div>;
   if (!summary) return <div className="p-10 text-center text-red-500">Отчет не найден</div>;
@@ -53,14 +82,32 @@ export const ReportDetailPage = () => {
           </button>
           
           {user?.role === 'manager' && (
-            <button 
-              onClick={() => {/* логика регенерации */}}
-              disabled={regenerating}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-blue-700 transition-all shadow-md disabled:bg-gray-300"
-            >
-              <RefreshCw size={14} className={regenerating ? "animate-spin" : ""} />
-              Перегенерировать
-            </button>
+            <div className="flex items-center gap-2">
+              {showRegenPicker && llmModels.length > 0 && (
+                <select
+                  value={regenModelId}
+                  onChange={e => setRegenModelId(e.target.value)}
+                  className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs w-[180px]"
+                >
+                  <option value="">Текущая модель</option>
+                  {llmModels.map(m => <option key={m.id} value={m.id}>{m.display_name || m.model_id}</option>)}
+                </select>
+              )}
+              <button
+                onClick={() => {
+                  if (!showRegenPicker) {
+                    setShowRegenPicker(true);
+                  } else {
+                    handleRegenerate();
+                  }
+                }}
+                disabled={regenerating}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-blue-700 transition-all shadow-md disabled:bg-gray-300"
+              >
+                {regenerating ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                {showRegenPicker ? 'Подтвердить' : 'Перегенерировать'}
+              </button>
+            </div>
           )}
         </div>
 
@@ -83,12 +130,39 @@ export const ReportDetailPage = () => {
             </p>
           </div>
 
-          {/* Текстовый контент */}
-          <div className="p-8 border-b border-gray-50">
-            <div className="text-[15px] text-gray-700 leading-[1.7] whitespace-pre-wrap">
-              {summary.summary_text}
+          {/* Scope & Focus info */}
+          {(summary.focus_prompt || summary.project_scope || summary.client_scope) && (
+            <div className="px-8 py-4 border-b border-gray-50 flex flex-wrap gap-4 text-xs">
+              {summary.project_scope && (
+                <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg font-medium">Проект: {summary.project_scope.name}</span>
+              )}
+              {summary.client_scope && (
+                <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg font-medium">Клиент: {summary.client_scope.name}</span>
+              )}
+              {summary.focus_prompt && (
+                <span className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-lg font-medium">Фокус: {summary.focus_prompt}</span>
+              )}
             </div>
-          </div>
+          )}
+
+          {/* Секции (structured) */}
+          {summary.sections && Object.keys(summary.sections).length > 0 ? (
+            <div className="p-8 border-b border-gray-50 flex flex-col gap-6">
+              {Object.entries(summary.sections).map(([title, content]) => (
+                <div key={title}>
+                  <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide mb-2">{title}</h3>
+                  <div className="text-[15px] text-gray-700 leading-[1.7] whitespace-pre-wrap">{content}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Текстовый контент (fallback) */
+            <div className="p-8 border-b border-gray-50">
+              <div className="text-[15px] text-gray-700 leading-[1.7] whitespace-pre-wrap">
+                {summary.summary_text}
+              </div>
+            </div>
+          )}
 
           {/* Секция графиков */}
           <div className="p-8 bg-[#F9FAFB]/50">

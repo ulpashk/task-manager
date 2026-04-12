@@ -8,11 +8,13 @@ export const summaryService = {
   },
 
   // 2. Генерация новой ИИ сводки (On-demand)
-  generateAI: async (startDate, endDate) => {
-    const res = await axiosInstance.post('/api/summaries/generate/', {
-      period_start: startDate,
-      period_end: endDate
-    });
+  generateAI: async (startDate, endDate, { projectId, clientId, focusPrompt, llmModelId } = {}) => {
+    const body = { period_start: startDate, period_end: endDate };
+    if (projectId) body.project_id = projectId;
+    if (clientId) body.client_id = clientId;
+    if (focusPrompt) body.focus_prompt = focusPrompt;
+    if (llmModelId) body.llm_model_id = llmModelId;
+    const res = await axiosInstance.post('/api/summaries/generate/', body);
     return res.data;
   },
 
@@ -52,8 +54,15 @@ export const summaryService = {
     return res.data;
   },
 
-  regenerate: async (id) => {
-    const res = await axiosInstance.post(`/api/summaries/${id}/regenerate/`);
+  regenerate: async (id, llmModelId = null) => {
+    const body = {};
+    if (llmModelId) body.llm_model_id = llmModelId;
+    const res = await axiosInstance.post(`/api/summaries/${id}/regenerate/`, body);
+    return res.data;
+  },
+
+  getGenerationStatus: async (id) => {
+    const res = await axiosInstance.get(`/api/summaries/${id}/generation-status/`);
     return res.data;
   }
 };

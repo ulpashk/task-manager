@@ -1,7 +1,7 @@
 import { Paperclip, MessageSquare, Calendar } from 'lucide-react';
 import { ActionMenu } from '../TasksPage/ActionMenu';
 
-export const KanbanCard = ({ task, onEdit, onDelete }) => {
+export const KanbanCard = ({ task, onEdit, onDelete, onDragStart }) => {
   const getPriorityStyle = (priority) => {
     if (priority === 'high' || priority === 'HIGH') return 'bg-red-50 text-red-500 border-red-100';
     if (priority === 'medium' || priority === 'MEDIUM') return 'bg-orange-50 text-orange-500 border-orange-100';
@@ -9,7 +9,14 @@ export const KanbanCard = ({ task, onEdit, onDelete }) => {
   };
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3">
+    <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData('taskId', String(task.id));
+        onDragStart?.(task);
+      }}
+      className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3 cursor-grab active:cursor-grabbing"
+    >
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">
           <img src={`https://ui-avatars.com/api/?name=${task.client?.name}`} alt="" className="w-8 h-8 rounded-md" />

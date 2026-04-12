@@ -1,37 +1,61 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { 
-  User, Send, CheckCircle2, ExternalLink, 
-  Copy, Loader2, Save, AlertTriangle, Trash2 
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import {
+  User, Send, CheckCircle2, ExternalLink,
+  Copy, Loader2, Save, AlertTriangle, Trash2,
+  Camera, X, Lock, Brain
 } from 'lucide-react';
 import { profileService } from '../services/profileService';
 import { telegramService } from '../services/telegramService';
+import { llmModelService } from '../services/llmModelService';
 import { useAuth } from '../context/AuthContext';
 
 export const SettingsPage = () => {
   const { user: authUser } = useAuth();
-  const [profile, setProfile] = useState({ first_name: '', last_name: '', job_title: '', bio: '', email: '' });
+  const [profile, setProfile] = useState({ first_name: '', last_name: '', job_title: '', bio: '', skills: '', email: '', avatar: null });
   const [tgStatus, setTgStatus] = useState(null);
   const [linkData, setLinkData] = useState(null);
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [tgLoading, setTgLoading] = useState(false);
 
+  // Avatar
+  const fileInputRef = useRef(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  // Password
+  const [passwordForm, setPasswordForm] = useState({ current_password: '', new_password: '', confirm_password: '' });
+  const [passwordSaving, setPasswordSaving] = useState(false);
+
+  // LLM Models (manager only)
+  const [llmModels, setLlmModels] = useState([]);
+  const [orgDefaultModel, setOrgDefaultModel] = useState(null);
+  const [llmSaving, setLlmSaving] = useState(false);
+
   // 1. Загрузка данных профиля и статуса TG
   const loadInitialData = useCallback(async () => {
     try {
-      const [p, t] = await Promise.all([
+      const promises = [
         profileService.getProfile(),
         telegramService.getStatus()
-      ]);
-      setProfile(p);
-      setTgStatus(t);
+      ];
+      if (authUser?.role === 'manager') {
+        promises.push(llmModelService.list());
+        promises.push(llmModelService.getOrgDefault());
+      }
+      const results = await Promise.all(promises);
+      setProfile(results[0]);
+      setTgStatus(results[1]);
+      if (authUser?.role === 'manager' && results[2]) {
+        setLlmModels(results[2]);
+        setOrgDefaultModel(results[3]?.default_llm_model?.id || null);
+      }
     } catch (err) {
       console.error("Ошибка загрузки настроек:", err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [authUser?.role]);
 
   useEffect(() => {
     loadInitialData();
@@ -104,6 +128,68 @@ export const SettingsPage = () => {
     }
   };
 
+  // Avatar handlers
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try {
+      const updated = await profileService.uploadAvatar(file);
+      setProfile(prev => ({ ...prev, avatar: updated.avatar }));
+    } catch (err) {
+      alert("Ошибка загрузки аватара");
+    } finally {
+      setAvatarUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    if (!window.confirm("Удалить аватар?")) return;
+    try {
+      await profileService.removeAvatar();
+      setProfile(prev => ({ ...prev, avatar: null }));
+    } catch (err) {
+      alert("Ошибка удаления аватара");
+    }
+  };
+
+  // Password handler
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (passwordForm.new_password !== passwordForm.confirm_password) {
+      alert("Пароли не совпадают");
+      return;
+    }
+    if (passwordForm.new_password.length < 8) {
+      alert("Минимум 8 символов");
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      await profileService.changePassword(passwordForm.current_password, passwordForm.new_password);
+      alert("Пароль успешно изменен");
+      setPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
+    } catch (err) {
+      alert(err.response?.data?.detail || err.response?.data?.current_password?.[0] || "Ошибка смены пароля");
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
+
+  // LLM default handler
+  const handleSetOrgDefault = async (modelId) => {
+    setLlmSaving(true);
+    try {
+      await llmModelService.setOrgDefault(modelId || null);
+      setOrgDefaultModel(modelId || null);
+    } catch (err) {
+      alert("Ошибка сохранения модели");
+    } finally {
+      setLlmSaving(false);
+    }
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     alert("Код скопирован!");
@@ -122,8 +208,29 @@ export const SettingsPage = () => {
         {/* --- СЕКЦИЯ ПРОФИЛЯ --- */}
         <section className="bg-white rounded-[24px] p-8 border border-gray-100 shadow-sm flex-shrink-0">
           <div className="flex items-center gap-6 mb-10">
-            <div className="w-20 h-20 bg-[#1677FF] rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-inner">
-              {profile.first_name?.[0]}{profile.last_name?.[0]}
+            <div className="relative group">
+              {profile.avatar ? (
+                <img src={profile.avatar} alt="Avatar" className="w-20 h-20 rounded-full object-cover shadow-inner" />
+              ) : (
+                <div className="w-20 h-20 bg-[#1677FF] rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-inner">
+                  {profile.first_name?.[0]}{profile.last_name?.[0]}
+                </div>
+              )}
+              <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={avatarUploading}
+                  className="p-1.5 bg-white/90 rounded-full text-gray-700 hover:bg-white"
+                >
+                  {avatarUploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                </button>
+                {profile.avatar && (
+                  <button onClick={handleAvatarRemove} className="p-1.5 bg-white/90 rounded-full text-red-500 hover:bg-white">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </div>
             <div className="flex flex-col">
               <h3 className="text-2xl font-bold text-gray-800">{profile.first_name} {profile.last_name}</h3>
@@ -176,6 +283,87 @@ export const SettingsPage = () => {
             </div>
           </form>
         </section>
+
+        {/* --- СЕКЦИЯ ПАРОЛЯ --- */}
+        <section className="bg-white rounded-[24px] p-8 border border-gray-100 shadow-sm flex-shrink-0">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+              <Lock size={22} />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 tracking-tight">Смена пароля</h3>
+          </div>
+          <form onSubmit={handleChangePassword} className="flex flex-col gap-5 max-w-md">
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Текущий пароль</label>
+              <input
+                type="password"
+                required
+                className="bg-[#F9FAFB] border border-gray-200 rounded-xl px-4 py-3.5 outline-none focus:border-blue-500 focus:bg-white transition-all text-gray-700"
+                value={passwordForm.current_password}
+                onChange={e => setPasswordForm({ ...passwordForm, current_password: e.target.value })}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Новый пароль</label>
+              <input
+                type="password"
+                required
+                minLength={8}
+                className="bg-[#F9FAFB] border border-gray-200 rounded-xl px-4 py-3.5 outline-none focus:border-blue-500 focus:bg-white transition-all text-gray-700"
+                value={passwordForm.new_password}
+                onChange={e => setPasswordForm({ ...passwordForm, new_password: e.target.value })}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Подтвердите пароль</label>
+              <input
+                type="password"
+                required
+                minLength={8}
+                className="bg-[#F9FAFB] border border-gray-200 rounded-xl px-4 py-3.5 outline-none focus:border-blue-500 focus:bg-white transition-all text-gray-700"
+                value={passwordForm.confirm_password}
+                onChange={e => setPasswordForm({ ...passwordForm, confirm_password: e.target.value })}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={passwordSaving}
+              className="bg-gray-800 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-gray-700 transition-all w-fit disabled:opacity-50"
+            >
+              {passwordSaving ? <Loader2 size={18} className="animate-spin" /> : <Lock size={18} />}
+              Сменить пароль
+            </button>
+          </form>
+        </section>
+
+        {/* --- СЕКЦИЯ LLM (только для manager) --- */}
+        {authUser?.role === 'manager' && (
+          <section className="bg-white rounded-[24px] p-8 border border-gray-100 shadow-sm flex-shrink-0">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-purple-600">
+                <Brain size={22} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 tracking-tight">ИИ-модель по умолчанию</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Модель для генерации отчетов и задач в вашей организации</p>
+              </div>
+            </div>
+            <div className="max-w-md">
+              <select
+                className="bg-[#F9FAFB] border border-gray-200 rounded-xl px-4 py-3.5 outline-none focus:border-blue-500 focus:bg-white transition-all text-gray-700 w-full"
+                value={orgDefaultModel || ''}
+                onChange={e => handleSetOrgDefault(e.target.value ? Number(e.target.value) : null)}
+                disabled={llmSaving}
+              >
+                <option value="">Системная модель (по умолчанию)</option>
+                {llmModels.map(m => (
+                  <option key={m.id} value={m.id}>{m.display_name || m.model_id}</option>
+                ))}
+              </select>
+              {llmSaving && <p className="text-xs text-blue-500 mt-2 flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Сохранение...</p>}
+            </div>
+          </section>
+        )}
 
         {/* --- СЕКЦИЯ TELEGRAM --- */}
         <section className="bg-white rounded-[24px] p-8 border border-gray-100 shadow-sm flex-shrink-0">
