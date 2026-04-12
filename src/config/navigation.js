@@ -36,7 +36,7 @@ export const NAVIGATION_ITEMS = [
     path: '/tasks',
     icon: TableIcon,
     component: TasksTablePage,
-    allowedRoles: ['manager', 'engineer', 'client'],
+    allowedRoles: ['manager', 'engineer'],
   },
   {
     label: 'Kanban',
@@ -44,7 +44,7 @@ export const NAVIGATION_ITEMS = [
     path: '/kanban',
     icon: LayoutDashboard,
     component: KanbanPage,
-    allowedRoles: ['manager', 'engineer', 'client'],
+    allowedRoles: ['manager', 'engineer'],
   },
   {
     label: 'Проекты',
@@ -60,7 +60,7 @@ export const NAVIGATION_ITEMS = [
     path: '/calendar',
     icon: Calendar,
     component: CalendarPage,
-    allowedRoles: ['manager', 'engineer', 'client'], 
+    allowedRoles: ['manager'], 
   },
   {
     label: 'Аналитика',
@@ -68,7 +68,7 @@ export const NAVIGATION_ITEMS = [
     path: '/analytics',
     icon: BarChart2,
     component: AnalyticsPage,
-    allowedRoles: ['manager', 'engineer', 'client'], 
+    allowedRoles: ['manager', 'engineer'], 
   },
   {
     label: 'Пользователи',
@@ -92,7 +92,7 @@ export const NAVIGATION_ITEMS = [
     path: '/archive',
     icon: Archive,
     component: ArchivePage,
-    allowedRoles: ['manager', 'engineer', 'client'],
+    allowedRoles: ['manager', 'engineer'],
   },
   {
     label: 'Тэги',
@@ -100,7 +100,7 @@ export const NAVIGATION_ITEMS = [
     path: '/tags',
     icon: Tag,
     component: TagsPage,
-    allowedRoles: ['manager', 'engineer', 'client'],
+    allowedRoles: ['manager'],
   },
   {
     label: 'Настройки',
