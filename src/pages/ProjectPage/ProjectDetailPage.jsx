@@ -159,7 +159,7 @@ export const ProjectDetailPage = () => {
               key={epic.id} 
               epic={epic} 
               onGenerateAI={handleGenerateAI}
-              isGenerating={isGenerating}
+              isGenerating={isGenerating && generatingEpicId === epic.id}
               onEditRequest={handleEdit} 
               onDeleteRequest={handleDelete}/>
           ))}
