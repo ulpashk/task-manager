@@ -227,7 +227,10 @@ export const TaskDetailPage = () => {
   };
 
   const isManager = authUser?.role === 'manager';
-  const isAssigned = task?.assignees?.some(a => a.id === authUser?.id);
+  const isAssigned = task?.assignees?.some(
+    a => String(a.id) === String(authUser?.id)
+  );
+  console.log(task.assignees, authUser)
   const canChangeStatus = isManager || (authUser?.role === 'engineer' && isAssigned);
   const canStart = canChangeStatus && task?.status === 'created';
   const canFinish = canChangeStatus && (task?.status === 'in_progress' || task?.status === 'revision');
