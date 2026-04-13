@@ -13,6 +13,6 @@ export const getStatusLabel = (s) => {
     if (s === 'created') return 'Создано';
     if (s === 'in_progress' || s === 'In_progress' || s === 'IN_PROGRESS') return 'В обработке';
     if (s === 'revision' || s === 'Revision' || s === 'REVISION') return 'На доработке';
-    if (s === 'waiting') return 'На доработке';
+    if (s === 'waiting') return 'На проверке';
     return s;
 }
