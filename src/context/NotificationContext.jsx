@@ -11,25 +11,32 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
 
   // Загрузка начальных данных
+  // const refreshNotifications = async () => {
+  //   if (!token) return;
+  //   try {
+  //     const data = await notificationService.list(false);
+  //     setUnreadCount(data.count);
+  //     setNotifications(data.results);
+  //   } catch (err) { console.error(err); }
+  // };
+
   const refreshNotifications = async () => {
     if (!token) return;
     try {
-      const data = await notificationService.list(false);
-      setUnreadCount(data.count);
-      setNotifications(data.results);
+      const data = await notificationService.list(undefined, 1); 
+      setUnreadCount(data.results.filter(n => !n.is_read).length);
+      setNotifications(data.results.slice(0, 20));
     } catch (err) { console.error(err); }
   };
 
   useEffect(() => {
     if (token) {
       refreshNotifications();
-      // Подключаем WebSocket
       wsService.connect(token);
       
-      // Подписываемся на новые сообщения через WS
       const unsubscribe = wsService.subscribe((msg) => {
         if (msg.type === 'new_notification' || msg.type === 'task_created') {
-          refreshNotifications(); // Обновляем список при получении события
+          refreshNotifications();
         }
       });
 
@@ -47,7 +54,6 @@ export const NotificationProvider = ({ children }) => {
   );
 };
 
-// export const useNotifications = () => useContext(NotificationContext);
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (!context) {
