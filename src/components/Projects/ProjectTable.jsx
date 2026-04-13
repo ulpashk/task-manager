@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { ActionMenu } from '../TasksPage/ActionMenu';
 import { useNavigate } from 'react-router-dom';
 
 export const ProjectTable = ({ projects, onEditRequest, onDeleteRequest }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const statusStyles = {
     created: 'bg-[#E1F9E6] text-[#56AD6C] border-[#B7EB8F]',
@@ -10,8 +12,8 @@ export const ProjectTable = ({ projects, onEditRequest, onDeleteRequest }) => {
   };
 
   const getStatusLabel = (s) => {
-    const labels = { created: 'Активный', done: 'Завершен', frozen: 'Заморожен' };
-    return labels[s] || 'Активный';
+    const labels = { created: t('projects.tab_active'), done: t('projects.tab_done'), frozen: t('projects.tab_frozen') };
+    return labels[s] || t('projects.tab_active');
   };
 
   const handleMenuOpen = (e) => {
@@ -29,11 +31,11 @@ export const ProjectTable = ({ projects, onEditRequest, onDeleteRequest }) => {
       <table className="w-full text-left border-separate border-spacing-0">
         <thead className="text-[13px] font-medium text-gray-500 sticky top-0 z-20">
           <tr>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Компания</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Название проекта</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Описание проекта</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">Кол-во эпиков</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">Статус</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">{t('projects.company')}</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">{t('projects.title_col')}</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">{t('projects.description_col')}</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">{t('projects.epics_count')}</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">{t('projects.status_col')}</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100"></th>
           </tr>
         </thead>
@@ -57,7 +59,7 @@ export const ProjectTable = ({ projects, onEditRequest, onDeleteRequest }) => {
               </td>
               <td className="px-6 py-5">
                 <div className="max-w-[300px] text-gray-500 text-[13px] line-clamp-2">
-                  {project.description || 'Нет описания'}
+                  {project.description || t('projects.no_description')}
                 </div>
               </td>
               <td className="px-6 py-5 text-center text-gray-500">

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { fetchProjectEpicsApi, fetchProjectByIdApi, deleteEpicApi, generateEpicTasksApi, pollGenerationStatusApi, confirmEpicTasksApi } from '../../services/projectService';
 import { EpicCard } from '../../components/Epics/EpicCard';
@@ -13,6 +14,7 @@ import { AiTaskPreviewModal } from '../../components/Epics/AiTaskPreviewModal';
 import { GenerationPipeline } from '../../components/Epics/GenerationPipeline';
 
 export const ProjectDetailPage = () => {
+  const { t } = useTranslation();
   const { setCustomTitle } = usePage();
   const { id } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,7 +49,7 @@ export const ProjectDetailPage = () => {
       await deleteEpicApi(selectedEpic.id);
       setIsDeleteOpen(false);
       loadData();
-    } catch (e) { alert("Ошибка при удалении"); }
+    } catch (e) { alert(t('projects.delete_error')); }
   };
 
   const loadData = useCallback(async () => {
@@ -81,7 +83,7 @@ export const ProjectDetailPage = () => {
       const { task_id } = await generateEpicTasksApi(epicId);
       setGeneratingTaskId(task_id);
     } catch (err) {
-      alert("Ошибка при запуске генерации");
+      alert(t('epics.ai_generate_error'));
       setIsGenerating(false);
       setGeneratingEpicId(null);
     }
@@ -105,7 +107,7 @@ export const ProjectDetailPage = () => {
   };
 
   const handlePipelineFailed = () => {
-    alert("ИИ не смог сгенерировать задачи");
+    alert(t('epics.ai_failed'));
     setIsGenerating(false);
     setGeneratingEpicId(null);
     setGeneratingTaskId(null);
@@ -118,25 +120,25 @@ export const ProjectDetailPage = () => {
       setIsPreviewOpen(false);
       loadData();
     } catch (err) {
-      alert("Ошибка сохранения");
+      alert(t('epics.ai_confirm_error'));
     } finally {
       setIsConfirming(false);
     }
   };
 
-  if (loading) return <div className="p-10 text-center text-gray-400"><Loader2 className="animate-spin inline mr-2"/> Загрузка проекта...</div>;
+  if (loading) return <div className="p-10 text-center text-gray-400"><Loader2 className="animate-spin inline mr-2"/> {t('projects.loading_project')}</div>;
 
   return (
     <div className="flex flex-col gap-6 h-full overflow-y-auto custom-scrollbar pr-2 font-sans pb-10">
 
       <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-8 flex flex-col gap-8">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800">Все эпики</h2>
+          <h2 className="text-xl font-bold text-gray-800">{t('projects.all_epics')}</h2>
           <button 
             onClick={() => setIsModalOpen(true)}
             className="bg-[#1677FF] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold hover:bg-blue-600 shadow-lg shadow-blue-100 transition-all"
           >
-            <Plus size={20}/> Добавить эпик
+            <Plus size={20}/> {t('projects.add_epic')}
           </button>
         </div>
 
@@ -145,7 +147,7 @@ export const ProjectDetailPage = () => {
           className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input 
             className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-blue-400 transition-all" 
-            placeholder="Поиск по эпикам..." 
+            placeholder={t('projects.search_epics')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -161,7 +163,7 @@ export const ProjectDetailPage = () => {
               onEditRequest={handleEdit} 
               onDeleteRequest={handleDelete}/>
           ))}
-          {epics.length === 0 && <div className="col-span-2 text-center py-20 text-gray-400 font-medium bg-gray-50 rounded-2xl border-2 border-dashed">В этом проекте пока нет эпиков</div>}
+          {epics.length === 0 && <div className="col-span-2 text-center py-20 text-gray-400 font-medium bg-gray-50 rounded-2xl border-2 border-dashed">{t('projects.no_epics')}</div>}
         </div>
 
         {isGenerating && generatingEpicId && generatingTaskId && (
@@ -190,12 +192,12 @@ export const ProjectDetailPage = () => {
           epic={selectedEpic} 
           onRefresh={loadData} 
         />
-        <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title="Удалить эпик">
+        <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title={t('epics.delete_title')}>
           <div className="p-4 flex flex-col gap-6">
-            <p className="text-gray-600">Вы уверены, что хотите удалить эпик <b>"{selectedEpic?.title}"</b>? Все задачи внутри него тоже будут удалены.</p>
+            <p className="text-gray-600">{t('epics.delete_confirm')} <b>"{selectedEpic?.title}"</b>? {t('epics.delete_warning')}</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setIsDeleteOpen(false)} className="px-6 py-2 font-bold text-gray-400">Отмена</button>
-              <button onClick={confirmDelete} className="bg-red-500 text-white px-6 py-2 rounded-lg font-bold">Удалить</button>
+              <button onClick={() => setIsDeleteOpen(false)} className="px-6 py-2 font-bold text-gray-400">{t('common.cancel')}</button>
+              <button onClick={confirmDelete} className="bg-red-500 text-white px-6 py-2 rounded-lg font-bold">{t('common.delete')}</button>
             </div>
           </div>
         </Modal>

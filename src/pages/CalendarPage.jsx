@@ -1,13 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
-import { 
-  format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, 
-  eachDayOfInterval, addMonths, subMonths, isSameMonth, isSameDay 
+import { useTranslation } from 'react-i18next';
+import {
+  format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
+  eachDayOfInterval, addMonths, subMonths, isSameMonth, isSameDay
 } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchTasksByDateRange } from '../services/taskService';
 
 export const CalendarPage = () => {
+  const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [tasks, setTasks] = useState([]);
   const today = new Date();
@@ -24,14 +26,19 @@ export const CalendarPage = () => {
     fetchTasksByDateRange(start, end).then(data => setTasks(data.results));
   }, [currentDate, calendarDays]);
 
+  const dayHeaders = [
+    t('calendar.mon'), t('calendar.tue'), t('calendar.wed'), t('calendar.thu'),
+    t('calendar.fri'), t('calendar.sat'), t('calendar.sun')
+  ];
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-full flex flex-col p-6 overflow-hidden">
-      
+
       <div className="flex items-center justify-center mb-6 flex-shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-             <button 
-               onClick={() => setCurrentDate(subMonths(currentDate, 1))} 
+             <button
+               onClick={() => setCurrentDate(subMonths(currentDate, 1))}
                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
              >
                <ChevronLeft size={20} />
@@ -39,8 +46,8 @@ export const CalendarPage = () => {
              <h2 className="text-xl font-bold capitalize min-w-[160px] text-center">
                {format(currentDate, 'LLLL yyyy', { locale: ru })}
              </h2>
-             <button 
-               onClick={() => setCurrentDate(addMonths(currentDate, 1))} 
+             <button
+               onClick={() => setCurrentDate(addMonths(currentDate, 1))}
                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
              >
                <ChevronRight size={20} />
@@ -50,7 +57,7 @@ export const CalendarPage = () => {
       </div>
 
       <div className="grid grid-cols-7 border-b border-gray-100 flex-shrink-0">
-        {['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'].map(day => (
+        {dayHeaders.map(day => (
           <div key={day} className="text-center font-bold text-gray-500 text-sm py-3 uppercase tracking-wider">
             {day}
           </div>
@@ -65,8 +72,8 @@ export const CalendarPage = () => {
             const isCurrentMonth = isSameMonth(day, currentDate);
 
             return (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className={`
                   min-h-[140px] p-2 border-b border-r transition-colors
                   ${isToday ? 'bg-blue-100/50' : isCurrentMonth ? 'bg-white' : 'bg-gray-50/50'}
@@ -83,8 +90,8 @@ export const CalendarPage = () => {
 
                 <div className="mt-2 space-y-1">
                   {dayTasks.map(task => (
-                    <div 
-                      key={task.id} 
+                    <div
+                      key={task.id}
                       className="text-[10px] px-2 py-1 rounded border-l border-blue-300 bg-gray-100 text-blue-600 truncate shadow-sm hover:z-10 hover:relative"
                       title={task.title}
                     >

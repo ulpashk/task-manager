@@ -1,25 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, ChevronDown, CheckCircle2, Loader2 } from 'lucide-react';
 import { updateProjectApi } from '../../services/projectService';
 import { fetchUsersListApi } from '../../services/userService';
 import { formatDateTime, toInputDateTime } from '../../utils/formatters';
 
-const FIELD_LABELS = {
-  title: 'Название проекта',
-  description: 'Описание проекта',
-  priority: 'Приоритет',
-  start_date: 'Дата начала',
-  deadline: 'Дата окончания',
-  assignee_id: 'Руководитель'
-};
-
-const PRIORITY_LABELS = {
-  low: 'Низкий',
-  medium: 'Средний',
-  high: 'Высокий'
-};
-
 export const EditProjectModal = ({ isOpen, onClose, project, onRefresh }) => {
+  const { t } = useTranslation();
+
+  const FIELD_LABELS = {
+    title: t('projects.form_title'),
+    description: t('projects.form_description'),
+    priority: t('tasks.form_priority'),
+    start_date: t('tasks.filter_date_from'),
+    deadline: t('projects.form_deadline'),
+    assignee_id: t('projects.form_manager')
+  };
+
+  const PRIORITY_LABELS = {
+    low: t('priority.low'),
+    medium: t('priority.medium'),
+    high: t('priority.high')
+  };
   const [step, setStep] = useState('edit');
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
@@ -58,7 +60,7 @@ export const EditProjectModal = ({ isOpen, onClose, project, onRefresh }) => {
   if (!isOpen || !project) return null;
 
   const getDisplayValue = (key, value) => {
-    if (!value || value === '') return 'не указано';
+    if (!value || value === '') return '—';
     if (key === 'start_date' || key === 'deadline') return formatDateTime(value);
     if (key === 'priority') return PRIORITY_LABELS[value] || value;
     if (key === 'assignee_id') {
@@ -121,7 +123,7 @@ export const EditProjectModal = ({ isOpen, onClose, project, onRefresh }) => {
       setStep('success');
       onRefresh();
     } catch (err) {
-      alert("Ошибка при обновлении проекта");
+      alert(t('projects.delete_error'));
     } finally {
       setLoading(false);
     }
@@ -133,33 +135,33 @@ export const EditProjectModal = ({ isOpen, onClose, project, onRefresh }) => {
         
         <div className="flex items-center justify-between px-8 py-6 border-b border-gray-50">
           <h2 className="text-[20px] font-bold text-gray-800">
-            {step === 'edit' ? 'Изменить данные проекта' : 'Подтверждение'}
+            {step === 'edit' ? t('projects.edit_title') : t('projects.edit_confirm')}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={24}/></button>
         </div>
 
         <div className="p-8">
           {dataLoading ? (
-            <div className="py-20 text-center text-gray-400"><Loader2 className="animate-spin inline mr-2"/> Загрузка...</div>
+            <div className="py-20 text-center text-gray-400"><Loader2 className="animate-spin inline mr-2"/> {t('projects.edit_loading')}</div>
           ) : (
             <>
               {step === 'edit' && (
                 <form onSubmit={handleSaveClick} className="flex flex-col gap-5">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">Название проекта</label>
+                    <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">{t('projects.form_title')}</label>
                     <input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all" />
                   </div>
                   
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">Описание</label>
+                    <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">{t('projects.form_description')}</label>
                     <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-xl p-4 h-32 outline-none resize-none focus:border-blue-500" />
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">Руководитель</label>
+                    <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">{t('projects.form_manager')}</label>
                     <div className="relative">
                       <select required value={formData.assignee_id} onChange={e => setFormData({...formData, assignee_id: e.target.value})} className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl px-4 py-3 outline-none appearance-none cursor-pointer">
-                        <option value="">Выберите руководителя</option>
+                        <option value="">{t('projects.form_manager_placeholder')}</option>
                         {users.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>)}
                       </select>
                       <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -168,18 +170,18 @@ export const EditProjectModal = ({ isOpen, onClose, project, onRefresh }) => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">Дата начала</label>
+                      <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">{t('tasks.filter_date_from')}</label>
                       <input type="datetime-local" value={formData.start_date} onChange={e => setFormData({...formData, start_date: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500" />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">Дата окончания</label>
+                      <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">{t('projects.form_deadline')}</label>
                       <input type="datetime-local" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500" />
                     </div>
                   </div>
 
                   <div className="flex justify-end gap-3 mt-4 border-t pt-6">
-                    <button type="button" onClick={onClose} className="px-6 py-2.5 font-bold text-gray-400">Отменить</button>
-                    <button type="submit" disabled={getChanges().length === 0} className="bg-[#1677FF] text-white px-10 py-2.5 rounded-lg font-bold shadow-lg shadow-blue-100 disabled:bg-gray-200">Сохранить</button>
+                    <button type="button" onClick={onClose} className="px-6 py-2.5 font-bold text-gray-400">{t('common.cancel')}</button>
+                    <button type="submit" disabled={getChanges().length === 0} className="bg-[#1677FF] text-white px-10 py-2.5 rounded-lg font-bold shadow-lg shadow-blue-100 disabled:bg-gray-200">{t('common.save')}</button>
                   </div>
                 </form>
               )}
@@ -196,9 +198,9 @@ export const EditProjectModal = ({ isOpen, onClose, project, onRefresh }) => {
                     ))}
                   </div>
                   <div className="flex justify-end gap-3 border-t pt-6">
-                    <button onClick={() => setStep('edit')} className="px-6 py-2 font-bold text-gray-500">Назад</button>
+                    <button onClick={() => setStep('edit')} className="px-6 py-2 font-bold text-gray-500">{t('common.back')}</button>
                     <button onClick={handleConfirmUpdate} disabled={loading} className="bg-[#1677FF] text-white px-8 py-2.5 rounded-lg font-bold flex items-center gap-2">
-                      {loading && <Loader2 size={16} className="animate-spin"/>} Изменить
+                      {loading && <Loader2 size={16} className="animate-spin"/>} {t('common.edit')}
                     </button>
                   </div>
                 </div>
@@ -207,8 +209,8 @@ export const EditProjectModal = ({ isOpen, onClose, project, onRefresh }) => {
               {step === 'success' && (
                 <div className="flex flex-col items-center py-6 gap-4">
                   <CheckCircle2 size={56} className="text-[#52C41A]" />
-                  <h3 className="text-lg font-bold text-gray-800">Проект обновлен!</h3>
-                  <button onClick={onClose} className="bg-[#1677FF] text-white px-12 py-2.5 rounded-lg font-bold mt-2">Ок</button>
+                  <h3 className="text-lg font-bold text-gray-800">{t('projects.edit_success')}</h3>
+                  <button onClick={onClose} className="bg-[#1677FF] text-white px-12 py-2.5 rounded-lg font-bold mt-2">{t('common.ok')}</button>
                 </div>
               )}
             </>

@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../general/Modal';
 import { ChevronDown, Loader2, AlertCircle } from 'lucide-react';
 import { createClientApi } from '../../services/clientService';
 
 export const AddClientModal = ({ isOpen, onClose, onRefresh }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [serverErrors, setServerErrors] = useState(null);
   const [formData, setFormData] = useState({
@@ -31,40 +33,40 @@ export const AddClientModal = ({ isOpen, onClose, onRefresh }) => {
       onClose();
       setFormData({ name: '', client_type: 'company', phone: '', email: '', contact_person: '' });
     } catch (err) {
-      setServerErrors(err.response?.data || "Произошла ошибка при создании");
-      console.error("Ошибка создания компании:", err);
+      setServerErrors(err.response?.data || t('clients.create_error'));
+      console.error("Create client error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Добавить компанию">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('clients.add_title')}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5 font-sans">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-bold text-gray-700">Наименование компании</label>
-          <input 
+          <label className="text-sm font-bold text-gray-700">{t('clients.name')}</label>
+          <input
             name="name"
             value={formData.name}
             onChange={handleChange}
             required
-            className={`bg-[#F9FAFB] border ${serverErrors?.name ? 'border-red-500' : 'border-gray-200'} rounded-lg px-4 py-3 outline-none focus:border-blue-500 transition-all`} 
-            placeholder="Например: ТОО Ромашка"
+            className={`bg-[#F9FAFB] border ${serverErrors?.name ? 'border-red-500' : 'border-gray-200'} rounded-lg px-4 py-3 outline-none focus:border-blue-500 transition-all`}
+            placeholder={t('clients.name_placeholder')}
           />
           {serverErrors?.name && <p className="text-xs text-red-500">{serverErrors.name[0]}</p>}
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-bold text-gray-700">Тип организации</label>
+          <label className="text-sm font-bold text-gray-700">{t('clients.type')}</label>
           <div className="relative">
-            <select 
+            <select
               name="client_type"
               value={formData.client_type}
               onChange={handleChange}
               className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-3 outline-none appearance-none cursor-pointer focus:border-blue-500"
             >
-              <option value="company">Компания (ТОО/АО)</option>
-              <option value="person">Частное лицо / ИП</option>
+              <option value="company">{t('clients.type_org')}</option>
+              <option value="person">{t('clients.type_person')}</option>
             </select>
             <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
@@ -72,39 +74,39 @@ export const AddClientModal = ({ isOpen, onClose, onRefresh }) => {
 
         <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-bold text-gray-700">E-mail</label>
-              <input 
+              <label className="text-sm font-bold text-gray-700">{t('clients.email')}</label>
+              <input
                 name="email"
-                type="email" 
-                required 
+                type="email"
+                required
                 value={formData.email}
                 onChange={handleChange}
-                className={`bg-[#F9FAFB] border ${serverErrors?.email ? 'border-red-500' : 'border-gray-200'} rounded-lg px-4 py-3 outline-none focus:border-blue-500`} 
-                placeholder="example@mail.com" 
+                className={`bg-[#F9FAFB] border ${serverErrors?.email ? 'border-red-500' : 'border-gray-200'} rounded-lg px-4 py-3 outline-none focus:border-blue-500`}
+                placeholder={t('clients.email_placeholder')}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-bold text-gray-700">Номер телефона</label>
-              <input 
+              <label className="text-sm font-bold text-gray-700">{t('clients.phone')}</label>
+              <input
                 name="phone"
-                required 
+                required
                 value={formData.phone}
                 onChange={handleChange}
-                className={`bg-[#F9FAFB] border ${serverErrors?.phone ? 'border-red-500' : 'border-gray-200'} rounded-lg px-4 py-3 outline-none focus:border-blue-500`} 
-                placeholder="87001234567" 
+                className={`bg-[#F9FAFB] border ${serverErrors?.phone ? 'border-red-500' : 'border-gray-200'} rounded-lg px-4 py-3 outline-none focus:border-blue-500`}
+                placeholder={t('clients.phone_placeholder')}
               />
             </div>
         </div>
 
         <div className="flex flex-col gap-1.5 mb-2">
-          <label className="text-sm font-bold text-gray-700">Контактное лицо</label>
-          <input 
+          <label className="text-sm font-bold text-gray-700">{t('clients.contact')}</label>
+          <input
             name="contact_person"
-            required 
+            required
             value={formData.contact_person}
             onChange={handleChange}
-            className={`bg-[#F9FAFB] border ${serverErrors?.contact_person ? 'border-red-500' : 'border-gray-200'} rounded-lg px-4 py-3 outline-none focus:border-blue-500`} 
-            placeholder="ФИО руководителя или менеджера" 
+            className={`bg-[#F9FAFB] border ${serverErrors?.contact_person ? 'border-red-500' : 'border-gray-200'} rounded-lg px-4 py-3 outline-none focus:border-blue-500`}
+            placeholder={t('clients.contact_placeholder')}
           />
         </div>
 
@@ -116,21 +118,21 @@ export const AddClientModal = ({ isOpen, onClose, onRefresh }) => {
         )}
 
         <div className="flex justify-end gap-3 border-t pt-6">
-          <button 
-            type="button" 
-            onClick={onClose} 
+          <button
+            type="button"
+            onClick={onClose}
             disabled={loading}
             className="px-6 py-2.5 font-bold text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            Отменить
+            {t('common.cancel')}
           </button>
-          <button 
-            type="submit" 
-            disabled={loading} 
+          <button
+            type="submit"
+            disabled={loading}
             className="bg-[#1677FF] text-white px-8 py-2.5 rounded-lg font-bold hover:bg-blue-600 transition-all flex items-center gap-2 shadow-lg shadow-blue-100 disabled:bg-blue-300"
           >
             {loading && <Loader2 size={18} className="animate-spin" />}
-            {loading ? 'Создание...' : 'Добавить'}
+            {loading ? t('common.loading') : t('common.add')}
           </button>
         </div>
       </form>

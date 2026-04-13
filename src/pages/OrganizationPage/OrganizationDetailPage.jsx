@@ -1,11 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { fetchOrganizationByIdApi, fetchOrgManagersApi, createOrgManagerApi } from '../../services/organizationService';
 import { usePage } from '../../context/PageContext';
 import { Modal } from '../../components/general/Modal';
 import { Loader2, ArrowLeft, Users, Briefcase, Building2, ListTodo, UserPlus } from 'lucide-react';
 
 export const OrganizationDetailPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { setCustomTitle } = usePage();
@@ -48,7 +50,7 @@ export const OrganizationDetailPage = () => {
       loadData();
     } catch (err) {
       const detail = err.response?.data;
-      const msg = detail?.email?.[0] || detail?.detail || 'Ошибка создания менеджера';
+      const msg = detail?.email?.[0] || detail?.detail || t('orgs.manager_create_error');
       alert(msg);
     } finally {
       setSaving(false);
@@ -64,15 +66,15 @@ export const OrganizationDetailPage = () => {
   }
 
   if (!org) {
-    return <div className="text-center py-20 text-gray-400">Организация не найдена</div>;
+    return <div className="text-center py-20 text-gray-400">{t('orgs.not_found')}</div>;
   }
 
   const stats = [
-    { label: 'Менеджеры', value: org.manager_count ?? 0, icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Инженеры', value: org.engineer_count ?? 0, icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
-    { label: 'Клиенты (пользователи)', value: org.client_user_count ?? 0, icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'Компании', value: org.client_count ?? 0, icon: Building2, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { label: 'Задачи', value: org.task_count ?? 0, icon: ListTodo, color: 'text-gray-600', bg: 'bg-gray-50' },
+    { label: t('orgs.managers'), value: org.manager_count ?? 0, icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: t('orgs.engineers'), value: org.engineer_count ?? 0, icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: t('orgs.client_users'), value: org.client_user_count ?? 0, icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: t('orgs.companies'), value: org.client_count ?? 0, icon: Building2, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: t('orgs.tasks_count'), value: org.task_count ?? 0, icon: ListTodo, color: 'text-gray-600', bg: 'bg-gray-50' },
   ];
 
   return (
@@ -81,7 +83,7 @@ export const OrganizationDetailPage = () => {
         onClick={() => navigate('/organizations')}
         className="flex items-center gap-2 text-gray-400 hover:text-gray-600 text-sm w-fit"
       >
-        <ArrowLeft size={16} /> Назад к организациям
+        <ArrowLeft size={16} /> {t('orgs.back')}
       </button>
 
       {/* Header */}
@@ -89,10 +91,10 @@ export const OrganizationDetailPage = () => {
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-xl font-bold text-gray-800">{org.name}</h1>
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${org.is_active ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
-            {org.is_active ? 'Активна' : 'Неактивна'}
+            {org.is_active ? t('orgs.active') : t('orgs.inactive')}
           </span>
         </div>
-        <p className="text-sm text-gray-400">Slug: {org.slug}</p>
+        <p className="text-sm text-gray-400">{t('orgs.slug')}: {org.slug}</p>
       </div>
 
       {/* Stats */}
@@ -114,25 +116,25 @@ export const OrganizationDetailPage = () => {
       {/* Managers */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-gray-800">Менеджеры</h3>
+          <h3 className="text-sm font-bold text-gray-800">{t('orgs.managers')}</h3>
           <button
             onClick={() => setShowAddManager(true)}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all"
           >
-            <UserPlus size={16} /> Добавить
+            <UserPlus size={16} /> {t('orgs.add_manager')}
           </button>
         </div>
 
         {managers.length === 0 ? (
-          <p className="text-gray-400 text-sm">Менеджеров пока нет</p>
+          <p className="text-gray-400 text-sm">{t('orgs.no_managers')}</p>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left px-4 py-2 text-xs font-bold text-gray-400 uppercase">Имя</th>
-                <th className="text-left px-4 py-2 text-xs font-bold text-gray-400 uppercase">Email</th>
-                <th className="text-left px-4 py-2 text-xs font-bold text-gray-400 uppercase">Статус</th>
-                <th className="text-left px-4 py-2 text-xs font-bold text-gray-400 uppercase">Дата регистрации</th>
+                <th className="text-left px-4 py-2 text-xs font-bold text-gray-400 uppercase">{t('orgs.manager_first_name')}</th>
+                <th className="text-left px-4 py-2 text-xs font-bold text-gray-400 uppercase">{t('orgs.manager_email')}</th>
+                <th className="text-left px-4 py-2 text-xs font-bold text-gray-400 uppercase">{t('orgs.manager_status')}</th>
+                <th className="text-left px-4 py-2 text-xs font-bold text-gray-400 uppercase">{t('orgs.manager_date')}</th>
               </tr>
             </thead>
             <tbody>
@@ -142,7 +144,7 @@ export const OrganizationDetailPage = () => {
                   <td className="px-4 py-3 text-gray-500">{m.email}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.is_active ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
-                      {m.is_active ? 'Активен' : 'Неактивен'}
+                      {m.is_active ? t('orgs.manager_active') : t('orgs.manager_inactive')}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-500">
@@ -156,10 +158,10 @@ export const OrganizationDetailPage = () => {
       </div>
 
       {/* Add Manager Modal */}
-      <Modal isOpen={showAddManager} onClose={() => setShowAddManager(false)} title="Новый менеджер">
+      <Modal isOpen={showAddManager} onClose={() => setShowAddManager(false)} title={t('orgs.new_manager')}>
         <form onSubmit={handleCreateManager} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold text-gray-400 uppercase">Email</label>
+            <label className="text-xs font-bold text-gray-400 uppercase">{t('orgs.manager_email')}</label>
             <input
               type="email"
               required
@@ -170,7 +172,7 @@ export const OrganizationDetailPage = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-400 uppercase">Имя</label>
+              <label className="text-xs font-bold text-gray-400 uppercase">{t('orgs.manager_first_name')}</label>
               <input
                 required
                 className="bg-gray-50 border p-2.5 rounded-lg outline-none focus:border-blue-500"
@@ -179,7 +181,7 @@ export const OrganizationDetailPage = () => {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-400 uppercase">Фамилия</label>
+              <label className="text-xs font-bold text-gray-400 uppercase">{t('orgs.manager_last_name')}</label>
               <input
                 required
                 className="bg-gray-50 border p-2.5 rounded-lg outline-none focus:border-blue-500"
@@ -189,7 +191,7 @@ export const OrganizationDetailPage = () => {
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold text-gray-400 uppercase">Пароль (мин. 8 символов)</label>
+            <label className="text-xs font-bold text-gray-400 uppercase">{t('orgs.manager_password')}</label>
             <input
               type="password"
               required
@@ -200,9 +202,9 @@ export const OrganizationDetailPage = () => {
             />
           </div>
           <div className="flex justify-end gap-3 mt-4">
-            <button type="button" onClick={() => setShowAddManager(false)} className="px-6 py-2 font-bold text-gray-400">Отмена</button>
+            <button type="button" onClick={() => setShowAddManager(false)} className="px-6 py-2 font-bold text-gray-400">{t('common.cancel')}</button>
             <button type="submit" disabled={saving} className="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center gap-2">
-              {saving && <Loader2 size={16} className="animate-spin" />} Создать
+              {saving && <Loader2 size={16} className="animate-spin" />} {t('common.create')}
             </button>
           </div>
         </form>

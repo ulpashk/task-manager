@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { 
-  History, User, Edit3, PlusCircle, MessageSquare, 
+import {
+  History, User, Edit3, PlusCircle, MessageSquare,
   ArrowRight, Loader2, Clock, Paperclip
 } from 'lucide-react';
 import { fetchTaskHistoryApi } from '../../services/taskService';
 
 export const TaskHistory = ({ taskId }) => {
+  const { t } = useTranslation();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +19,7 @@ export const TaskHistory = ({ taskId }) => {
         const data = await fetchTaskHistoryApi(taskId);
         setHistory(data);
       } catch (err) {
-        console.error("Ошибка загрузки истории:", err);
+        console.error("Error loading history:", err);
       } finally {
         setLoading(false);
       }
@@ -36,15 +38,15 @@ export const TaskHistory = ({ taskId }) => {
   };
 
   const getActionLabel = (item) => {
-    if (item.action === 'comment_added') return 'Добавлен комментарий';
-    if (item.action === 'field_update') return `Изменено поле: ${item.field}`;
-    if (item.action === 'file_attached') return `Прикреплен файл: ${item.new_value}`;
+    if (item.action === 'comment_added') return t('tasks.history_comment_added');
+    if (item.action === 'field_update') return `${t('tasks.history_field_update')} ${item.field}`;
+    if (item.action === 'file_attached') return `${t('tasks.history_file_attached')} ${item.new_value}`;
     return item.action;
   };
 
   if (loading) return (
     <div className="flex justify-center py-10 text-gray-400">
-      <Loader2 className="animate-spin mr-2" size={20} /> Загрузка истории...
+      <Loader2 className="animate-spin mr-2" size={20} /> {t('tasks.history_loading')}
     </div>
   );
 
@@ -54,7 +56,7 @@ export const TaskHistory = ({ taskId }) => {
         history.map((item) => (
           <div key={item.id} className="flex gap-4 relative">
             <div className="absolute left-[17px] top-10 bottom-[-24px] w-px bg-gray-100 last:hidden" />
-            
+
             <div className="relative z-10">
               <div className="w-9 h-9 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center shadow-sm text-gray-600 font-bold text-xs uppercase">
                 {item.changed_by?.first_name?.[0] || 'U'}
@@ -100,7 +102,7 @@ export const TaskHistory = ({ taskId }) => {
       ) : (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400">
            <History size={48} className="mb-4 opacity-20" />
-           <p className="text-sm font-medium">История изменений пуста</p>
+           <p className="text-sm font-medium">{t('tasks.history_empty')}</p>
         </div>
       )}
     </div>

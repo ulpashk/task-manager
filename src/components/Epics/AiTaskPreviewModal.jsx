@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../general/Modal';
 import { CheckCircle2, AlertCircle, Trash2, X, ChevronDown, Loader2 } from 'lucide-react';
 
@@ -12,6 +13,7 @@ export const AiTaskPreviewModal = ({
   users = [],
   tags = []
 }) => {
+  const { t } = useTranslation();
   const [editableTasks, setEditableTasks] = useState([]);
 
   useEffect(() => {
@@ -37,21 +39,21 @@ export const AiTaskPreviewModal = ({
   };
 
   const priorityOptions = [
-    { value: 'critical', label: 'Критический' },
-    { value: 'high', label: 'Высокий' },
-    { value: 'medium', label: 'Средний' },
-    { value: 'low', label: 'Низкий' },
+    { value: 'critical', label: t('priority.critical') },
+    { value: 'high', label: t('priority.high') },
+    { value: 'medium', label: t('priority.medium') },
+    { value: 'low', label: t('priority.low') },
   ];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Просмотр сгенерированных задач">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('pipeline.title')}>
       <div className="flex flex-col gap-6 font-sans max-w-4xl mx-auto">
         
         {warnings?.length > 0 && (
           <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex gap-3 text-amber-700 text-sm">
             <AlertCircle size={20} className="flex-shrink-0" />
             <div>
-              <p className="font-bold">Внимание от ИИ:</p>
+              <p className="font-bold">{t('pipeline.validating')}:</p>
               <ul className="list-disc ml-4">{warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>
             </div>
           </div>
@@ -72,7 +74,7 @@ export const AiTaskPreviewModal = ({
 
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Название*</label>
+                  <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">{t('tasks.form_title')}*</label>
                   <input 
                     value={task.title}
                     onChange={(e) => handleUpdateTask(idx, 'title', e.target.value)}
@@ -81,7 +83,7 @@ export const AiTaskPreviewModal = ({
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Описание</label>
+                  <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">{t('tasks.form_description')}</label>
                   <textarea 
                     value={task.description}
                     onChange={(e) => handleUpdateTask(idx, 'description', e.target.value)}
@@ -92,7 +94,7 @@ export const AiTaskPreviewModal = ({
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Приоритет</label>
+                    <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">{t('tasks.form_priority')}</label>
                     <div className="relative">
                       <select 
                         value={task.priority}
@@ -106,7 +108,7 @@ export const AiTaskPreviewModal = ({
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Ответственный</label>
+                    <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">{t('epics.form_assignee')}</label>
                     <div className="relative">
                       <select 
                         value={task.assignee_id}
@@ -120,7 +122,7 @@ export const AiTaskPreviewModal = ({
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Тэг</label>
+                    <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">{t('tasks.tag')}</label>
                     <div className="relative">
                       <select 
                         value={task.tag_ids?.[0] || ''}
@@ -135,7 +137,7 @@ export const AiTaskPreviewModal = ({
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Оценка (ч)</label>
+                    <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">{t('report.time')}</label>
                     <input 
                       type="number"
                       placeholder="h"
@@ -153,7 +155,7 @@ export const AiTaskPreviewModal = ({
 
         <div className="flex justify-end gap-3 mt-4 border-t pt-6">
           <button onClick={onClose} className="px-6 py-2.5 font-bold text-gray-400 hover:text-gray-600 transition-all">
-            Отмена
+            {t('common.cancel')}
           </button>
           <button 
             onClick={() => onConfirm(editableTasks)}
@@ -161,7 +163,7 @@ export const AiTaskPreviewModal = ({
             className="bg-[#1677FF] text-white px-10 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-600 transition-all shadow-lg disabled:bg-gray-200"
           >
             {loading ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
-            Создать задачи ({editableTasks.length})
+            {t('common.create')} ({editableTasks.length})
           </button>
         </div>
       </div>

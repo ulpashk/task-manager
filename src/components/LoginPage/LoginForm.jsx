@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { loginUserApi } from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export const LoginForm = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -16,10 +18,10 @@ export const LoginForm = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
+
     try {
       const data = await loginUserApi(email, password);
-      
+
       login(data.access);
 
       const payload = JSON.parse(atob(data.access.split('.')[1]));
@@ -34,7 +36,7 @@ export const LoginForm = () => {
       }
 
     } catch (err) {
-      const detail = err.response?.data?.detail || "Неверный логин или пароль";
+      const detail = err.response?.data?.detail || t('auth.invalid_credentials');
       setError(detail);
     } finally {
       setLoading(false);
@@ -44,17 +46,17 @@ export const LoginForm = () => {
   return (
     <div className="w-[561px] h-[613px] bg-white rounded-[10px] flex flex-col items-center pt-[107px] px-[60px] shadow-sm">
       <h1 className="text-[30px] font-medium text-[#292731] leading-[37px] mb-[70px]">
-        Добро пожаловать!
+        {t('auth.welcome')}
       </h1>
 
       <form onSubmit={handleSubmit} className="w-[441px] flex flex-col gap-[20px]">
         <div className="flex flex-col gap-[10px]">
           <label className="text-[16px] font-medium text-black">
-            E-mail или номер телефона
+            {t('auth.email_label')}
           </label>
           <input
             type="text"
-            placeholder="E-mail или номер телефона"
+            placeholder={t('auth.email_label')}
             className={`w-full h-[48px] bg-[#F3F3F3] rounded-[4px] px-[22px] text-[16px] outline-none placeholder-[#757575] border-2 ${error ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -63,17 +65,17 @@ export const LoginForm = () => {
         </div>
 
         <div className="flex flex-col gap-[10px]">
-          <label className="text-[16px] font-medium text-black">Пароль</label>
+          <label className="text-[16px] font-medium text-black">{t('auth.password_label')}</label>
           <input
             type="password"
-            placeholder="Пароль"
+            placeholder={t('auth.password_label')}
             className={`w-full h-[48px] bg-[#F3F3F3] rounded-[4px] px-[22px] text-[16px] outline-none placeholder-[#757575] border-2 ${error ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
           <span className="text-[14px] font-medium underline cursor-pointer mt-[2px]">
-            Забыли пароль?
+            {t('auth.forgot_password')}
           </span>
         </div>
 
@@ -88,7 +90,7 @@ export const LoginForm = () => {
           disabled={loading}
           className="w-full h-[48px] bg-[#1677FF] rounded-[8px] text-white text-[20px] font-medium flex items-center justify-center transition-opacity hover:opacity-90 disabled:bg-gray-400"
         >
-          {loading ? 'Загрузка...' : 'Войти'}
+          {loading ? t('auth.loading') : t('auth.login')}
         </button>
       </form>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fetchProjectsApi, deleteProjectApi } from '../../services/projectService';
 import { ProjectFilters } from '../../components/Projects/ProjectFilters';
 import { ProjectTable } from '../../components/Projects/ProjectTable';
@@ -8,6 +9,7 @@ import { EditProjectModal } from '../../components/Projects/EditProjectModal';
 import { Modal } from '../../components/general/Modal';
 
 export const ProjectsPage = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState({ results: [], count: 0 });
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,7 +51,7 @@ export const ProjectsPage = () => {
       setIsDeleteModalOpen(false);
       loadProjects();
     } catch (err) {
-      alert("Ошибка при удалении проекта");
+      alert(t('projects.delete_error'));
     }
   };
     
@@ -71,10 +73,10 @@ export const ProjectsPage = () => {
       {/* Кастомные табы для проектов */}
       <div className="px-6 mt-6 border-b border-gray-100 flex gap-6">
         {[
-          { label: "Общий", key: "" },
-          { label: "Активный", key: "created" },
-          { label: "Заморожен", key: "frozen" },
-          { label: "Завершен", key: "done" }
+          { label: t('projects.tab_general'), key: "" },
+          { label: t('projects.tab_active'), key: "created" },
+          { label: t('projects.tab_frozen'), key: "frozen" },
+          { label: t('projects.tab_done'), key: "done" }
         ].map(tab => (
           <button 
             key={tab.key}
@@ -91,7 +93,7 @@ export const ProjectsPage = () => {
 
       <div className="flex-1 overflow-hidden mt-4">
         {loading ? (
-          <div className="p-10 text-center text-gray-400">Загрузка проектов...</div>
+          <div className="p-10 text-center text-gray-400">{t('projects.loading')}</div>
         ) : (
           <ProjectTable 
             projects={data.results} 
@@ -125,24 +127,24 @@ export const ProjectsPage = () => {
       <Modal 
         isOpen={isDeleteModalOpen} 
         onClose={() => setIsDeleteModalOpen(false)} 
-        title="Удаление проекта"
+        title={t('projects.delete_title')}
       >
         <div className="flex flex-col gap-4 font-sans">
           <p className="text-gray-600">
-            Вы уверены, что хотите удалить проект <span className="font-bold text-gray-800">"{projectToDelete?.title}"</span>? Это действие удалит все связанные данные.
+            {t('projects.delete_confirm')} <span className="font-bold text-gray-800">"{projectToDelete?.title}"</span>?
           </p>
           <div className="flex justify-end gap-3 mt-4">
             <button 
               onClick={() => setIsDeleteModalOpen(false)}
               className="px-6 py-2 font-bold text-gray-500 hover:bg-gray-50 rounded-lg transition-colors"
             >
-              Отмена
+              {t('common.cancel')}
             </button>
-            <button 
+            <button
               onClick={confirmDelete}
               className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-100"
             >
-              Удалить проект
+              {t('common.delete')}
             </button>
           </div>
         </div>

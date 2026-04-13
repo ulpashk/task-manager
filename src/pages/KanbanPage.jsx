@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback  } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fetchTasksApi, deleteTaskApi, changeTaskStatusApi } from '../services/taskService';
 import { TaskFilters } from '../components/TasksPage/TaskFilters';
 import { KanbanColumn } from '../components/Kanban/KanbanColumn';
@@ -8,15 +9,8 @@ import { fetchUsersListApi } from '../services/userService';
 import { fetchTagsListApi } from '../services/tagService';
 import { useAuth } from '../context/AuthContext';
 
-const COLUMNS = [
-  { id: 'created', title: 'Создано', headerBg: 'bg-gray-200', columnBg: 'bg-gray-50/50', textColor: 'text-gray-600' },
-  { id: 'in_progress', title: 'В обработке', headerBg: 'bg-[#FFF2E0]', columnBg: 'bg-[#FFF9F2]', textColor: 'text-[#C78E39]' },
-  { id: 'waiting', title: 'На проверке', headerBg: 'bg-[#E6F4FF]', columnBg: 'bg-[#F0F7FF]', textColor: 'text-[#6E6EAD]' },
-  { id: 'revision', title: 'На доработке', headerBg: 'bg-[#F0F0FF]', columnBg: 'bg-[#F7F7FF]', textColor: 'text-[#6E6EAD]' },
-  { id: 'done', title: 'Выполнено', headerBg: 'bg-[#E1F9E6]', columnBg: 'bg-[#F2FBF4]', textColor: 'text-[#56AD6C]' },
-];
-
 export const KanbanPage = () => {
+  const { t } = useTranslation();
   const { user: authUser } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +30,14 @@ export const KanbanPage = () => {
     deadline_to: '',
   });
 
+  const COLUMNS = [
+    { id: 'created', title: t('status.created'), headerBg: 'bg-gray-200', columnBg: 'bg-gray-50/50', textColor: 'text-gray-600' },
+    { id: 'in_progress', title: t('status.in_progress'), headerBg: 'bg-[#FFF2E0]', columnBg: 'bg-[#FFF9F2]', textColor: 'text-[#C78E39]' },
+    { id: 'waiting', title: t('status.waiting'), headerBg: 'bg-[#E6F4FF]', columnBg: 'bg-[#F0F7FF]', textColor: 'text-[#6E6EAD]' },
+    { id: 'revision', title: t('status.revision'), headerBg: 'bg-[#F0F0FF]', columnBg: 'bg-[#F7F7FF]', textColor: 'text-[#6E6EAD]' },
+    { id: 'done', title: t('status.done'), headerBg: 'bg-[#E1F9E6]', columnBg: 'bg-[#F2FBF4]', textColor: 'text-[#56AD6C]' },
+  ];
+
   useEffect(() => {
     fetchUsersListApi().then(setUsers).catch(console.error);
     fetchTagsListApi().then(setTags).catch(console.error);
@@ -44,8 +46,8 @@ export const KanbanPage = () => {
   const loadTasks = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await fetchTasksApi({ 
-        page_size: 100, 
+      const data = await fetchTasksApi({
+        page_size: 100,
         ...filters
       });
       setTasks(data.results || []);
@@ -83,7 +85,7 @@ export const KanbanPage = () => {
       await deleteTaskApi(selectedTask.id);
       setIsDeleteModalOpen(false);
       loadTasks();
-    } catch (err) { alert("Ошибка при удалении"); }
+    } catch (err) { alert(t('tasks.delete_error')); }
   };
 
   const handleDropTask = async (taskId, newStatus) => {
@@ -102,20 +104,20 @@ export const KanbanPage = () => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-full flex flex-col overflow-hidden">
-      <TaskFilters 
+      <TaskFilters
         users={users}
         tags={tags}
         filters={filters}
         onSearchChange={handleSearchChange}
         onApply={handleApplyFilters}
         pageSize={100}
-        onPageSizeChange={() => {}} 
-        onAddClick={() => {}} 
+        onPageSizeChange={() => {}}
+        onAddClick={() => {}}
       />
 
       <div className="flex-1 overflow-x-auto p-6 flex gap-4 bg-gray-50/50">
         {loading ? (
-          <div className="w-full text-center py-10 text-gray-400">Загрузка...</div>
+          <div className="w-full text-center py-10 text-gray-400">{t('common.loading')}</div>
         ) : (
           COLUMNS.map(col => (
             <KanbanColumn
@@ -129,20 +131,20 @@ export const KanbanPage = () => {
           ))
         )}
       </div>
-      
-      <EditTaskModal 
+
+      <EditTaskModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         task={selectedTask}
         onRefresh={loadTasks}
       />
 
-      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Удаление задачи">
+      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title={t('tasks.delete_title')}>
         <div className="flex flex-col gap-4">
-          <p className="text-gray-600">Вы уверены, что хотите удалить задачу <span className="font-bold">"{selectedTask?.title}"</span>?</p>
+          <p className="text-gray-600">{t('tasks.delete_confirm')} <span className="font-bold">"{selectedTask?.title}"</span>?</p>
           <div className="flex justify-end gap-3 mt-4">
-            <button onClick={() => setIsDeleteModalOpen(false)} className="px-6 py-2 font-bold text-gray-400">Отмена</button>
-            <button onClick={handleConfirmDelete} className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold">Удалить</button>
+            <button onClick={() => setIsDeleteModalOpen(false)} className="px-6 py-2 font-bold text-gray-400">{t('common.cancel')}</button>
+            <button onClick={handleConfirmDelete} className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold">{t('common.delete')}</button>
           </div>
         </div>
       </Modal>

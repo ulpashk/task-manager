@@ -1,11 +1,20 @@
+import { useTranslation } from 'react-i18next';
 import { Paperclip, MessageSquare, Calendar } from 'lucide-react';
 import { ActionMenu } from '../TasksPage/ActionMenu';
 
 export const KanbanCard = ({ task, onEdit, onDelete, onDragStart }) => {
+  const { t } = useTranslation();
+
   const getPriorityStyle = (priority) => {
     if (priority === 'high' || priority === 'HIGH') return 'bg-red-50 text-red-500 border-red-100';
     if (priority === 'medium' || priority === 'MEDIUM') return 'bg-orange-50 text-orange-500 border-orange-100';
     return 'bg-gray-50 text-gray-500 border-gray-100';
+  };
+
+  const getPriorityLabel = (priority) => {
+    if (priority === 'high' || priority === 'HIGH') return t('priority.high');
+    if (priority === 'medium' || priority === 'MEDIUM') return t('priority.medium');
+    return t('priority.low');
   };
 
   return (
@@ -22,11 +31,10 @@ export const KanbanCard = ({ task, onEdit, onDelete, onDragStart }) => {
           <img src={`https://ui-avatars.com/api/?name=${task.client?.name}`} alt="" className="w-8 h-8 rounded-md" />
           <div className="flex flex-col">
             <span className="text-[11px] font-bold text-gray-700 leading-tight">{task.client?.name}</span>
-            <span className="text-[10px] text-gray-400">Алматы</span>
           </div>
         </div>
-        <ActionMenu 
-          onEdit={(e) => { onEdit(); }} 
+        <ActionMenu
+          onEdit={(e) => { onEdit(); }}
           onDelete={(e) => { onDelete(); }}
         />
       </div>
@@ -39,14 +47,14 @@ export const KanbanCard = ({ task, onEdit, onDelete, onDragStart }) => {
         <div className="flex items-center gap-2">
           <img src="https://ui-avatars.com/api/?name=Assignee" className="w-5 h-5 rounded-full" alt="" />
           <div className="text-[11px]">
-            <span className="text-gray-400">Исполнитель: </span>
-            <span className="text-gray-700 font-medium">{task.assignees[0]?.first_name} {task.assignees[0]?.last_name || 'Не назначен'}</span>
+            <span className="text-gray-400">{t('tasks.kanban_assignee')} </span>
+            <span className="text-gray-700 font-medium">{task.assignees[0]?.first_name} {task.assignees[0]?.last_name || t('tasks.no_assignees')}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <img src="https://ui-avatars.com/api/?name=Initiator" className="w-5 h-5 rounded-full" alt="" />
           <div className="text-[11px]">
-            <span className="text-gray-400">Инициатор: </span>
+            <span className="text-gray-400">{t('tasks.kanban_creator')} </span>
             <span className="text-gray-700 font-medium">{task.created_by?.first_name} {task.created_by?.last_name}</span>
           </div>
         </div>
@@ -54,13 +62,13 @@ export const KanbanCard = ({ task, onEdit, onDelete, onDragStart }) => {
 
       <div>
         <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-[10px] border border-blue-100 font-bold">
-          {task.tags[0]?.name || 'База данных'}
+          {task.tags[0]?.name || t('tasks.no_tags')}
         </span>
       </div>
 
       <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
         <Calendar size={13} />
-        <span>Дедлайн: <span className="text-red-500 font-medium">{new Date(task.deadline).toLocaleDateString()} 15:00</span></span>
+        <span>{t('tasks.deadline')}: <span className="text-red-500 font-medium">{new Date(task.deadline).toLocaleDateString()} 15:00</span></span>
       </div>
 
       <div className="flex justify-between items-center pt-1 border-t border-gray-50 mt-1">
@@ -73,7 +81,7 @@ export const KanbanCard = ({ task, onEdit, onDelete, onDragStart }) => {
           </div>
         </div>
         <span className={`px-2 py-0.5 rounded-full text-[10px] border font-bold ${getPriorityStyle(task.priority)}`}>
-          {(task.priority === 'high' || task.priority === 'HIGH') ? 'Высокий' : (task.priority === 'medium' || task.priority === 'MEDIUM') ? 'Средний' : 'Низкий'}
+          {getPriorityLabel(task.priority)}
         </span>
       </div>
     </div>

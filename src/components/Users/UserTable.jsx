@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ChevronsUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { ActionMenu } from '../TasksPage/ActionMenu';
 
 export const UserTable = ({ users, onSort, currentOrdering, onEdit, onDelete }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const getSortIcon = (field) => {
@@ -16,13 +18,13 @@ export const UserTable = ({ users, onSort, currentOrdering, onEdit, onDelete }) 
       <thead className="bg-[#F9FAFB] text-[12px] font-bold text-gray-400 uppercase sticky top-0 z-10">
         <tr>
           <th className="px-6 py-4 border-b cursor-pointer" onClick={() => onSort('last_name')}>
-            <div className="flex items-center gap-1">ФИО {getSortIcon('last_name')}</div>
+            <div className="flex items-center gap-1">{t('users.fio')} {getSortIcon('last_name')}</div>
           </th>
           <th className="px-6 py-4 border-b cursor-pointer" onClick={() => onSort('email')}>
-            <div className="flex items-center gap-1">Email {getSortIcon('email')}</div>
+            <div className="flex items-center gap-1">{t('users.email')} {getSortIcon('email')}</div>
           </th>
-          <th className="px-6 py-4 border-b">Роль</th>
-          <th className="px-6 py-4 border-b">Телефон</th>
+          <th className="px-6 py-4 border-b">{t('users.role')}</th>
+          <th className="px-6 py-4 border-b">{t('users.phone')}</th>
           <th className="px-6 py-4 border-b"></th>
         </tr>
       </thead>

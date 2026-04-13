@@ -1,15 +1,19 @@
+import { useTranslation } from 'react-i18next';
+
 export const OrganizationTable = ({ orgs, onRowClick }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <table className="w-full text-left border-separate border-spacing-0">
         <thead className="bg-gray-50 text-[13px] font-semibold text-gray-500 uppercase">
           <tr>
-            <th className="px-6 py-4 border-b border-gray-100">Name</th>
-            <th className="px-6 py-4 border-b border-gray-100">Slug</th>
-            <th className="px-6 py-4 border-b border-gray-100 text-center">Status</th>
-            <th className="px-6 py-4 border-b border-gray-100 text-center">Users</th>
-            <th className="px-6 py-4 border-b border-gray-100 text-center">Tasks</th>
-            <th className="px-6 py-4 border-b border-gray-100">Joined</th>
+            <th className="px-6 py-4 border-b border-gray-100">{t('orgs.table_name')}</th>
+            <th className="px-6 py-4 border-b border-gray-100">{t('orgs.table_slug')}</th>
+            <th className="px-6 py-4 border-b border-gray-100 text-center">{t('orgs.table_status')}</th>
+            <th className="px-6 py-4 border-b border-gray-100 text-center">{t('orgs.table_users')}</th>
+            <th className="px-6 py-4 border-b border-gray-100 text-center">{t('orgs.table_tasks')}</th>
+            <th className="px-6 py-4 border-b border-gray-100">{t('orgs.table_joined')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50 text-[14px]">
@@ -19,7 +23,7 @@ export const OrganizationTable = ({ orgs, onRowClick }) => {
               <td className="px-6 py-5 text-gray-500">{org.slug}</td>
               <td className="px-6 py-5 text-center">
                 <span className={`px-4 py-1.5 rounded-full text-xs font-bold text-white ${org.is_active ? 'bg-indigo-600' : 'bg-gray-400'}`}>
-                  {org.is_active ? 'Active' : 'Inactive'}
+                  {org.is_active ? t('orgs.active') : t('orgs.inactive')}
                 </span>
               </td>
               <td className="px-6 py-5 text-center text-gray-600">{org.user_count}</td>

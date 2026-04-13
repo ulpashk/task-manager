@@ -1,7 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 export const AISummaryCard = ({ title, summary }) => {
+  const { t } = useTranslation();
+
   if (!summary) return null;
 
   return (
@@ -19,14 +22,14 @@ export const AISummaryCard = ({ title, summary }) => {
           {summary.generation_method}
         </span>
       </div>
-      
+
       <div className="flex-1 text-[14px] text-gray-600 leading-[1.7] whitespace-pre-wrap pl-2">
         {summary.summary_text}
       </div>
 
       <div className="mt-8 pt-5 border-t border-gray-200/60 pl-2">
         <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
-          Сгенерирован {format(new Date(summary.generated_at), 'd MMMM HH:mm', { locale: ru })}
+          {t('report.generated_at')} {format(new Date(summary.generated_at), 'd MMMM HH:mm', { locale: ru })}
         </p>
       </div>
     </div>

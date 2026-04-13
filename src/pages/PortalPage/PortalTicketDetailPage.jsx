@@ -1,26 +1,28 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { portalService } from '../../services/portalService';
 import { usePage } from '../../context/PageContext';
 import { Loader2, ArrowLeft, Paperclip } from 'lucide-react';
 
-const STATUS_MAP = {
-  created: { label: 'Создано', bg: 'bg-gray-100', text: 'text-gray-600' },
-  in_progress: { label: 'В обработке', bg: 'bg-yellow-50', text: 'text-yellow-700' },
-  waiting: { label: 'На проверке', bg: 'bg-blue-50', text: 'text-blue-700' },
-  revision: { label: 'На доработке', bg: 'bg-purple-50', text: 'text-purple-700' },
-  done: { label: 'Выполнено', bg: 'bg-green-50', text: 'text-green-700' },
-  archived: { label: 'Архив', bg: 'bg-gray-100', text: 'text-gray-500' },
-};
-
-const PRIORITY_MAP = {
-  low: { label: 'Низкий', color: 'text-gray-500' },
-  medium: { label: 'Средний', color: 'text-yellow-600' },
-  high: { label: 'Высокий', color: 'text-orange-600' },
-  critical: { label: 'Критичный', color: 'text-red-600' },
-};
-
 export const PortalTicketDetailPage = () => {
+  const { t } = useTranslation();
+
+  const STATUS_MAP = {
+    created: { label: t('status.created'), bg: 'bg-gray-100', text: 'text-gray-600' },
+    in_progress: { label: t('status.in_progress'), bg: 'bg-yellow-50', text: 'text-yellow-700' },
+    waiting: { label: t('status.waiting'), bg: 'bg-blue-50', text: 'text-blue-700' },
+    revision: { label: t('status.revision'), bg: 'bg-purple-50', text: 'text-purple-700' },
+    done: { label: t('status.done'), bg: 'bg-green-50', text: 'text-green-700' },
+    archived: { label: t('status.archived'), bg: 'bg-gray-100', text: 'text-gray-500' },
+  };
+
+  const PRIORITY_MAP = {
+    low: { label: t('priority.low'), color: 'text-gray-500' },
+    medium: { label: t('priority.medium'), color: 'text-yellow-600' },
+    high: { label: t('priority.high'), color: 'text-orange-600' },
+    critical: { label: t('priority.critical'), color: 'text-red-600' },
+  };
   const { id } = useParams();
   const navigate = useNavigate();
   const { setCustomTitle } = usePage();
@@ -58,7 +60,7 @@ export const PortalTicketDetailPage = () => {
   }
 
   if (!ticket) {
-    return <div className="text-center py-20 text-gray-400">Заявка не найдена</div>;
+    return <div className="text-center py-20 text-gray-400">{t('portal.not_found')}</div>;
   }
 
   const status = STATUS_MAP[ticket.status] || STATUS_MAP.created;
@@ -70,7 +72,7 @@ export const PortalTicketDetailPage = () => {
         onClick={() => navigate('/portal')}
         className="flex items-center gap-2 text-gray-400 hover:text-gray-600 mb-4 text-sm"
       >
-        <ArrowLeft size={16} /> Назад к заявкам
+        <ArrowLeft size={16} /> {t('portal.back')}
       </button>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
@@ -83,22 +85,22 @@ export const PortalTicketDetailPage = () => {
 
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div>
-            <span className="text-xs font-bold text-gray-400 uppercase">Приоритет</span>
+            <span className="text-xs font-bold text-gray-400 uppercase">{t('portal.priority_col')}</span>
             <p className={`font-medium ${priority.color}`}>{priority.label}</p>
           </div>
           <div>
-            <span className="text-xs font-bold text-gray-400 uppercase">Дедлайн</span>
+            <span className="text-xs font-bold text-gray-400 uppercase">{t('portal.deadline_col')}</span>
             <p className="text-gray-700">{formatDate(ticket.deadline)}</p>
           </div>
           <div>
-            <span className="text-xs font-bold text-gray-400 uppercase">Создано</span>
+            <span className="text-xs font-bold text-gray-400 uppercase">{t('portal.created_at')}</span>
             <p className="text-gray-700">{formatDate(ticket.created_at)}</p>
           </div>
         </div>
 
         {ticket.description && (
           <div>
-            <span className="text-xs font-bold text-gray-400 uppercase">Описание</span>
+            <span className="text-xs font-bold text-gray-400 uppercase">{t('tasks.description')}</span>
             <p className="text-gray-700 mt-1 whitespace-pre-wrap">{ticket.description}</p>
           </div>
         )}
@@ -107,7 +109,7 @@ export const PortalTicketDetailPage = () => {
       {/* Attachments */}
       {ticket.attachments && ticket.attachments.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h3 className="text-sm font-bold text-gray-800 mb-3">Файлы</h3>
+          <h3 className="text-sm font-bold text-gray-800 mb-3">{t('portal.files')}</h3>
           <div className="flex flex-col gap-2">
             {ticket.attachments.map((att, idx) => (
               <div key={idx} className="flex items-center gap-2 text-sm text-blue-600">
@@ -121,9 +123,9 @@ export const PortalTicketDetailPage = () => {
 
       {/* Comments */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-sm font-bold text-gray-800 mb-4">Комментарии</h3>
+        <h3 className="text-sm font-bold text-gray-800 mb-4">{t('portal.comments')}</h3>
         {(!ticket.comments || ticket.comments.length === 0) ? (
-          <p className="text-gray-400 text-sm">Комментариев пока нет</p>
+          <p className="text-gray-400 text-sm">{t('portal.no_comments')}</p>
         ) : (
           <div className="flex flex-col gap-4">
             {ticket.comments.map((comment, idx) => (

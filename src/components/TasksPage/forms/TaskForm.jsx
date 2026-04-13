@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, Loader2, X, Check, Plus, Trash2, FileText } from 'lucide-react';
 import { createTaskApi, fetchTasksApi, fetchProjectsListApi, fetchEpicsListApi, fetchProjectEpicsApi, uploadAttachmentApi } from '../../../services/taskService';
 import { fetchUsersListApi } from '../../../services/userService';
@@ -23,7 +24,7 @@ const MultiSelect = ({ label, options, selectedIds, onToggle, placeholder }) => 
   return (
     <div className="flex flex-col gap-1.5 relative" ref={containerRef}>
       <label className="text-[13px] font-bold text-gray-700">{label}</label>
-      <div 
+      <div
         onClick={() => setIsOpen(!isOpen)}
         className="min-h-[44px] bg-[#F9FAFB] border border-gray-200 rounded-lg px-3 py-2 flex flex-wrap gap-2 cursor-pointer items-center pr-10"
       >
@@ -43,7 +44,7 @@ const MultiSelect = ({ label, options, selectedIds, onToggle, placeholder }) => 
       {isOpen && (
         <div className="absolute top-[100%] left-0 w-full bg-white border border-gray-100 shadow-xl rounded-xl z-[70] mt-1 max-h-48 overflow-y-auto p-1 animate-in fade-in zoom-in-95 duration-100">
           {options.map(opt => (
-            <div 
+            <div
               key={opt.id}
               onClick={() => onToggle(opt.id)}
               className="flex items-center justify-between px-3 py-2 hover:bg-blue-50 rounded-lg cursor-pointer text-sm transition-colors"
@@ -59,6 +60,7 @@ const MultiSelect = ({ label, options, selectedIds, onToggle, placeholder }) => 
 };
 
 export const TaskForm = ({ onClose, onRefresh }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [epicsLoading, setEpicsLoading] = useState(false);
@@ -67,17 +69,17 @@ export const TaskForm = ({ onClose, onRefresh }) => {
   const [filteredEpics, setFilteredEpics] = useState([]);
 
   const priorityOptions = [
-    { id: 'low', title: 'Низкий' },
-    { id: 'medium', title: 'Средний' },
-    { id: 'high', title: 'Высокий' }
+    { id: 'low', title: t('priority.low') },
+    { id: 'medium', title: t('priority.medium') },
+    { id: 'high', title: t('priority.high') }
   ];
 
   const [lists, setLists] = useState({
-    projects: [], 
-    epics: [], 
+    projects: [],
+    epics: [],
     users: [],
     engineers: [],
-    tags: [], 
+    tags: [],
     clients: []
   });
 
@@ -129,7 +131,7 @@ export const TaskForm = ({ onClose, onRefresh }) => {
           const epics = await fetchProjectEpicsApi(formData.project_id);
           setFilteredEpics(epics || []);
         } catch (err) {
-          console.error("Ошибка загрузки эпиков:", err);
+          console.error("Error loading epics:", err);
           setFilteredEpics([]);
         } finally {
           setEpicsLoading(false);
@@ -146,7 +148,7 @@ export const TaskForm = ({ onClose, onRefresh }) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 25 * 1024 * 1024) {
-        alert("Файл слишком большой (макс. 25 МБ)");
+        alert(t('tasks.form_error_file_size'));
         return;
       }
       setSelectedFile(file);
@@ -155,14 +157,14 @@ export const TaskForm = ({ onClose, onRefresh }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.project_id && !formData.epic_id) {
-      alert("Пожалуйста, выберите Эпик для этого проекта");
+      alert(t('tasks.form_error_epic'));
       return;
     }
 
     if (!formData.client_id || formData.assignee_ids.length === 0) {
-      alert("Выберите компанию и хотя бы одного исполнителя");
+      alert(t('tasks.form_error_required'));
       return;
     }
 
@@ -181,9 +183,9 @@ export const TaskForm = ({ onClose, onRefresh }) => {
       await createTaskApi(payload);
 
       if (selectedFile) {
-        const latestTasksResponse = await fetchTasksApi({ 
-          page_size: 1, 
-          ordering: '-id' 
+        const latestTasksResponse = await fetchTasksApi({
+          page_size: 1,
+          ordering: '-id'
         });
 
         const createdTask = latestTasksResponse.results[0];
@@ -192,19 +194,18 @@ export const TaskForm = ({ onClose, onRefresh }) => {
           try {
             await uploadAttachmentApi(createdTask.id, selectedFile);
           } catch (fileErr) {
-            console.error("Ошибка загрузки файла:", fileErr);
-            alert("Задача создана, но файл не загрузился.");
+            console.error("Error uploading file:", fileErr);
           }
         } else {
-          console.error("Не удалось найти ID созданной задачи для загрузки файла");
+          console.error("Could not find created task ID for file upload");
         }
       }
 
       onRefresh();
       onClose();
     } catch (err) {
-      console.error("Ошибка:", err);
-      alert("Ошибка при создании задачи.");
+      console.error("Error:", err);
+      alert(t('tasks.form_error_create'));
     } finally {
       setLoading(false);
     }
@@ -217,84 +218,84 @@ export const TaskForm = ({ onClose, onRefresh }) => {
     }));
   };
 
-  if (dataLoading) return <div className="p-10 text-center text-gray-400 font-sans flex items-center justify-center gap-2"><Loader2 className="animate-spin" size={18}/> Загрузка...</div>;
+  if (dataLoading) return <div className="p-10 text-center text-gray-400 font-sans flex items-center justify-center gap-2"><Loader2 className="animate-spin" size={18}/> {t('common.loading')}</div>;
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-1.5">
-        <label className="text-[14px] font-bold text-gray-700">Тема задачи</label>
-        <input name="title" required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500" placeholder="Название задачи" />
+        <label className="text-[14px] font-bold text-gray-700">{t('tasks.form_title')}</label>
+        <input name="title" required value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500" placeholder={t('tasks.form_title_placeholder')} />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[14px] font-bold text-gray-700">Описание</label>
-        <textarea name="description" required value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg p-3 h-20 outline-none resize-none focus:border-blue-500" placeholder="Подробное описание" />
+        <label className="text-[14px] font-bold text-gray-700">{t('tasks.form_description')}</label>
+        <textarea name="description" required value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg p-3 h-20 outline-none resize-none focus:border-blue-500" placeholder={t('tasks.form_description_placeholder')} />
       </div>
 
      <div className="grid grid-cols-2 gap-4">
-      <SingleSelect 
-        label="Проект"
+      <SingleSelect
+        label={t('tasks.form_project')}
         options={lists.projects}
         selectedId={formData.project_id}
         onSelect={(id) => setFormData({...formData, project_id: id, epic_id: ''})}
         placeholder="(Не указано)"
       />
 
-      <SingleSelect 
-        label={`Epic ${formData.project_id ? '*' : ''}`}
+      <SingleSelect
+        label={`${t('tasks.form_epic')} ${formData.project_id ? '*' : ''}`}
         options={filteredEpics}
         selectedId={formData.epic_id}
         onSelect={(id) => setFormData({...formData, epic_id: id})}
         disabled={!formData.project_id}
         isLoading={epicsLoading}
-        placeholder={formData.project_id ? "Выберите эпик" : "Сначала выберите проект"}
+        placeholder={formData.project_id ? t('tasks.form_epic') : t('tasks.form_epic_select_project')}
       />
     </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <MultiSelect 
-          label="Тэги" 
-          options={lists.tags} 
-          selectedIds={formData.tag_ids} 
+        <MultiSelect
+          label={t('tasks.form_tags')}
+          options={lists.tags}
+          selectedIds={formData.tag_ids}
           onToggle={(id) => toggleSelection('tag_ids', id)}
-          placeholder="Выберите тэги"
+          placeholder={t('tasks.form_tags_placeholder')}
         />
 
-        <SingleSelect 
-          label="Приоритет"
+        <SingleSelect
+          label={t('tasks.form_priority')}
           options={priorityOptions}
           selectedId={formData.priority}
           onSelect={(val) => setFormData({...formData, priority: val})}
-          placeholder="Выберите приоритет"
+          placeholder={t('tasks.form_priority')}
         />
       </div>
 
-      <MultiSelect 
-        label="Исполнители *" 
+      <MultiSelect
+        label={`${t('tasks.form_assignees')} *`}
         options={lists.engineers}
-        selectedIds={formData.assignee_ids} 
+        selectedIds={formData.assignee_ids}
         onToggle={(id) => toggleSelection('assignee_ids', id)}
-        placeholder="Выберите исполнителей (инженеров)"
+        placeholder={t('tasks.form_assignees_placeholder')}
       />
 
-      <SingleSelect 
-        label="Компания *" 
+      <SingleSelect
+        label={`${t('tasks.form_company')} *`}
         options={lists.clients}
-        selectedId={formData.client_id} 
+        selectedId={formData.client_id}
         onSelect={(id) => setFormData({...formData, client_id: id})}
-        placeholder="Выберите компанию"
+        placeholder={t('tasks.form_company_placeholder')}
       />
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-[13px] font-bold text-gray-700">Дедлайн</label>
+        <label className="text-[13px] font-bold text-gray-700">{t('tasks.form_deadline')}</label>
         <input name="deadline" required type="datetime-local" value={formData.deadline} onChange={(e) => setFormData({...formData, deadline: e.target.value})} className="bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-blue-500" />
       </div>
 
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileChange} 
-        className="hidden" 
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
       />
 
       {selectedFile && (
@@ -305,8 +306,8 @@ export const TaskForm = ({ onClose, onRefresh }) => {
               {selectedFile.name}
             </span>
           </div>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setSelectedFile(null)}
             className="p-1 hover:bg-gray-200 rounded-md text-gray-500 transition-colors"
           >
@@ -316,19 +317,19 @@ export const TaskForm = ({ onClose, onRefresh }) => {
       )}
 
       {!selectedFile && (
-        <div 
+        <div
           onClick={() => fileInputRef.current.click()}
           className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex items-center justify-center gap-2 text-gray-400 hover:bg-gray-50 hover:border-blue-300 cursor-pointer transition-all group"
         >
           <Plus size={20} className="group-hover:text-blue-500" />
-          <span className="text-sm font-bold group-hover:text-blue-500">Вложение</span>
+          <span className="text-sm font-bold group-hover:text-blue-500">{t('tasks.form_attachment')}</span>
         </div>
       )}
 
       <div className="flex justify-end gap-3 mt-4 pt-4 border-t">
-        <button type="button" onClick={onClose} className="px-6 py-2 font-bold text-gray-400 hover:text-gray-600 transition-colors text-sm">Отменить</button>
+        <button type="button" onClick={onClose} className="px-6 py-2 font-bold text-gray-400 hover:text-gray-600 transition-colors text-sm">{t('common.cancel')}</button>
         <button type="submit" disabled={loading} className="bg-[#1677FF] text-white px-10 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-100 flex items-center gap-2 hover:bg-blue-600 transition-all">
-          {loading ? <Loader2 size={16} className="animate-spin" /> : 'Добавить'}
+          {loading ? <Loader2 size={16} className="animate-spin" /> : t('common.add')}
         </button>
       </div>
     </form>

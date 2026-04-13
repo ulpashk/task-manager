@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../general/Modal';
 import { ProjectForm } from './forms/ProjectForm';
 import { EpicForm } from './forms/EpicForm';
@@ -7,6 +8,7 @@ import { SubtaskForm } from './forms/SubtaskForm';
 import { ChevronDown } from 'lucide-react';
 
 export const CreateTaskWizard = ({ isOpen, onClose, onRefresh, initialType, initialProjectId }) => {
+  const { t } = useTranslation();
   const [step, setStep] = useState('selection');
   const [selectedType, setSelectedType] = useState('');
 
@@ -23,38 +25,38 @@ export const CreateTaskWizard = ({ isOpen, onClose, onRefresh, initialType, init
   }, [isOpen, initialType]);
 
   const typeOptions = [
-    { id: 'project', label: 'Проект' },
-    { id: 'epic', label: 'Эпик' },
-    { id: 'task', label: 'Задача' },
-    { id: 'subtask', label: 'Подзадача' },
+    { id: 'project', label: t('tasks.wizard_project') },
+    { id: 'epic', label: t('tasks.wizard_epic') },
+    { id: 'task', label: t('tasks.wizard_task') },
+    { id: 'subtask', label: t('tasks.wizard_subtask') },
   ];
 
   if (step === 'selection') {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} title="Создать">
+      <Modal isOpen={isOpen} onClose={onClose} title={t('tasks.wizard_title')}>
         <div className="flex flex-col gap-6 font-sans">
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-gray-500 uppercase">Тип</label>
+            <label className="text-xs font-bold text-gray-500 uppercase">{t('tasks.wizard_type')}</label>
             <div className="relative">
-              <select 
+              <select
                 className="w-full h-[48px] bg-[#F9FAFB] border border-gray-200 rounded-lg px-4 outline-none appearance-none cursor-pointer"
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
               >
-                <option value="">Выберите тип</option>
+                <option value="">{t('tasks.wizard_select_type')}</option>
                 {typeOptions.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
             </div>
           </div>
           <div className="flex justify-end gap-3 mt-4">
-            <button onClick={onClose} className="px-6 py-2.5 font-bold text-gray-400 hover:text-gray-600 transition-colors">Отменить</button>
-            <button 
+            <button onClick={onClose} className="px-6 py-2.5 font-bold text-gray-400 hover:text-gray-600 transition-colors">{t('common.cancel')}</button>
+            <button
               disabled={!selectedType}
               onClick={() => setStep('form')}
               className="bg-[#1677FF] text-white px-8 py-2.5 rounded-lg font-bold disabled:bg-gray-200 transition-all"
             >
-              Создать
+              {t('common.create')}
             </button>
           </div>
         </div>
@@ -64,10 +66,10 @@ export const CreateTaskWizard = ({ isOpen, onClose, onRefresh, initialType, init
 
   const renderForm = () => {
     const props = {
-      onClose, 
-      onRefresh, 
-      onBack: () => setStep('selection'), 
-      initialProjectId: initialProjectId 
+      onClose,
+      onRefresh,
+      onBack: () => setStep('selection'),
+      initialProjectId: initialProjectId
     };
     switch (selectedType) {
       case 'project': return <ProjectForm {...props} />;
@@ -79,7 +81,7 @@ export const CreateTaskWizard = ({ isOpen, onClose, onRefresh, initialType, init
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Добавить ${typeOptions.find(t => t.id === selectedType)?.label.toLowerCase()}`}>
+    <Modal isOpen={isOpen} onClose={onClose} title={`${t('tasks.wizard_add')} ${typeOptions.find(t => t.id === selectedType)?.label.toLowerCase()}`}>
       {renderForm()}
     </Modal>
   );

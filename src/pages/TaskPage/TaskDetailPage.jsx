@@ -1,17 +1,18 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  fetchTaskByIdApi, fetchTaskAttachmentsApi, 
+import {
+  fetchTaskByIdApi, fetchTaskAttachmentsApi,
   fetchTaskCommentsApi, fetchTasksApi, uploadAttachmentApi,
-  deleteAttachmentApi, downloadAttachmentApi, changeTaskStatusApi 
+  deleteAttachmentApi, downloadAttachmentApi, changeTaskStatusApi
 } from '../../services/taskService';
-import { 
-  ChevronLeft, Star, Calendar, Users, Tag as TagIcon, 
-  Building2, LayoutGrid, Layers, FileText, Trash2, 
+import {
+  ChevronLeft, Star, Calendar, Users, Tag as TagIcon,
+  Building2, LayoutGrid, Layers, FileText, Trash2,
   Pencil, Loader2, Paperclip, Plus, Link2
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { is, ru } from 'date-fns/locale';
+import { ru } from 'date-fns/locale';
 import { SubtaskForm } from '../../components/TasksPage/forms/SubtaskForm';
 import { TaskComments } from '../../components/TasksPage/TaskComments';
 import { TaskHistory } from '../../components/TasksPage/TaskHistory';
@@ -21,12 +22,13 @@ import { usePage } from '../../context/PageContext';
 import { useAuth } from '../../context/AuthContext';
 
 export const TaskDetailPage = () => {
+  const { t } = useTranslation();
   const { setCustomTitle } = usePage();
   const { user: authUser } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const pageRef = useRef(null);
-  
+
   const [task, setTask] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const [subtasks, setSubtasks] = useState([]);
@@ -41,10 +43,10 @@ export const TaskDetailPage = () => {
   const [uploading, setUploading] = useState(false);
 
   const isSubtask = !!task?.parent_task;
-  const availableTabs = isSubtask 
-    ? ['comments', 'history'] 
+  const availableTabs = isSubtask
+    ? ['comments', 'history']
     : ['subtasks', 'comments', 'history'];
-  
+
   useEffect(() => {
     if (isSubtask && activeTab === 'subtasks') {
       setActiveTab('comments');
@@ -60,21 +62,21 @@ export const TaskDetailPage = () => {
         fetchTaskByIdApi(id),
         fetchTaskAttachmentsApi(id),
         fetchTaskCommentsApi(id),
-        fetchTasksApi({ parent_task: id }), 
+        fetchTasksApi({ parent_task: id }),
         delay(300)
       ]);
       setTask(taskData);
       setAttachments(attachData || []);
       setSubtasks(subtaskData.results || []);
 
-      const headerTitle = taskData.parent_task ? 'Детали подзадачи' : 'Детали задачи';
+      const headerTitle = taskData.parent_task ? t('tasks.task_detail') : t('tasks.task_detail');
       setCustomTitle(headerTitle);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [id, setCustomTitle]);
+  }, [id, setCustomTitle, t]);
 
   useEffect(() => {
     return () => setCustomTitle(null);
@@ -92,7 +94,7 @@ export const TaskDetailPage = () => {
     if (!file) return;
 
     if (file.size > 25 * 1024 * 1024) {
-      alert("Файл слишком большой. Максимальный размер 25 МБ.");
+      alert(t('tasks.form_error_file_size'));
       return;
     }
 
@@ -103,7 +105,7 @@ export const TaskDetailPage = () => {
       setAttachments(updatedAttachments);
     } catch (err) {
       console.error(err);
-      alert("Ошибка при загрузке файла");
+      alert(t('common.error'));
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -118,7 +120,7 @@ export const TaskDetailPage = () => {
 
   const confirmAttachDelete = async () => {
     if (!attachToDelete) return;
-    
+
     try {
       await deleteAttachmentApi(id, attachToDelete.id);
       setAttachments(prev => prev.filter(a => a.id !== attachToDelete.id));
@@ -126,18 +128,18 @@ export const TaskDetailPage = () => {
       setAttachToDelete(null);
     } catch (err) {
       console.error(err);
-      alert("Не удалось удалить файл");
+      alert(t('common.error'));
     }
   };
 
   const handleViewFile = async (attachmentId, filename) => {
     try {
       const blob = await downloadAttachmentApi(id, attachmentId);
-      
+
       const fileURL = window.URL.createObjectURL(new Blob([blob], { type: blob.type }));
 
       const extension = filename.split('.').pop().toLowerCase();
-      
+
       const viewableExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'txt'];
 
       if (viewableExtensions.includes(extension)) {
@@ -149,17 +151,17 @@ export const TaskDetailPage = () => {
         triggerDownload(fileURL, filename);
       }
       setTimeout(() => window.URL.revokeObjectURL(fileURL), 10000);
-      
+
     } catch (err) {
-      console.error("Ошибка при открытии/скачивании файла:", err);
-      alert("Ошибка при загрузке файла");
+      console.error("Error opening/downloading file:", err);
+      alert(t('common.error'));
     }
   };
 
   const triggerDownload = (url, name) => {
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', name); 
+    link.setAttribute('download', name);
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -170,7 +172,7 @@ export const TaskDetailPage = () => {
       const updatedAttachments = await fetchTaskAttachmentsApi(id);
       setAttachments(updatedAttachments || []);
     } catch (err) {
-      console.error("Ошибка при обновлении вложений:", err);
+      console.error("Error refreshing attachments:", err);
     }
   }, [id]);
 
@@ -180,7 +182,7 @@ export const TaskDetailPage = () => {
         <div className="relative flex items-center justify-center">
           <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
         </div>
-        <p className="mt-4 text-gray-400 font-medium animate-pulse">Загрузка данных...</p>
+        <p className="mt-4 text-gray-400 font-medium animate-pulse">{t('common.loading')}</p>
       </div>
     );
   }
@@ -195,23 +197,29 @@ export const TaskDetailPage = () => {
   };
 
   const getStatusLabel = (s) => {
-    if (s === 'done' || s === 'completed' || s === 'COMPLETED') return 'Выполнено';
-    if (s === 'todo' || s === 'Todo' || s === 'TODO' || s === 'created') return 'Создано';
-    if (s === 'in_progress' || s === 'IN_PROGRESS') return 'В обработке';
-    if (s === 'revision') return 'На доработке';
-    if (s === 'waiting') return 'На проверке';
+    if (s === 'done' || s === 'completed' || s === 'COMPLETED') return t('status.done');
+    if (s === 'todo' || s === 'Todo' || s === 'TODO' || s === 'created') return t('status.created');
+    if (s === 'in_progress' || s === 'IN_PROGRESS') return t('status.in_progress');
+    if (s === 'revision') return t('status.revision');
+    if (s === 'waiting') return t('status.waiting');
     return s;
+  };
+
+  const getPriorityLabel = (p) => {
+    if (p === 'high') return t('priority.high');
+    if (p === 'medium') return t('priority.medium');
+    return t('priority.low');
   };
 
   const handleStatusUpdate = async (newStatus) => {
     try {
       setStatusUpdating(true);
-      await changeTaskStatusApi(id, newStatus, "Статус изменен пользователем");
+      await changeTaskStatusApi(id, newStatus);
       const updatedTask = await fetchTaskByIdApi(id);
       setTask(updatedTask);
     } catch (err) {
       console.error(err);
-      const errorMsg = err.response?.data?.detail || "Ошибка при смене статуса";
+      const errorMsg = err.response?.data?.detail || t('common.error');
       alert(errorMsg);
     } finally {
       setStatusUpdating(false);
@@ -224,18 +232,24 @@ export const TaskDetailPage = () => {
   const canStart = canChangeStatus && task?.status === 'created';
   const canFinish = canChangeStatus && (task?.status === 'in_progress' || task?.status === 'revision');
 
+  const tabLabels = {
+    subtasks: t('tasks.subtasks'),
+    comments: t('tasks.comments'),
+    history: t('tasks.history')
+  };
+
   return (
     <div ref={pageRef} className="flex flex-col h-full bg-[#FAFAFA] overflow-y-auto custom-scrollbar font-sans p-4 pt-0 gap-6">
 
       <div className="flex flex-col gap-4">
-        <button 
+        <button
           onClick={() => {
             if (window.history.length > 1) {
               navigate(-1)
             } else {
               navigate('/tasks')
             }
-          }} 
+          }}
           className="p-1 text-gray-400 hover:bg-gray-200 rounded-md w-fit transition-all">
           <ChevronLeft size={16}/>
         </button>
@@ -243,7 +257,7 @@ export const TaskDetailPage = () => {
         {isSubtask && (
           <div className="flex items-center gap-2 -mb-2 animate-in fade-in slide-in-from-left-2">
             <Link2 size={16} className="text-blue-500" />
-            <button 
+            <button
               onClick={() => navigate(`/tasks/${task.parent_task.id}`)}
               className="text-[14px] font-medium text-blue-600 underline hover:text-blue-500 decoration-blue-300"
             >
@@ -254,7 +268,7 @@ export const TaskDetailPage = () => {
 
         <div className="flex justify-between items-start">
           <div className="flex flex-col gap-1">
-            <span className="text-[12px] font-bold text-gray-500 uppercase tracking-tight">{isSubtask ? 'Тема подзадачи' : 'Тема задачи'}</span>
+            <span className="text-[12px] font-bold text-gray-500 uppercase tracking-tight">{t('tasks.task_topic')}</span>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-gray-900">{task.title}</h1>
               <div className="mt-2">
@@ -263,33 +277,33 @@ export const TaskDetailPage = () => {
                 </span>
               </div>
             </div>
-            <p className="text-[11px] text-gray-400">Дата создания: {format(new Date(task.created_at), 'd апреля yyyy г. HH:mm:ss', { locale: ru })}</p>
+            <p className="text-[11px] text-gray-400">{t('tasks.created_at')}: {format(new Date(task.created_at), 'd MMMM yyyy HH:mm:ss', { locale: ru })}</p>
           </div>
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={() => handleStatusUpdate('in_progress')}
               disabled={!canStart || statusUpdating}
               className={`flex items-center justify-center gap-2 px-6 py-2 rounded-lg font-bold text-[13px] transition-all shadow-md ${
-                canStart 
-                  ? 'bg-[#1677FF] text-white hover:bg-blue-600 shadow-blue-100' 
+                canStart
+                  ? 'bg-[#1677FF] text-white hover:bg-blue-600 shadow-blue-100'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
               {statusUpdating && task.status === 'created' && <Loader2 size={16} className="animate-spin" />}
-              Начать работу
+              {t('tasks.start_work')}
             </button>
-            
-            <button 
+
+            <button
               onClick={() => handleStatusUpdate('waiting')}
               disabled={!canFinish || statusUpdating}
               className={`flex items-center justify-center gap-2 px-6 py-2 rounded-lg font-bold text-[13px] transition-all border ${
-                canFinish 
-                  ? 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50 shadow-sm' 
+                canFinish
+                  ? 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50 shadow-sm'
                   : 'bg-white text-gray-200 border-gray-100 cursor-not-allowed'
               }`}
             >
               {statusUpdating && (task.status === 'in_progress' || task.status === 'revision') && <Loader2 size={16} className="animate-spin" />}
-              Завершить
+              {t('tasks.finish')}
             </button>
           </div>
         </div>
@@ -300,16 +314,16 @@ export const TaskDetailPage = () => {
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-5">
             <div className="flex items-center gap-3">
               <Star size={18} className="text-gray-400" />
-              <span className="text-[14px] text-gray-400 w-24">Приоритет:</span>
+              <span className="text-[14px] text-gray-400 w-24">{t('tasks.priority_col')}:</span>
               <span className={`px-3 py-0.5 rounded-full text-[11px] font-bold border ${task.priority === 'high' ? 'bg-red-50 text-red-500 border-red-100' : 'bg-gray-50 text-gray-500 border-gray-100'}`}>
-                {task.priority === 'high' ? 'Высокий' : 'Низкий'}
+                {getPriorityLabel(task.priority)}
               </span>
             </div>
             <div className="flex items-center gap-3">
               <Calendar size={18} className="text-gray-400" />
-              <span className="text-[14px] text-gray-400 w-24">Дедлайн:</span>
+              <span className="text-[14px] text-gray-400 w-24">{t('tasks.deadline')}:</span>
               <span className="text-[14px] font-bold text-gray-800">
-                {format(new Date(task.deadline), 'd MMMM yyyy г. HH:mm', { locale: ru })}
+                {format(new Date(task.deadline), 'd MMMM yyyy HH:mm', { locale: ru })}
               </span>
             </div>
           </div>
@@ -317,7 +331,7 @@ export const TaskDetailPage = () => {
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-5">
             <div className="flex items-start gap-3">
               <Users size={18} className="text-gray-400 mt-1" />
-              <span className="text-[14px] text-gray-400 w-24">Исполнители:</span>
+              <span className="text-[14px] text-gray-400 w-24">{t('tasks.assignees')}:</span>
               <div className="flex flex-col gap-3">
                 {task.assignees?.map(a => (
                   <div key={a.id} className="flex items-center gap-2">
@@ -331,11 +345,11 @@ export const TaskDetailPage = () => {
             </div>
             <div className="flex items-center gap-3">
               <TagIcon size={18} className="text-gray-400" />
-              <span className="text-[14px] text-gray-400 w-24">Тэг:</span>
+              <span className="text-[14px] text-gray-400 w-24">{t('tasks.tag')}:</span>
               <div className="flex gap-2">
-                {task.tags?.map(t => (
-                  <span key={t.id} className="px-2 py-0.5 bg-white text-purple-600 rounded-md border border-purple-200 text-[10px] font-bold">
-                    {t.name}
+                {task.tags?.map(tg => (
+                  <span key={tg.id} className="px-2 py-0.5 bg-white text-purple-600 rounded-md border border-purple-200 text-[10px] font-bold">
+                    {tg.name}
                   </span>
                 ))}
               </div>
@@ -347,19 +361,19 @@ export const TaskDetailPage = () => {
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
             <div className="flex items-center gap-3">
               <Star size={16} className="text-gray-400" />
-              <span className="text-sm text-gray-400 w-24">Приоритет:</span>
+              <span className="text-sm text-gray-400 w-24">{t('tasks.priority_col')}:</span>
               <span className="bg-red-50 text-red-500 border border-red-100 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase">
-                {task.priority === 'high' ? 'Высокий' : 'Низкий'}
+                {getPriorityLabel(task.priority)}
               </span>
             </div>
             <div className="flex items-center gap-3">
               <Calendar size={16} className="text-gray-400" />
-              <span className="text-sm text-gray-400 w-24">Дедлайн:</span>
-              <span className="text-sm font-bold text-gray-800">{format(new Date(task.deadline), 'd апреля yyyy г. HH:mm', { locale: ru })}</span>
+              <span className="text-sm text-gray-400 w-24">{t('tasks.deadline')}:</span>
+              <span className="text-sm font-bold text-gray-800">{format(new Date(task.deadline), 'd MMMM yyyy HH:mm', { locale: ru })}</span>
             </div>
             <div className="flex items-start gap-3">
               <Users size={16} className="text-gray-400 mt-1" />
-              <span className="text-sm text-gray-400 w-24">Исполнители:</span>
+              <span className="text-sm text-gray-400 w-24">{t('tasks.assignees')}:</span>
               <div className="flex flex-wrap gap-2">
                 {task.assignees?.map(a => (
                   <div key={a.id} className="flex items-center gap-2">
@@ -373,11 +387,11 @@ export const TaskDetailPage = () => {
             </div>
             <div className="flex items-center gap-3">
               <TagIcon size={16} className="text-gray-400" />
-              <span className="text-sm text-gray-400 w-24">Тэг:</span>
+              <span className="text-sm text-gray-400 w-24">{t('tasks.tag')}:</span>
               <div className="flex gap-2">
-                {task.tags?.map(t => (
-                  <span key={t.id} className="px-2 py-0.5 border border-purple-200 text-purple-600 rounded-md text-[10px] font-bold">
-                    {t.name}
+                {task.tags?.map(tg => (
+                  <span key={tg.id} className="px-2 py-0.5 border border-purple-200 text-purple-600 rounded-md text-[10px] font-bold">
+                    {tg.name}
                   </span>
                 ))}
               </div>
@@ -387,18 +401,18 @@ export const TaskDetailPage = () => {
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
             <div className="flex items-center gap-3">
               <Building2 size={16} className="text-gray-400" />
-              <span className="text-sm text-gray-400 w-24">Компания:</span>
-              <span className="text-sm font-bold text-gray-800 uppercase">{task.client?.name || '—'}</span>
+              <span className="text-sm text-gray-400 w-24">{t('tasks.company')}:</span>
+              <span className="text-sm font-bold text-gray-800 uppercase">{task.client?.name || '\u2014'}</span>
             </div>
             <div className="flex items-center gap-3">
               <LayoutGrid size={16} className="text-gray-400" />
-              <span className="text-sm text-gray-400 w-24">Проект:</span>
-              <span className="text-sm font-medium text-gray-700">{task.epic?.project?.title || '—'}</span>
+              <span className="text-sm text-gray-400 w-24">{t('tasks.project')}:</span>
+              <span className="text-sm font-medium text-gray-700">{task.epic?.project?.title || '\u2014'}</span>
             </div>
             <div className="flex items-center gap-3">
               <Layers size={16} className="text-gray-400" />
-              <span className="text-sm text-gray-400 w-24">Эпик:</span>
-              <span className="text-sm font-medium text-gray-700">{task.epic?.title || '—'}</span>
+              <span className="text-sm text-gray-400 w-24">{t('tasks.epic')}:</span>
+              <span className="text-sm font-medium text-gray-700">{task.epic?.title || '\u2014'}</span>
             </div>
           </div>
         </div>
@@ -406,21 +420,21 @@ export const TaskDetailPage = () => {
 
       <div className="space-y-3">
         <h3 className="flex items-center gap-2 text-sm font-bold text-gray-800 uppercase tracking-wider">
-          <Pencil size={16} className="text-gray-400" /> Описание
+          <Pencil size={16} className="text-gray-400" /> {t('tasks.description')}
         </h3>
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 min-h-[120px] text-sm text-gray-700 leading-relaxed">
-          {task.description || 'Нет описания'}
+          {task.description || t('common.no_data')}
         </div>
       </div>
 
       <div className="space-y-3">
         <h3 className="flex items-center gap-2 text-sm font-bold text-gray-800 uppercase tracking-wider">
-          <Paperclip size={16} className="text-gray-400" /> Вложения
+          <Paperclip size={16} className="text-gray-400" /> {t('tasks.attachments')}
         </h3>
         <div className="flex flex-wrap gap-4 items-center">
           {attachments.map(file => (
-            <div 
-              key={file.id} 
+            <div
+              key={file.id}
               onClick={() => handleViewFile(file.id, file.filename)}
               className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-200 rounded-xl shadow-sm group hover:border-blue-300 transition-all cursor-pointer"
             >
@@ -430,20 +444,20 @@ export const TaskDetailPage = () => {
                 <button
                   onClick={(e) => handleDeleteAttachClick(e, file)}
                   className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors ml-2"
-                  title="Удалить файл"
+                  title={t('tasks.delete_file_title')}
                 >
                   <Trash2 size={14} />
                 </button>
               )}
             </div>
           ))}
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            onChange={handleFileUpload} 
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleFileUpload}
           />
-          <button 
+          <button
             onClick={() => fileInputRef.current.click()}
             disabled={uploading}
             className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded-xl bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm active:scale-95 disabled:opacity-50"
@@ -454,20 +468,20 @@ export const TaskDetailPage = () => {
               <Plus size={20} className="text-gray-400" />
             )}
           </button>
-          {attachments.length === 0 && <span className="text-gray-400 text-xs italic">Нет вложений</span>}
+          {attachments.length === 0 && <span className="text-gray-400 text-xs italic">{t('tasks.no_attachments')}</span>}
         </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden h-[600px] flex-shrink-0">
         <div className="flex px-8 border-b border-gray-50 bg-white">
-          {availableTabs.map((t) => (
-            <button 
-              key={t}
-              onClick={() => setActiveTab(t)}
-              className={`py-4 px-6 text-sm font-bold transition-all relative capitalize ${activeTab === t ? 'text-blue-600' : 'text-gray-400'}`}
+          {availableTabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`py-4 px-6 text-sm font-bold transition-all relative capitalize ${activeTab === tab ? 'text-blue-600' : 'text-gray-400'}`}
             >
-              {t === 'subtasks' ? 'Подзадачи' : t === 'comments' ? 'Комментарий' : 'История'}
-              {activeTab === t && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-full" />}
+              {tabLabels[tab]}
+              {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-full" />}
             </button>
           ))}
         </div>
@@ -476,7 +490,7 @@ export const TaskDetailPage = () => {
           {activeTab === 'subtasks' && !isSubtask && (
             <div className="p-8 space-y-4 overflow-y-auto">
               {subtasks.map(st => (
-                <div 
+                <div
                   key={st.id}
                   className="p-4 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center cursor-pointer hover:border-blue-300 transition-all group"
                   onClick={() => navigate(`/tasks/${st.id}`)}
@@ -491,11 +505,11 @@ export const TaskDetailPage = () => {
                   </div>
                 </div>
               ))}
-              <button 
+              <button
                 onClick={() => setIsSubtaskModalOpen(true)}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-xs"
               >
-                + Добавить подзадачу
+                + {t('tasks.subtask_add_button')}
               </button>
             </div>
           )}
@@ -506,34 +520,34 @@ export const TaskDetailPage = () => {
         </div>
       </div>
 
-      <Modal 
-        isOpen={isAttachDeleteModalOpen} 
-        onClose={() => setIsAttachDeleteModalOpen(false)} 
-        title="Удаление вложения"
+      <Modal
+        isOpen={isAttachDeleteModalOpen}
+        onClose={() => setIsAttachDeleteModalOpen(false)}
+        title={t('tasks.delete_file_title')}
       >
         <div className="flex flex-col gap-4 font-sans">
           <p className="text-gray-600">
-            Вы уверены, что хотите удалить файл <span className="font-bold text-gray-800">"{attachToDelete?.filename}"</span>?
+            {t('tasks.delete_file_confirm')} <span className="font-bold text-gray-800">"{attachToDelete?.filename}"</span>?
           </p>
-          
+
           <div className="flex justify-end gap-3 mt-4">
-            <button 
+            <button
               onClick={() => setIsAttachDeleteModalOpen(false)}
               className="px-6 py-2 font-bold text-gray-500 hover:bg-gray-50 rounded-lg transition-colors border border-transparent"
             >
-              Отмена
+              {t('common.cancel')}
             </button>
-            <button 
+            <button
               onClick={confirmAttachDelete}
               className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-100 flex items-center justify-center"
             >
-              Удалить
+              {t('common.delete')}
             </button>
           </div>
         </div>
       </Modal>
 
-      <Modal isOpen={isSubtaskModalOpen} onClose={() => setIsSubtaskModalOpen(false)} title="Добавить подзадачу">
+      <Modal isOpen={isSubtaskModalOpen} onClose={() => setIsSubtaskModalOpen(false)} title={t('tasks.subtask_add_new')}>
         <SubtaskForm onClose={() => setIsSubtaskModalOpen(false)} onRefresh={loadData} initialParentId={task.id} />
       </Modal>
 

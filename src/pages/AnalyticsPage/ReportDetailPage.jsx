@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, RefreshCw, Clock, Cpu, Hash, User, CheckCircle2, Calendar, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -9,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { llmModelService } from '../../services/llmModelService';
 
 export const ReportDetailPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -50,37 +52,35 @@ export const ReportDetailPage = () => {
       const newSummary = await summaryService.regenerate(id, regenModelId ? Number(regenModelId) : null);
       setShowRegenPicker(false);
       setRegenModelId('');
-      // Navigate to the new version
       if (newSummary.id && newSummary.id !== Number(id)) {
         navigate(`/reports/summaries/${newSummary.id}`);
       } else {
         loadData();
       }
     } catch (err) {
-      alert("Ошибка перегенерации");
+      alert(t('report.regen_error'));
     } finally {
       setRegenerating(false);
     }
   };
 
-  if (loading) return <div className="h-full flex items-center justify-center text-gray-400 animate-pulse">Загрузка отчета...</div>;
-  if (!summary) return <div className="p-10 text-center text-red-500">Отчет не найден</div>;
+  if (loading) return <div className="h-full flex items-center justify-center text-gray-400 animate-pulse">{t('report.loading')}</div>;
+  if (!summary) return <div className="p-10 text-center text-red-500">{t('report.not_found')}</div>;
 
   return (
-    // FIX: h-full и overflow-y-auto позволяют странице скроллиться
     <div className="h-full overflow-y-auto custom-scrollbar bg-[#FAFAFA]">
       <div className="max-w-5xl mx-auto p-6 flex flex-col gap-6 font-sans pb-20">
-        
-        {/* Компактный Header */}
+
+        {/* Header */}
         <div className="flex items-center justify-between flex-shrink-0">
-          <button 
-            onClick={() => navigate('/analytics')} 
+          <button
+            onClick={() => navigate('/analytics')}
             className="flex items-center gap-2 text-gray-400 hover:text-blue-600 transition-all text-sm font-bold group"
           >
-            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" /> 
-            Назад к аналитике
+            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+            {t('report.back')}
           </button>
-          
+
           {user?.role === 'manager' && (
             <div className="flex items-center gap-2">
               {showRegenPicker && llmModels.length > 0 && (
@@ -89,7 +89,7 @@ export const ReportDetailPage = () => {
                   onChange={e => setRegenModelId(e.target.value)}
                   className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs w-[180px]"
                 >
-                  <option value="">Текущая модель</option>
+                  <option value="">{t('report.current_model')}</option>
                   {llmModels.map(m => <option key={m.id} value={m.id}>{m.display_name || m.model_id}</option>)}
                 </select>
               )}
@@ -105,16 +105,16 @@ export const ReportDetailPage = () => {
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-blue-700 transition-all shadow-md disabled:bg-gray-300"
               >
                 {regenerating ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                {showRegenPicker ? 'Подтвердить' : 'Перегенерировать'}
+                {showRegenPicker ? t('report.confirm_regen') : t('report.regenerate')}
               </button>
             </div>
           )}
         </div>
 
-        {/* Основная карточка отчета */}
+        {/* Report Card */}
         <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-          
-          {/* Заголовок внутри карточки */}
+
+          {/* Card Header */}
           <div className="p-8 border-b border-gray-50 bg-gray-50/30">
             <div className="flex items-center gap-3 mb-3">
               <span className="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">
@@ -123,10 +123,10 @@ export const ReportDetailPage = () => {
               <span className="text-[10px] font-bold text-gray-400 uppercase">ID: #{summary.id}</span>
             </div>
             <h1 className="text-2xl font-black text-gray-900 leading-tight">
-              Отчет за {summary.period_start} — {summary.period_end}
+              {t('report.for_period')} {summary.period_start} — {summary.period_end}
             </h1>
             <p className="text-xs text-gray-400 mt-2 font-medium">
-              Сгенерирован {format(new Date(summary.generated_at), 'd MMMM yyyy, HH:mm', { locale: ru })}
+              {t('report.generated_at')} {format(new Date(summary.generated_at), 'd MMMM yyyy, HH:mm', { locale: ru })}
             </p>
           </div>
 
@@ -134,18 +134,18 @@ export const ReportDetailPage = () => {
           {(summary.focus_prompt || summary.project_scope || summary.client_scope) && (
             <div className="px-8 py-4 border-b border-gray-50 flex flex-wrap gap-4 text-xs">
               {summary.project_scope && (
-                <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg font-medium">Проект: {summary.project_scope.name}</span>
+                <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg font-medium">{t('report.scope_project')}: {summary.project_scope.name}</span>
               )}
               {summary.client_scope && (
-                <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg font-medium">Клиент: {summary.client_scope.name}</span>
+                <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg font-medium">{t('report.scope_client')}: {summary.client_scope.name}</span>
               )}
               {summary.focus_prompt && (
-                <span className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-lg font-medium">Фокус: {summary.focus_prompt}</span>
+                <span className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-lg font-medium">{t('report.scope_focus')}: {summary.focus_prompt}</span>
               )}
             </div>
           )}
 
-          {/* Секции (structured) */}
+          {/* Sections (structured) */}
           {summary.sections && Object.keys(summary.sections).length > 0 ? (
             <div className="p-8 border-b border-gray-50 flex flex-col gap-6">
               {Object.entries(summary.sections).map(([title, content]) => (
@@ -156,7 +156,7 @@ export const ReportDetailPage = () => {
               ))}
             </div>
           ) : (
-            /* Текстовый контент (fallback) */
+            /* Text content (fallback) */
             <div className="p-8 border-b border-gray-50">
               <div className="text-[15px] text-gray-700 leading-[1.7] whitespace-pre-wrap">
                 {summary.summary_text}
@@ -164,32 +164,32 @@ export const ReportDetailPage = () => {
             </div>
           )}
 
-          {/* Секция графиков */}
+          {/* Charts Section */}
           <div className="p-8 bg-[#F9FAFB]/50">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-1.5 h-6 bg-blue-600 rounded-full" />
-              <h3 className="text-lg font-black text-gray-800 uppercase tracking-tight">Визуальный разбор</h3>
+              <h3 className="text-lg font-black text-gray-800 uppercase tracking-tight">{t('report.visual_title')}</h3>
             </div>
             <ReportCharts rawData={summary.raw_data} />
           </div>
 
-          {/* Техническая информация (футер карточки) */}
+          {/* Technical info (card footer) */}
           <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50/50 border-t border-gray-100">
-            <MetaItem icon={<Cpu size={16}/>} label="Модель" value={summary.llm_model || 'GPT-4o'} />
-            <MetaItem icon={<Hash size={16}/>} label="Токены" value={Number(summary.prompt_tokens || 0) + Number(summary.completion_tokens || 0)} />
-            <MetaItem icon={<Clock size={16}/>} label="Время" value={`${summary.generation_time_ms}ms`} />
-            <MetaItem icon={<User size={16}/>} label="Автор" value={summary.requested_by?.first_name || 'Система'} />
+            <MetaItem icon={<Cpu size={16}/>} label={t('report.model')} value={summary.llm_model || 'GPT-4o'} />
+            <MetaItem icon={<Hash size={16}/>} label={t('report.tokens')} value={Number(summary.prompt_tokens || 0) + Number(summary.completion_tokens || 0)} />
+            <MetaItem icon={<Clock size={16}/>} label={t('report.time')} value={`${summary.generation_time_ms}ms`} />
+            <MetaItem icon={<User size={16}/>} label={t('report.author')} value={summary.requested_by?.first_name || t('report.system')} />
           </div>
         </div>
 
-        {/* История версий */}
+        {/* Version History */}
         {versions.length > 1 && (
           <div className="mt-4">
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 px-2">История версий</h3>
+            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 px-2">{t('report.versions_title')}</h3>
             <div className="flex flex-col gap-2">
               {versions.map(v => (
-                <div 
-                  key={v.id} 
+                <div
+                  key={v.id}
                   onClick={() => navigate(`/reports/summaries/${v.id}`)}
                   className={`p-4 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${v.id === summary.id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100 hover:border-blue-200'}`}
                 >
@@ -210,7 +210,6 @@ export const ReportDetailPage = () => {
   );
 };
 
-// Вспомогательный мини-компонент для метаданных
 const MetaItem = ({ icon, label, value }) => (
   <div className="flex items-center gap-3">
     <div className="text-gray-400">{icon}</div>

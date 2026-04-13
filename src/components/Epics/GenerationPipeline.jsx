@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Loader2, Database, FileText, Brain, Code, ShieldCheck, Sparkles } from 'lucide-react';
 import { generationWsService, pollEpicGenerationStatus } from '../../services/generationWsService';
 import { useAuth } from '../../context/AuthContext';
 
-const STAGES = [
-  { id: 'collecting_context', label: 'Сбор данных', icon: Database },
-  { id: 'building_prompt', label: 'Формирование запроса', icon: FileText },
-  { id: 'calling_llm', label: 'Вызов ИИ-модели', icon: Brain },
-  { id: 'parsing_response', label: 'Обработка ответа', icon: Code },
-  { id: 'validating', label: 'Валидация', icon: ShieldCheck },
-  { id: 'completed', label: 'Завершено', icon: Sparkles },
-];
-
 export const GenerationPipeline = ({ epicId, taskId, onCompleted, onFailed }) => {
+  const { t } = useTranslation();
+
+  const STAGES = [
+    { id: 'collecting_context', label: t('pipeline.collecting'), icon: Database },
+    { id: 'building_prompt', label: t('pipeline.building'), icon: FileText },
+    { id: 'calling_llm', label: t('pipeline.calling'), icon: Brain },
+    { id: 'parsing_response', label: t('pipeline.parsing'), icon: Code },
+    { id: 'validating', label: t('pipeline.validating'), icon: ShieldCheck },
+    { id: 'completed', label: t('pipeline.completed'), icon: Sparkles },
+  ];
   const { token } = useAuth();
   const [currentStage, setCurrentStage] = useState(null);
   const [stageMeta, setStageMeta] = useState({});
@@ -89,10 +91,10 @@ export const GenerationPipeline = ({ epicId, taskId, onCompleted, onFailed }) =>
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-6">
-      <h4 className="text-sm font-bold text-gray-800 mb-4">Генерация задач</h4>
+      <h4 className="text-sm font-bold text-gray-800 mb-4">{t('pipeline.title')}</h4>
 
       {failed ? (
-        <div className="text-red-500 text-sm font-medium">Ошибка генерации. Попробуйте снова.</div>
+        <div className="text-red-500 text-sm font-medium">{t('pipeline.error')}</div>
       ) : (
         <div className="flex flex-col gap-3">
           {STAGES.map((stage, idx) => {
@@ -125,9 +127,9 @@ export const GenerationPipeline = ({ epicId, taskId, onCompleted, onFailed }) =>
                   </p>
                   {isActive && stageMeta && Object.keys(stageMeta).length > 0 && (
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {stageMeta.model && `Модель: ${stageMeta.model}`}
-                      {stageMeta.total_tasks && ` | Задач: ${stageMeta.total_tasks}`}
-                      {stageMeta.token_estimate && ` | ~${stageMeta.token_estimate} токенов`}
+                      {stageMeta.model && `${t('pipeline.model')}: ${stageMeta.model}`}
+                      {stageMeta.total_tasks && ` | ${t('pipeline.tasks_count')}: ${stageMeta.total_tasks}`}
+                      {stageMeta.token_estimate && ` | ~${stageMeta.token_estimate} ${t('pipeline.tokens')}`}
                     </p>
                   )}
                 </div>

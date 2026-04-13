@@ -3,7 +3,7 @@ FROM docker.io/library/node:22-alpine AS build
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 COPY . .
 ENV REACT_APP_BACKEND_URL=

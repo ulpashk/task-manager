@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fetchUsersApi, deleteUserApi } from '../../services/userService';
 import { UserTable } from '../../components/Users/UserTable';
 import { UserFilters } from '../../components/Users/UserFilters';
@@ -8,6 +9,7 @@ import { EditUserModal } from '../../components/Users/EditUserModal';
 import { Modal } from '../../components/general/Modal';
 
 export const UsersPage = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState({ results: [], count: 0 });
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +50,7 @@ export const UsersPage = () => {
       await deleteUserApi(selectedUser.id);
       setIsDeleteOpen(false);
       loadUsers();
-    } catch (e) { alert("Ошибка при удалении"); }
+    } catch (e) { alert(t('users.delete_error')); }
   };
 
   return (
@@ -62,7 +64,7 @@ export const UsersPage = () => {
       
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {loading ? (
-          <div className="p-10 text-center text-gray-400">Загрузка...</div>
+          <div className="p-10 text-center text-gray-400">{t('users.loading')}</div>
         ) : (
           <UserTable 
             users={data.results} 
@@ -82,12 +84,12 @@ export const UsersPage = () => {
         <EditUserModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} user={selectedUser} onRefresh={loadUsers} />
       )}
       
-      <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title="Удалить пользователя">
+      <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title={t('users.delete_title')}>
         <div className="p-4 flex flex-col gap-6">
-          <p className="text-gray-600">Вы уверены, что хотите удалить пользователя <b>{selectedUser?.first_name} {selectedUser?.last_name}</b>?</p>
+          <p className="text-gray-600">{t('users.delete_confirm')} <b>{selectedUser?.first_name} {selectedUser?.last_name}</b>?</p>
           <div className="flex justify-end gap-3">
-            <button onClick={() => setIsDeleteOpen(false)} className="px-6 py-2 font-bold text-gray-400">Отмена</button>
-            <button onClick={confirmDelete} className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold">Удалить</button>
+            <button onClick={() => setIsDeleteOpen(false)} className="px-6 py-2 font-bold text-gray-400">{t('common.cancel')}</button>
+            <button onClick={confirmDelete} className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold">{t('common.delete')}</button>
           </div>
         </div>
       </Modal>

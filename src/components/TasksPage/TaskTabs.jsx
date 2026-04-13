@@ -1,17 +1,21 @@
+import { useTranslation } from 'react-i18next';
+
 export const TaskTabs = ({ activeStatus, onStatusChange }) => {
+  const { t } = useTranslation();
+
   const tabs = [
-    { label: "Общий", key: "" },
-    { label: "Создано", key: "created" },
-    { label: "В обработке", key: "in_progress" },
-    { label: "На проверке", key: "waiting" },
-    { label: "На доработке", key: "revision" },
-    { label: "Выполнено", key: "done" },
+    { label: t('status.general'), key: "" },
+    { label: t('status.created'), key: "created" },
+    { label: t('status.in_progress'), key: "in_progress" },
+    { label: t('status.waiting'), key: "waiting" },
+    { label: t('status.revision'), key: "revision" },
+    { label: t('status.done'), key: "done" },
   ];
 
   return (
     <div className="px-6 mt-6 border-b border-gray-100 flex gap-6">
       {tabs.map(tab => (
-        <button 
+        <button
           key={tab.key}
           onClick={() => onStatusChange(tab.key)}
           className={`pb-3 text-sm font-medium transition-colors relative whitespace-nowrap ${

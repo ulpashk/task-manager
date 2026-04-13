@@ -1,10 +1,39 @@
+import { useTranslation } from 'react-i18next';
 import { ActionMenu } from './ActionMenu';
 import { useNavigate } from 'react-router-dom';
 import { formatDateTime } from '../../utils/formatters';
-import { getStatusStyle, getStatusLabel } from '../../utils/statusStyles';
+import { getStatusStyle } from '../../utils/statusStyles';
+
+const STATUS_KEY_MAP = {
+  done: 'status.done',
+  completed: 'status.done',
+  COMPLETED: 'status.done',
+  todo: 'status.created',
+  Todo: 'status.created',
+  TODO: 'status.created',
+  created: 'status.created',
+  in_progress: 'status.in_progress',
+  In_progress: 'status.in_progress',
+  IN_PROGRESS: 'status.in_progress',
+  revision: 'status.revision',
+  Revision: 'status.revision',
+  REVISION: 'status.revision',
+  waiting: 'status.waiting',
+};
+
+const PRIORITY_KEY_MAP = {
+  high: 'priority.high',
+  HIGH: 'priority.high',
+  medium: 'priority.medium',
+  MEDIUM: 'priority.medium',
+  low: 'priority.low',
+  LOW: 'priority.low',
+};
 
 export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
   const getPriorityStyle = (priority) => {
     if (priority === 'high' || priority === 'HIGH') return 'bg-red-50 text-red-500 border-red-100';
     if (priority === 'medium' || priority === 'MEDIUM') return 'bg-orange-50 text-orange-500 border-orange-100';
@@ -26,14 +55,13 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
       <table className="w-full text-left border-separate border-spacing-0">
         <thead className="text-[13px] font-medium text-gray-500 sticky top-0 z-20">
           <tr>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Компания</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Тема задачи</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Тэг</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Исполнитель</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Инициатор</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">Приоритет</th>
-            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">Статус</th>
-            {/* <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">Дедлайн</th> */}
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">{t('tasks.company')}</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">{t('tasks.title')}</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">{t('tasks.tag')}</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">{t('tasks.assignee')}</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100">{t('tasks.creator')}</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">{t('tasks.priority_col')}</th>
+            <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100 text-center">{t('tasks.status_col')}</th>
             <th className="px-6 py-4 bg-[#F9FAFB] border-b border-gray-100"></th>
           </tr>
         </thead>
@@ -48,9 +76,8 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
                   <span className="font-medium text-gray-700 truncate max-w-[150px]">{task.client?.name || 'Unknown Client'}</span>
                 </div>
               </td>
-              <td 
+              <td
                 className="px-6 py-4 text-gray-600 max-w-[200px] truncate"
-                // onClick={() => navigate(`/tasks/${task.id}`)}
               >
                 {task.title}
               </td>
@@ -64,7 +91,6 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
                         style={{
                           color: tag.color,
                           borderColor: `${tag.color}40`,
-                          // backgroundColor: `${tag.color}15`,
                         }}
                       >
                         {tag.name}
@@ -72,7 +98,7 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
                     ))
                   ) : (
                     <span className="px-2 py-1 bg-gray-50 text-gray-400 rounded-md border border-gray-100 text-xs font-medium">
-                      Нет тэгов
+                      {t('tasks.no_tags')}
                     </span>
                   )}
                 </div>
@@ -82,10 +108,9 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
                 <div className="flex flex-wrap gap-2">
                   {task.assignees && task.assignees.length > 0 ? (
                     task.assignees.map((assignee) => (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2" key={assignee.id}>
                         <img className="w-6 h-6 rounded-full" src={`https://ui-avatars.com/api/?name=${assignee.first_name}`} alt="" />
                         <span
-                          key={assignee.id}
                           className="text-gray-700"
                         >
                           {assignee.first_name} {assignee.last_name}
@@ -94,7 +119,7 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
                     ))
                   ) : (
                     <span className="px-2 py-1 bg-gray-50 text-gray-400 rounded-md border border-gray-100 text-xs font-medium">
-                      Нет исполнителей
+                      {t('tasks.no_assignees')}
                     </span>
                   )}
                 </div>
@@ -107,27 +132,23 @@ export const TaskTable = ({ tasks, onEditRequest, onDeleteRequest }) => {
               </td>
               <td className="px-6 py-4 text-center">
                 <span className={`px-3 py-1 rounded-full text-xs border font-medium ${getPriorityStyle(task.priority)}`}>
-                  {(task.priority === 'high' || task.priority === 'HIGH') ? 'Высокий' : (task.priority === 'medium' || task.priority === 'MEDIUM') ? 'Средний' : 'Низкий'}
+                  {t(PRIORITY_KEY_MAP[task.priority] || 'priority.low')}
                 </span>
               </td>
               <td className="px-6 py-4 text-center">
                 <div className='flex flex-col items-center gap-1'>
                   <span className="px-3 py-1 text-gray-500 whitespace-nowrap">
-                    {/* {new Date(task.deadline).toLocaleDateString()} {new Date(task.deadline).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} */}
                     {formatDateTime(task.deadline)}
                   </span>
                   <span className={`px-3 py-1 w-2/3 rounded-full text-xs font-medium ${getStatusStyle(task.status)}`}>
-                    {getStatusLabel(task.status)}
+                    {t(STATUS_KEY_MAP[task.status] || 'status.created')}
                   </span>
                 </div>
               </td>
-              {/* <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
-                {new Date(task.deadline).toLocaleDateString()} {new Date(task.deadline).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-              </td> */}
               <td className="px-4" onClick={(e) => e.stopPropagation()}>
-                <ActionMenu 
+                <ActionMenu
                   onOpen={handleMenuOpen}
-                  onDelete={() => onDeleteRequest(task)} 
+                  onDelete={() => onDeleteRequest(task)}
                   onEdit={() => onEditRequest(task)}
                 />
               </td>

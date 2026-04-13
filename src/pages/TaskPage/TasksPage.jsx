@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fetchTasksApi, deleteTaskApi } from '../../services/taskService';
 import { TaskFilters } from '../../components/TasksPage/TaskFilters';
 import { TaskTabs } from '../../components/TasksPage/TaskTabs';
@@ -11,6 +12,7 @@ import { fetchTagsListApi } from '../../services/tagService';
 import { Modal } from '../../components/general/Modal';
 
 export const TasksTablePage = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState({ results: [], count: 0 });
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,7 +51,7 @@ export const TasksTablePage = () => {
       });
       setData(res);
     } catch (err) {
-      console.error("Ошибка загрузки задач:", err);
+      console.error("Error loading tasks:", err);
     } finally {
       setLoading(false);
     }
@@ -90,7 +92,7 @@ export const TasksTablePage = () => {
       setIsDeleteModalOpen(false);
       loadTasks();
     } catch (err) {
-      alert("Ошибка при удалении задачи");
+      alert(t('tasks.delete_error'));
     }
   };
 
@@ -119,7 +121,7 @@ export const TasksTablePage = () => {
       
       <div className="flex-1 overflow-hidden">
         {loading ? (
-          <div className="p-10 text-center text-gray-400">Загрузка задач...</div>
+          <div className="p-10 text-center text-gray-400">{t('common.loading')}</div>
         ) : (
           <TaskTable 
             tasks={data.results} 
@@ -154,24 +156,24 @@ export const TasksTablePage = () => {
       <Modal 
         isOpen={isDeleteModalOpen} 
         onClose={() => setIsDeleteModalOpen(false)} 
-        title="Удаление задачи"
+        title={t('tasks.delete_title')}
       >
         <div className="flex flex-col gap-4 font-sans">
           <p className="text-gray-600">
-            Вы уверены, что хотите удалить задачу <span className="font-bold text-gray-800">"{taskToDelete?.title}"</span>? Это действие удалит все связанные данные.
+            {t('tasks.delete_confirm')} <span className="font-bold text-gray-800">"{taskToDelete?.title}"</span>?
           </p>
           <div className="flex justify-end gap-3 mt-4">
             <button 
               onClick={() => setIsDeleteModalOpen(false)}
               className="px-6 py-2 font-bold text-gray-500 hover:bg-gray-50 rounded-lg transition-colors"
             >
-              Отмена
+              {t('common.cancel')}
             </button>
-            <button 
+            <button
               onClick={confirmDelete}
               className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-100"
             >
-              Удалить задачу
+              {t('common.delete')}
             </button>
           </div>
         </div>

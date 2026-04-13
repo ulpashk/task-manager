@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { Paperclip, Bold, Underline, X, FileText, MessageSquare } from 'lucide-react';
-import { 
-  fetchTaskCommentsApi, addTaskCommentApi, 
+import {
+  fetchTaskCommentsApi, addTaskCommentApi,
   updateTaskCommentApi, deleteTaskCommentApi, downloadAttachmentApi
 } from '../../services/taskService';
 import { fetchUsersListApi } from '../../services/userService';
@@ -29,17 +30,16 @@ const ProtectedImage = React.memo(({ attachment, taskId }) => {
       isMounted = false;
       if (imgSrc) URL.revokeObjectURL(imgSrc);
     };
-  }, [attachment.id, taskId]); // Теперь запросы будут только если ID вложения реально изменится
+  }, [attachment.id, taskId]);
 
   if (!imgSrc) return <div className="w-full h-32 bg-gray-100 animate-pulse rounded-xl" />;
-  
+
   return (
-    <img 
-      src={imgSrc} 
-      alt={attachment.filename} 
+    <img
+      src={imgSrc}
+      alt={attachment.filename}
       className="rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:opacity-90 transition-all max-h-64 object-cover"
       onClick={() => {
-        // Мы вынесем handleViewFile тоже или передадим как проп
         window.open(imgSrc, '_blank');
       }}
     />
@@ -47,13 +47,14 @@ const ProtectedImage = React.memo(({ attachment, taskId }) => {
 });
 
 export const TaskComments = ({ taskId, onCommentAdded }) => {
+  const { t } = useTranslation();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
 
   const [selectedFiles, setSelectedFiles] = useState([]);
   const fileInputRef = useRef(null);
-  
+
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -69,7 +70,7 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
   const triggerDownload = (url, name) => {
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', name); 
+    link.setAttribute('download', name);
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -78,7 +79,7 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
   const handleViewFile = useCallback(async (attachmentId, filename) => {
     try {
       const blob = await downloadAttachmentApi(taskId, attachmentId);
-      
+
       const fileURL = window.URL.createObjectURL(new Blob([blob], { type: blob.type }));
       const extension = filename.split('.').pop().toLowerCase();
       const viewableExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'txt'];
@@ -94,36 +95,10 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
 
       setTimeout(() => window.URL.revokeObjectURL(fileURL), 10000);
     } catch (err) {
-      console.error("Ошибка при открытии файла:", err);
-      alert("Ошибка при загрузке файла");
+      console.error("Error opening file:", err);
+      alert(t('common.error'));
     }
-  }, [taskId]);
-  //   const [imgSrc, setImgSrc] = useState(null);
-
-  //   useEffect(() => {
-  //     const loadImg = async () => {
-  //       try {
-  //         const blob = await downloadAttachmentApi(taskId, attachment.id);
-  //         setImgSrc(URL.createObjectURL(blob));
-  //       } catch (e) {
-  //         console.error("Error loading comment image", e);
-  //       }
-  //     };
-  //     loadImg();
-  //     return () => { if (imgSrc) URL.revokeObjectURL(imgSrc); };
-  //   }, [attachment.id]);
-
-  //   if (!imgSrc) return <div className="w-full h-32 bg-gray-100 animate-pulse rounded-xl" />;
-    
-  //   return (
-  //     <img 
-  //       src={imgSrc} 
-  //       alt={attachment.filename} 
-  //       className="rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:opacity-90 transition-all max-h-64 object-cover"
-  //       onClick={() => handleViewFile(attachment.id, attachment.filename)}
-  //     />
-  //   );
-  // };
+  }, [taskId, t]);
 
   const loadComments = async () => {
     try {
@@ -137,7 +112,7 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
       try {
         const [commentsData, usersData] = await Promise.all([
           fetchTaskCommentsApi(taskId),
-          fetchUsersListApi({ is_active: 'true', page_size: 100 }) 
+          fetchUsersListApi({ is_active: 'true', page_size: 100 })
         ]);
         setComments([...commentsData].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
         setAllUsers(usersData || []);
@@ -169,18 +144,18 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
 
   const handleAdd = async () => {
     if (!newComment.trim() && selectedFiles.length === 0) return;
-    
+
     try {
       await addTaskCommentApi(taskId, newComment, selectedFiles);
       setNewComment('');
       setSelectedFiles([]);
       loadComments();
       if (onCommentAdded) {
-        onCommentAdded(); 
+        onCommentAdded();
       }
-      
-    } catch (e) { 
-      alert("Ошибка при отправке"); 
+
+    } catch (e) {
+      alert(t('common.error'));
     }
   };
 
@@ -195,7 +170,7 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
       await updateTaskCommentApi(taskId, commentId, editValue);
       setEditingId(null);
       loadComments();
-    } catch (e) { alert("Ошибка при обновлении"); }
+    } catch (e) { alert(t('common.error')); }
   };
 
   const handleDeleteClick = (comment) => {
@@ -208,7 +183,7 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
       await deleteTaskCommentApi(taskId, commentToDelete.id);
       setIsDeleteModalOpen(false);
       loadComments();
-    } catch (e) { alert("Ошибка при удалении"); }
+    } catch (e) { alert(t('common.error')); }
   };
 
   const handleTextChange = (e) => {
@@ -218,7 +193,7 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
     setCursorPos(selectionStart);
 
     const lastAtPos = value.lastIndexOf('@', selectionStart - 1);
-    
+
     if (lastAtPos !== -1) {
       const textAfterAt = value.substring(lastAtPos + 1, selectionStart);
       if (!textAfterAt.includes(' ')) {
@@ -245,9 +220,9 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
   const renderFormattedText = (text) => {
     if (!text) return '';
     const parts = text.split(/(@[A-ZА-Я][a-zа-яё]+\s[A-ZА-Я][a-zа-яё]+)/g);
-    return parts.map((part, i) => 
-      part.startsWith('@') 
-        ? <span key={i} className="text-[#1677FF] font-bold">{part}</span> 
+    return parts.map((part, i) =>
+      part.startsWith('@')
+        ? <span key={i} className="text-[#1677FF] font-bold">{part}</span>
         : part
     );
   };
@@ -282,13 +257,13 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
           });
 
           setSelectedFiles((prev) => [...prev, screenshot]);
-          
+
         }
       }
     }
   };
 
-  if (loading) return <div className="p-10 text-center text-gray-400">Загрузка комментариев...</div>;
+  if (loading) return <div className="p-10 text-center text-gray-400">{t('common.loading')}</div>;
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -299,7 +274,7 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
               <div className="w-9 h-9 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm">
                 {comment.author?.first_name?.[0]}
               </div>
-            
+
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-bold text-gray-800 text-[14px]">
@@ -311,22 +286,22 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
                     </span>
                     <ActionMenu
                       onOpen={handleMenuOpen}
-                      onEdit={() => startEdit(comment)} 
+                      onEdit={() => startEdit(comment)}
                       onDelete={() => handleDeleteClick(comment)}
                     />
                   </div>
                 </div>
-                
+
                 {editingId === comment.id ? (
                   <div className="mt-2 animate-in fade-in duration-200">
-                    <textarea 
+                    <textarea
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       className="w-full p-3 border border-blue-400 rounded-xl text-sm outline-none shadow-sm min-h-[80px] focus:ring-2 focus:ring-blue-50"
                     />
                     <div className="flex justify-end gap-2 mt-2">
-                      <button onClick={() => setEditingId(null)} className="px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-500 hover:bg-gray-50">Отменить</button>
-                      <button onClick={() => handleUpdate(comment.id)} className="px-4 py-1.5 bg-[#1677FF] text-white rounded-lg text-xs font-bold hover:bg-blue-600">Редактировать</button>
+                      <button onClick={() => setEditingId(null)} className="px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-500 hover:bg-gray-50">{t('common.cancel')}</button>
+                      <button onClick={() => handleUpdate(comment.id)} className="px-4 py-1.5 bg-[#1677FF] text-white rounded-lg text-xs font-bold hover:bg-blue-600">{t('common.edit')}</button>
                     </div>
                   </div>
                 ) : (
@@ -344,8 +319,8 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
                           {isImage ? (
                             <ProtectedImage attachment={file} taskId={taskId} />
                           ) : (
-                            <div 
-                              onClick={() => handleViewFile(file.id, file.filename)} // Вызов новой функции
+                            <div
+                              onClick={() => handleViewFile(file.id, file.filename)}
                               className="flex items-center gap-3 px-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl hover:border-blue-300 transition-all cursor-pointer group/file"
                             >
                               <FileText className={ext === 'pdf' ? "text-red-500" : "text-blue-500"} size={20} />
@@ -372,8 +347,8 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
               <div className="bg-gray-50 p-4 rounded-full mb-4">
                 <MessageSquare size={32} className="opacity-20" />
               </div>
-              <p className="text-sm font-medium">Комментариев пока нет</p>
-              <p className="text-xs opacity-60">Будьте первым, кто оставит отзыв к этой задаче</p>
+              <p className="text-sm font-medium">{t('tasks.comments_empty')}</p>
+              <p className="text-xs opacity-60">{t('tasks.comments_first')}</p>
             </div>
         )}
         <div className="h-18 flex-shrink-0 pointer-events-none" />
@@ -382,10 +357,10 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
       <div className="p-8 border-t border-gray-50 flex-shrink-0 bg-white relative">
         {showMentionList && (
           <div className="absolute bottom-[calc(100%-20px)] left-8 w-64 bg-white border border-gray-100 shadow-2xl rounded-xl z-[100] overflow-hidden animate-in slide-in-from-bottom-2">
-            <div className="p-2 bg-gray-50 border-b text-[10px] font-bold text-gray-400 uppercase tracking-wider">Упомянуть пользователя</div>
+            <div className="p-2 bg-gray-50 border-b text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('tasks.comments_mention')}</div>
             <div className="max-h-48 overflow-y-auto">
               {allUsers.filter(u => `${u.first_name} ${u.last_name}`.toLowerCase().includes(mentionSearch.toLowerCase())).map(u => (
-                <div 
+                <div
                   key={u.id}
                   onClick={() => insertMention(u)}
                   className="flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
@@ -411,14 +386,14 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
             ))}
           </div>
         )}
-        
-        <h4 className="text-sm font-bold text-gray-800 mb-3">Ваш комментарий</h4>
+
+        <h4 className="text-sm font-bold text-gray-800 mb-3">{t('tasks.comments_title')}</h4>
         <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:border-blue-400 transition-all shadow-sm">
-          <textarea 
+          <textarea
             value={newComment}
             onChange={handleTextChange}
             onPaste={handlePaste}
-            placeholder="Введите текст комментария..."
+            placeholder={t('tasks.comments_placeholder')}
             className="w-full h-24 p-4 text-sm outline-none resize-none"
           />
           <div className="bg-[#F9FAFB] px-4 py-3 flex items-center justify-between border-t border-gray-50">
@@ -427,27 +402,26 @@ export const TaskComments = ({ taskId, onCommentAdded }) => {
               <button type="button" onClick={() => fileInputRef.current.click()} className="hover:text-blue-500 transition-colors">
                 <Paperclip size={18} />
               </button>
-              {/* <div className="w-px h-4 bg-gray-200 mx-1"></div> */}
               <Bold size={18} className="hover:text-blue-500 cursor-pointer" />
               <Underline size={18} className="hover:text-blue-500 cursor-pointer" />
             </div>
-            <button 
+            <button
               onClick={handleAdd}
               disabled={!newComment.trim() && selectedFiles.length === 0}
               className="bg-[#1677FF] text-white px-6 py-2 rounded-lg font-bold text-xs hover:bg-blue-600 disabled:bg-gray-200 transition-all"
             >
-              Добавить
+              {t('tasks.comments_add')}
             </button>
           </div>
         </div>
       </div>
 
-      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Удалить комментарий">
+      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title={t('tasks.comments_delete_title')}>
         <div className="flex flex-col gap-4 p-2">
-          <p className="text-gray-600 text-sm">Вы уверены, что хотите удалить этот комментарий? Это действие нельзя отменить.</p>
+          <p className="text-gray-600 text-sm">{t('tasks.comments_delete_confirm')}</p>
           <div className="flex justify-end gap-3 mt-4">
-            <button onClick={() => setIsDeleteModalOpen(false)} className="px-6 py-2 border rounded-lg font-bold text-gray-400">Отмена</button>
-            <button onClick={confirmDelete} className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold">Удалить</button>
+            <button onClick={() => setIsDeleteModalOpen(false)} className="px-6 py-2 border rounded-lg font-bold text-gray-400">{t('common.cancel')}</button>
+            <button onClick={confirmDelete} className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold">{t('common.delete')}</button>
           </div>
         </div>
       </Modal>

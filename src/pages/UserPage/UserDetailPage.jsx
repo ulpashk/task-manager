@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchUserByIdApi, deleteUserApi } from '../../services/userService';
 import { fetchClientByIdApi } from '../../services/clientService';
@@ -8,6 +9,7 @@ import { Modal } from '../../components/general/Modal';
 import { EditUserModal } from '../../components/Users/EditUserModal';
 
 export const UserDetailPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -30,7 +32,7 @@ export const UserDetailPage = () => {
             setClientName(clientData.name);
           } catch (e) {
             console.error("Не удалось загрузить название компании");
-            setClientName("Ошибка загрузки");
+            setClientName(t('common.error'));
           }
         }
       } catch (err) {
@@ -43,23 +45,23 @@ export const UserDetailPage = () => {
     loadData();
   }, [id]);
 
-  if (loading) return <div className="p-10 text-center"><Loader2 className="animate-spin inline mr-2" size={20}/> Загрузка...</div>;
-  if (!user) return <div className="p-10 text-center text-red-500 font-sans">Пользователь не найден</div>;
+  if (loading) return <div className="p-10 text-center"><Loader2 className="animate-spin inline mr-2" size={20}/> {t('users.loading')}</div>;
+  if (!user) return <div className="p-10 text-center text-red-500 font-sans">{t('common.no_data')}</div>;
 
   const taskStats = [
-    { label: 'Общий', value: user.assigned_tasks_count || 0 },
-    { label: 'Не выполнено', value: 0 },
-    { label: 'В обработке', value: 0 },
-    { label: 'На доработке', value: 0 },
-    { label: 'Выполнено', value: 0 },
+    { label: t('status.general'), value: user.assigned_tasks_count || 0 },
+    { label: t('status.created'), value: 0 },
+    { label: t('status.in_progress'), value: 0 },
+    { label: t('status.revision'), value: 0 },
+    { label: t('status.done'), value: 0 },
   ];
 
   const getUserRoleLabel = (role) => {
-    if (role === 'engineer') return 'Инженер';
-    if (role === 'manager') return 'Менеджер';
-    if (role === 'client') return 'Клиент';
-    if (role === 'superadmin') return 'Суперадмин';
-    if (role === 'admin') return 'Админ';
+    if (role === 'engineer') return t('role.engineer');
+    if (role === 'manager') return t('role.manager');
+    if (role === 'client') return t('role.client');
+    if (role === 'superadmin') return t('role.superadmin');
+    if (role === 'admin') return t('role.admin');
     return role;
   };
 
@@ -106,7 +108,7 @@ export const UserDetailPage = () => {
               ? 'bg-green-50 text-green-600 border-green-100' 
               : 'bg-gray-50 text-gray-400 border-gray-200'
           }`}>
-            {user.is_active ? 'Активный' : 'Неактивный'}
+            {user.is_active ? t('orgs.manager_active') : t('orgs.manager_inactive')}
           </span>
         </div>
 
@@ -120,10 +122,10 @@ export const UserDetailPage = () => {
           </div>
 
           <div className="flex flex-col gap-2 text-[15px] text-gray-800 pt-1">
-            <p>Номер телефона: <span className="text-gray-600 ml-1">{formatPhoneNumber(user.phone)}</span></p>
-            <p>E-mail: <span className="text-gray-600 ml-1">{user.email}</span></p>
-            <p>Роль: <span className="text-gray-600 ml-1">{getUserRoleLabel(user.role)}</span></p>
-            <p>Компания: <span className="text-gray-600 ml-1 uppercase font-bold">{user?.role === 'superadmin' ? 'Платформа (Все компании)' : `${clientName}`}</span></p>
+            <p>{t('users.phone')}: <span className="text-gray-600 ml-1">{formatPhoneNumber(user.phone)}</span></p>
+            <p>{t('users.email')}: <span className="text-gray-600 ml-1">{user.email}</span></p>
+            <p>{t('users.role')}: <span className="text-gray-600 ml-1">{getUserRoleLabel(user.role)}</span></p>
+            <p>{t('users.company')}: <span className="text-gray-600 ml-1 uppercase font-bold">{clientName}</span></p>
             {/* <p>Логин: <span className="text-gray-600 ml-1">{user.email}</span></p> */}
           </div>
         </div>
@@ -143,12 +145,12 @@ export const UserDetailPage = () => {
 
       <EditUserModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} user={user} onRefresh={() => fetchUserByIdApi(id).then(setUser)} />
       
-      <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title="Удалить пользователя">
+      <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title={t('users.delete_title')}>
         <div className="p-4 text-center">
-          <p className="text-gray-600">Вы действительно хотите удалить пользователя <br/><b>{user.first_name} {user.last_name}</b>?</p>
+          <p className="text-gray-600">{t('users.delete_confirm')} <br/><b>{user.first_name} {user.last_name}</b>?</p>
           <div className="flex justify-center gap-3 mt-8">
-            <button onClick={() => setIsDeleteOpen(false)} className="px-6 py-2 bg-gray-100 rounded-lg font-bold text-gray-500">Отмена</button>
-            <button onClick={async () => { await deleteUserApi(user.id); navigate('/users'); }} className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold">Да, удалить</button>
+            <button onClick={() => setIsDeleteOpen(false)} className="px-6 py-2 bg-gray-100 rounded-lg font-bold text-gray-500">{t('common.cancel')}</button>
+            <button onClick={async () => { await deleteUserApi(user.id); navigate('/users'); }} className="px-6 py-2 bg-red-500 text-white rounded-lg font-bold">{t('common.delete')}</button>
           </div>
         </div>
       </Modal>

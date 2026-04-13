@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fetchTasksApi } from '../services/taskService';
 import { TaskFilters } from '../components/TasksPage/TaskFilters';
 import { TaskTable } from '../components/TasksPage/TaskTable';
@@ -7,6 +8,7 @@ import { fetchUsersListApi } from '../services/userService';
 import { fetchTagsListApi } from '../services/tagService';
 
 export const ArchivePage = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState({ results: [], count: 0 });
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,7 +41,7 @@ export const ArchivePage = () => {
       });
       setData(res);
     } catch (err) {
-      console.error("Ошибка загрузки архива:", err);
+      console.error("Error loading archive:", err);
     } finally {
       setLoading(false);
     }
@@ -84,7 +86,7 @@ export const ArchivePage = () => {
       
       <div className="flex-1 overflow-hidden mt-4">
         {loading ? (
-          <div className="p-10 text-center text-gray-400">Загрузка архива...</div>
+          <div className="p-10 text-center text-gray-400">{t('common.loading')}</div>
         ) : (
           <TaskTable tasks={data.results} />
         )}
